@@ -16,7 +16,7 @@
     
 }
 
-.div_buttons button {
+.div_buttons > button {
     display: flex;
     flex-direction: row;
     align-items: center;
@@ -30,7 +30,8 @@
     border-radius: 10px;
     background-color: var(--button_bg);
     box-shadow: 0px 3px 3px rgb(117, 117, 117);
-}
+} 
+ 
 
 .div_buttons img {
     filter: brightness(0);
@@ -61,3 +62,99 @@
     height: 24px;
 }
 
+
+
+
+.dashboard_button, .coucil_btn, .report_btn {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    margin: 25px 14px 0;
+    padding: 0 20px;
+    width: 14vw;
+    height: 10vh;
+    font-weight: bold;
+    font-size: 1.25rem;
+    border-radius: 10px;
+    
+
+}
+
+
+/* dropdown */
+.dropdown {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 10px 0;
+}
+
+/* qnd clicar no btn conselho */
+.coucil_btn.active, .sub_button.active {
+    background-color: red;
+}
+
+
+/* 
+drop do conselho final */
+.dropdown_inner {
+  margin-top: 10px;
+  padding: 10px;
+  background: #eee;
+  border-radius: 10px;
+}
+
+.filtro {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.actions {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 10px;
+}
+
+.btn_clear {
+  background: gray;
+ 
+  border: none;
+  padding: 8px;
+  border-radius: 6px;
+}
+
+.btn_search {
+  background: red;
+  border: none;
+  padding: 8px;
+  border-radius: 6px;
+}
+
+
+/* buttons */
+.dropdown {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 10px 0;
+}
+
+.sub_button {
+  background: #ccc;
+  border: none;
+  padding: 10px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.sub_button.active {
+  background: red;
+  color: white;
+}
+
+.rotate {
+  transform: rotate(90deg);
+  transition: 0.3s;
+}
