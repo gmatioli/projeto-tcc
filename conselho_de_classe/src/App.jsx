@@ -3,6 +3,7 @@ import './App.css'
 import './components/header/header.jsx'
 import { Header } from './components/header/header.jsx'
 import { Sidebar } from './components/sidebar/sidebar.jsx'
+import { ConselhoIntermediario } from './components/conselho-intermediario/conselho-intermediario.jsx'
 
 function App() {
   const [count, setCount] = useState(0)
@@ -10,7 +11,12 @@ function App() {
   return (
     <>
       <Header/>
-      <Sidebar/>
+      <div className="main-container">
+      <Sidebar />
+      <main className="content">
+        <ConselhoIntermediario />
+      </main>
+    </div>
       
     </>
   )

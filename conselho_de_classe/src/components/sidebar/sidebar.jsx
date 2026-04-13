@@ -1,10 +1,9 @@
 import './sidebar-style.css'
-import dashboardIcon from '../../assets/dashboard-icon.svg';
-import councilIcon from '../../assets/council-icon.svg';
-import reportIcon from '../../assets/report-icon.svg';
-import configIcon from '../../assets/config-icon.svg';
-
-import arrowRightIcon from '../../assets/right-arrow-icon.svg';
+import dashboardIcon from '../../assets/sidebar/dashboard-icon.svg';
+import councilIcon from '../../assets/sidebar/council-icon.svg';
+import reportIcon from '../../assets/sidebar/report-icon.svg';
+import configIcon from '../../assets/sidebar/config-icon.svg';
+import arrowRightIcon from '../../assets/sidebar/right-arrow-icon.svg';
 
 export function Sidebar() {
 
@@ -24,7 +23,7 @@ export function Sidebar() {
                 </button>
                 <button className="report_btn">
                     <img src={reportIcon} alt="" />
-                    <p>Dashboard</p>
+                    <p>Relatórios</p>
                     <img src={arrowRightIcon} alt="" />
                 </button>
             </div>
