@@ -9,10 +9,20 @@
 
 :root {
   --font_inter: "Inter", sans-serif;
+  --font_light: #FFF;
+  --font_dark: #000;
+
 
   --header_bg: #CBCBCB;
   --sidebar_bg: #DDD;
-  --buuton_bg: #E2E2E2
+  --button_bg: #E2E2E2;
+  --green: #00AD20;
+  --yellow: #D26900;
+  --red: #C30000;
+  --green_card_bg: #EEFFED;
+  --yellow_card_bg: #FFFEE3;
+  --red_card_bg: #FFF0F0;
+  --red_bg: #991B1B;
 
 }
 
