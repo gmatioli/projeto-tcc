@@ -11,24 +11,24 @@ export function Sidebar() {
       <section>
         <div className="background_sidebar">
             <div className='div_buttons'>
-                <button className="dashboard_button">
+                <button className="btn_dashboard">
                     <img src={dashboardIcon} alt="" />
                     <p>Dashboard</p>
                     <img src={arrowRightIcon} alt="" />
                 </button>
-                <button className="coucil_btn">
+                <button className="btn_conselho">
                     <img src={councilIcon} alt="" />
                     <p>Conselhos</p>
                     <img src={arrowRightIcon} alt="" />
                 </button>
-                <button className="report_btn">
+                <button className="btn_relatorio">
                     <img src={reportIcon} alt="" />
                     <p>Relatórios</p>
                     <img src={arrowRightIcon} alt="" />
                 </button>
             </div>
             <div className="div_config">
-                <button className="config_btn">
+                <button className="btn_config">
                     <img src={configIcon} alt="" />
                     <p>Configurações</p>
                 </button>

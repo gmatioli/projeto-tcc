@@ -76,8 +76,8 @@ export function ConselhoIntermediario() {
                         <div className="div_observacoes">
                             <p>Ver Observações</p>
                             <p>({intObservacoes})</p>
-                            
                         </div>
+                        <button className="btn_registro"></button>
                         
 
                     </div>

@@ -12,7 +12,7 @@ export function Header() {
             <h3>Admin</h3>
             <p>Administrador</p>
           </div>
-          <div className="header_profile_image">
+          <div className="header_profile_img">
             <img src="/img/profile-icon.png" alt="Icone do perfil" />
           </div>
         </div>
