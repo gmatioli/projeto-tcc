@@ -1,0 +1,46 @@
+.header {
+  min-height: 8vh;
+  background: var(--header_bg);
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.header_logo {
+  margin-left: 28px;
+}
+
+.header_logo img {
+  width: 280px;
+  height: 71.8px;
+}
+
+.header_profile {
+  display: flex;
+  gap: 8px;
+  margin-right: 28px;
+}
+
+.header_profile_name {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.header_profile_name h3 {
+  font-family: var(--font_inter);
+  font-size: 1.5rem;
+}
+
+.header_profile_name p {
+  font-family: var(--font_inter);
+  font-size: 0.75rem;
+  text-align: end;
+}
+
+.header_profile_image img {
+  width: 70px;
+  height: 70px;
+  border-radius: 100%;
+}
