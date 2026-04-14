@@ -1,0 +1,122 @@
+.content_conselho_intermediario {
+    min-width: calc(82vw - 40px);
+    margin: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 150px;
+}
+
+.cards_turma_info {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+}
+
+.card_total_alunos {
+    
+}
+
+.cards_turma_info .card_total_alunos, .card_situacao_normal, .card_restritos, .card_retidos {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    border: 1px solid black;
+    border-radius: 15px;
+    padding: 0 20px;
+}
+
+.card_total_alunos {
+    background-color: var(--font_light);
+}
+
+.card_situacao_normal {
+    border: 1px solid var(--green);
+    background: var(--green_card_bg);
+    color: var(--green);
+}
+
+.card_restritos {
+    border: 1px solid var(--yellow);
+    background: var(--yellow_card_bg);
+    color: var(--yellow);
+}
+
+.card_retidos {
+    border: 1px solid var(--red);
+    background: var(--red_card_bg);
+    color: var(--red);
+}
+
+.int_text_total_alunos {
+    align-items: center;
+}
+
+.cards_turma_info .icon{
+    display: flex;
+    align-items: end;
+    justify-content: end;
+    margin: 0;
+}
+
+.cards_turma_info .icon img{
+    width: 40px;
+}
+
+.buttons_avaliacoes {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding: 20px;
+}
+
+.buttons_avaliacoes button {
+    padding: 10px;
+    width: 350px;
+    border-radius: 15px;
+}
+
+.avaliar_selecionados {
+    background-color: var(--red_bg);
+    color: var(--font_light);
+}
+
+.card_alunos {
+    display: flex;
+    flex-direction: column;
+
+}
+
+.top_tabela_alunos {
+    display: flex;
+    justify-content: space-between;
+}
+
+.checkbox_selecionar_tudo {
+    display: flex;
+    flex-direction: row;
+    gap: 8px;
+}
+
+.div_aluno {
+    border: 1px solid black;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    margin: 10px; 
+    padding: 10px;
+    
+    
+}
+
+.div_aluno_info {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
+}
+
+.div_observacoes {
+    display: flex;
+}
+
