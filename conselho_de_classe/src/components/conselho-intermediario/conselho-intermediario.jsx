@@ -28,22 +28,28 @@ export function ConselhoIntermediario() {
                     </div>
                 </div>
                 <div className="card_situacao_normal">
-                    <h3 className="int_situacao_normal">{intSituacaoNormal}</h3>
-                    <p className="text_situacao_normal">Total de Alunos</p>
+                    <div className="int_text_situacao_normal">
+                        <h3 className="int_situacao_normal">{intSituacaoNormal}</h3>
+                        <p className="text_situacao_normal">Total de Alunos</p>
+                    </div>
                     <div className="icon">
                         <img src={situacaoNormalIcon} alt="" />
                     </div>
                 </div>
                 <div className="card_restritos">
-                    <h3 className="int_restritos">{intRestritos}</h3>
-                    <p className="text_restritos">Total de Alunos</p>
+                    <div className="int_text_restritos">
+                        <h3 className="int_restritos">{intRestritos}</h3>
+                        <p className="text_restritos">Total de Alunos</p>
+                    </div>
                     <div className="icon">
                         <img src={restritosIcon} alt="" />
                     </div>
                 </div>
                 <div className="card_retidos">
-                    <h3 className="int_retidos">{intRetidos}</h3>
-                    <p className="text_retidos">Total de Alunos</p>
+                    <div className="int_text_retidos">
+                        <h3 className="int_retidos">{intRetidos}</h3>
+                        <p className="text_retidos">Total de Alunos</p>
+                    </div>
                     <div className="icon">
                         <img src={retidosIcon} alt="" />
                     </div>
@@ -65,31 +71,274 @@ export function ConselhoIntermediario() {
             <div className="card_alunos">
                 <div className="top_tabela_alunos">
                     <div className="checkbox_selecionar_tudo">
-                        <input type="checkbox" name="" id="" />
+                        <input type="checkbox" id="checkbox_selecionar_tudo" />
                         <p>Selecionar Tudo</p>
                     </div>
                     <div className="quatidade_alunos_selecionados">
                         <p>Alunos Selecionados: 0</p>
                     </div>
                 </div>
-                <div className="tabela_alunos">
-                    <div className="div_aluno">
-                        <div className="div_aluno_info">
-                            <input type="checkbox" name="" id="" />
-                            <p>Jorge Marques de Salves</p>
-                            <img src={notificationIcon} alt="" />
-                            <div className="div_observacoes">
-                                <p>Ver Observações</p>
-                                <p>({intObservacoes})</p>
+                <div className="container_tabela_alunos">
+                    <div className="tabela_alunos">
+                            <div className="div_aluno">
+                                <div className="div_aluno_info">
+                                    <input type="checkbox" id="checkbox_aluno" />
+                                    <p>Jorge Marques de Salves</p>
+                                    <div className="img_text_observacoes">
+                                        <img src={notificationIcon} alt="" />
+                                        <div className="div_observacoes">
+                                            <p>Ver Observações</p>
+                                            <p>({intObservacoes})</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="div_btn_restrito">
+                                    <button className="btn_restrito">Restrito</button>
+                                </div>
                             </div>
-                        </div>
-                        <div className="div_btn_restrito">
-                            <button className="btn_restrito">Restrito</button>
-                        </div>
-                        
+                            <hr />
+                            <div className="div_aluno">
+                                <div className="div_aluno_info">
+                                    <input type="checkbox" id="checkbox_aluno" />
+                                    <p>Jorge Marques de Salves</p>
+                                    <div className="img_text_observacoes">
+                                        <img src={notificationIcon} alt="" />
+                                        <div className="div_observacoes">
+                                            <p>Ver Observações</p>
+                                            <p>({intObservacoes})</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="div_btn_restrito">
+                                    <button className="btn_restrito">Restrito</button>
+                                </div>
+                            </div>
+                            <hr />
+                            <div className="div_aluno">
+                                <div className="div_aluno_info">
+                                    <input type="checkbox" id="checkbox_aluno" />
+                                    <p>Jorge Marques de Salves</p>
+                                    <div className="img_text_observacoes">
+                                        <img src={notificationIcon} alt="" />
+                                        <div className="div_observacoes">
+                                            <p>Ver Observações</p>
+                                            <p>({intObservacoes})</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="div_btn_restrito">
+                                    <button className="btn_restrito">Restrito</button>
+                                </div>
+                            </div>
+                            <hr />
+                            <div className="div_aluno">
+                                <div className="div_aluno_info">
+                                    <input type="checkbox" id="checkbox_aluno" />
+                                    <p>Jorge Marques de Salves</p>
+                                    <div className="img_text_observacoes">
+                                        <img src={notificationIcon} alt="" />
+                                        <div className="div_observacoes">
+                                            <p>Ver Observações</p>
+                                            <p>({intObservacoes})</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="div_btn_restrito">
+                                    <button className="btn_restrito">Restrito</button>
+                                </div>
+                            </div>
+                            <hr />
+                            <div className="div_aluno">
+                                <div className="div_aluno_info">
+                                    <input type="checkbox" id="checkbox_aluno" />
+                                    <p>Jorge Marques de Salves</p>
+                                    <div className="img_text_observacoes">
+                                        <img src={notificationIcon} alt="" />
+                                        <div className="div_observacoes">
+                                            <p>Ver Observações</p>
+                                            <p>({intObservacoes})</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="div_btn_restrito">
+                                    <button className="btn_restrito">Restrito</button>
+                                </div>
+                            </div>
+                            <hr />
+                            <div className="div_aluno">
+                                <div className="div_aluno_info">
+                                    <input type="checkbox" id="checkbox_aluno" />
+                                    <p>Jorge Marques de Salves</p>
+                                    <div className="img_text_observacoes">
+                                        <img src={notificationIcon} alt="" />
+                                        <div className="div_observacoes">
+                                            <p>Ver Observações</p>
+                                            <p>({intObservacoes})</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="div_btn_restrito">
+                                    <button className="btn_restrito">Restrito</button>
+                                </div>
+                            </div>
+                            <hr />
+                            <div className="div_aluno">
+                                <div className="div_aluno_info">
+                                    <input type="checkbox" id="checkbox_aluno" />
+                                    <p>Jorge Marques de Salves</p>
+                                    <div className="img_text_observacoes">
+                                        <img src={notificationIcon} alt="" />
+                                        <div className="div_observacoes">
+                                            <p>Ver Observações</p>
+                                            <p>({intObservacoes})</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="div_btn_restrito">
+                                    <button className="btn_restrito">Restrito</button>
+                                </div>
+                            </div>
+                            <hr />
+                            <div className="div_aluno">
+                                <div className="div_aluno_info">
+                                    <input type="checkbox" id="checkbox_aluno" />
+                                    <p>Jorge Marques de Salves</p>
+                                    <div className="img_text_observacoes">
+                                        <img src={notificationIcon} alt="" />
+                                        <div className="div_observacoes">
+                                            <p>Ver Observações</p>
+                                            <p>({intObservacoes})</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="div_btn_restrito">
+                                    <button className="btn_restrito">Restrito</button>
+                                </div>
+                            </div>
+                            <hr />
+                            <div className="div_aluno">
+                                <div className="div_aluno_info">
+                                    <input type="checkbox" id="checkbox_aluno" />
+                                    <p>Jorge Marques de Salves</p>
+                                    <div className="img_text_observacoes">
+                                        <img src={notificationIcon} alt="" />
+                                        <div className="div_observacoes">
+                                            <p>Ver Observações</p>
+                                            <p>({intObservacoes})</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="div_btn_restrito">
+                                    <button className="btn_restrito">Restrito</button>
+                                </div>
+                            </div>
+                            <hr />
+                            <div className="div_aluno">
+                                <div className="div_aluno_info">
+                                    <input type="checkbox" id="checkbox_aluno" />
+                                    <p>Jorge Marques de Salves</p>
+                                    <div className="img_text_observacoes">
+                                        <img src={notificationIcon} alt="" />
+                                        <div className="div_observacoes">
+                                            <p>Ver Observações</p>
+                                            <p>({intObservacoes})</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="div_btn_restrito">
+                                    <button className="btn_restrito">Restrito</button>
+                                </div>
+                            </div>
+                            <hr />
+                            <div className="div_aluno">
+                                <div className="div_aluno_info">
+                                    <input type="checkbox" id="checkbox_aluno" />
+                                    <p>Jorge Marques de Salves</p>
+                                    <div className="img_text_observacoes">
+                                        <img src={notificationIcon} alt="" />
+                                        <div className="div_observacoes">
+                                            <p>Ver Observações</p>
+                                            <p>({intObservacoes})</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="div_btn_restrito">
+                                    <button className="btn_restrito">Restrito</button>
+                                </div>
+                            </div>
+                            <hr />
+                            <div className="div_aluno">
+                                <div className="div_aluno_info">
+                                    <input type="checkbox" id="checkbox_aluno" />
+                                    <p>Jorge Marques de Salves</p>
+                                    <div className="img_text_observacoes">
+                                        <img src={notificationIcon} alt="" />
+                                        <div className="div_observacoes">
+                                            <p>Ver Observações</p>
+                                            <p>({intObservacoes})</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="div_btn_restrito">
+                                    <button className="btn_restrito">Restrito</button>
+                                </div>
+                            </div>
+                            <hr />
+                            <div className="div_aluno">
+                                <div className="div_aluno_info">
+                                    <input type="checkbox" id="checkbox_aluno" />
+                                    <p>Jorge Marques de Salves</p>
+                                    <div className="img_text_observacoes">
+                                        <img src={notificationIcon} alt="" />
+                                        <div className="div_observacoes">
+                                            <p>Ver Observações</p>
+                                            <p>({intObservacoes})</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="div_btn_restrito">
+                                    <button className="btn_restrito">Restrito</button>
+                                </div>
+                            </div>
+                            <hr />
+                            <div className="div_aluno">
+                                <div className="div_aluno_info">
+                                    <input type="checkbox" id="checkbox_aluno" />
+                                    <p>Jorge Marques de Salves</p>
+                                    <div className="img_text_observacoes">
+                                        <img src={notificationIcon} alt="" />
+                                        <div className="div_observacoes">
+                                            <p>Ver Observações</p>
+                                            <p>({intObservacoes})</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="div_btn_restrito">
+                                    <button className="btn_restrito">Restrito</button>
+                                </div>
+                            </div>
+                            <hr />
+                            <div className="div_aluno">
+                                <div className="div_aluno_info">
+                                    <input type="checkbox" id="checkbox_aluno" />
+                                    <p>Jorge Marques de Salves</p>
+                                    <div className="img_text_observacoes">
+                                        <img src={notificationIcon} alt="" />
+                                        <div className="div_observacoes">
+                                            <p>Ver Observações</p>
+                                            <p>({intObservacoes})</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="div_btn_restrito">
+                                    <button className="btn_restrito">Restrito</button>
+                                </div>
+                            </div>
+                            <hr />
+                            
                     </div>
-                    
                 </div>
+                
             </div>
         </div>
       </section>

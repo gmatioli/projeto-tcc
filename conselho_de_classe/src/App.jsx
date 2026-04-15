@@ -9,16 +9,15 @@ function App() {
   const [count, setCount] = useState(0)
 
   return (
-    <>
-      <Header/>
-      <div className="main-container">
+    <div className="app-wrapper">
+    <Header /> {/* Fica no topo */}
+    <div className="main-container">
       <Sidebar />
-      <main className="content">
+      <main className="content-area">
         <ConselhoIntermediario />
       </main>
     </div>
-      
-    </>
+  </div>
   )
 }
 

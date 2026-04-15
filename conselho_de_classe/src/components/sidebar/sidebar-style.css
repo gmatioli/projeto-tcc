@@ -1,11 +1,12 @@
 .background_sidebar {
     background-color: var(--sidebar_bg);
     width: 18vw;
-    height: 92vh;
+    height: 100%; 
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: space-between;
+    border-right: 1px solid #ccc;
 }
 
 .div_buttons {
