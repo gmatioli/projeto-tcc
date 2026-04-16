@@ -4,9 +4,10 @@ import councilIcon from '../../assets/sidebar/council-icon.svg';
 import reportIcon from '../../assets/sidebar/report-icon.svg';
 import configIcon from '../../assets/sidebar/config-icon.svg';
 import arrowRightIcon from '../../assets/sidebar/right-arrow-icon.svg';
+import { useNavigate } from 'react-router-dom';
 
 export function Sidebar() {
-
+  const navigate = useNavigate();
   return (
       <section>
         <div className="background_sidebar">
@@ -28,7 +29,7 @@ export function Sidebar() {
                 </button>
             </div>
             <div className="div_config">
-                <button className="btn_config">
+                <button className="btn_config" style={{ cursor: 'pointer' }}  onClick={() => navigate('/configuracoes')}>
                     <img src={configIcon} alt="" />
                     <p>Configurações</p>
                 </button>

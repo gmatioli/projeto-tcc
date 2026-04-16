@@ -6,9 +6,10 @@ import './App.css';
 import Login from './pages/Login'; 
 
 // 2. Importe os seus componentes visuais
-import { Header } from './components/header/header.jsx';
+import { Header } from './components/header/Header.jsx';
 import { Sidebar } from './components/sidebar/sidebar.jsx';
-import { ConselhoIntermediario } from './components/conselho-intermediario/conselho-intermediario.jsx';
+import { ConselhoIntermediario } from './components/conselho-intermediario/Conselho-intermediario.jsx';
+import { Configuracoes } from './pages/Configuracoes/Configuracoes.jsx';
 
 // --- CRIANDO O MOLDE DO PAINEL ---
 // Esse componente vai envelopar as telas que precisam de menu e cabeçalho
@@ -32,13 +33,27 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Rota 1: Tela Inicial (Login puro, sem barras) */}
         <Route path="/" element={<Login />} />
+        
+        {/* LayoutDoSistema envelopa as rotas protegidas */}
+        <Route path="/conselhointermediario" element={<LayoutDoSistema />}>
+          {/* Se tiver sub-rotas, você pode configurar, ou usar rotas irmãs */}
+        </Route>
 
-        {/* Rota 2: O Sistema (Com barras e o Conselho) */}
-        <Route path="/dashboard" element={<LayoutDoSistema />} />
+        {/* Nova Rota para Configurações usando o mesmo molde! */}
+        <Route path="/configuracoes" element={
+          <div className="app-wrapper">
+            <Header />
+            <div className="main-container">
+              <Sidebar />
+              <main className="content-area">
+                <Configuracoes /> {/* A nova tela entra aqui! */}
+              </main>
+            </div>
+          </div>
+        } />
       </Routes>
-    </BrowserRouter>
+  </BrowserRouter>
   );
 }
 
