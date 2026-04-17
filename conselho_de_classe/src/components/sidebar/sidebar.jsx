@@ -5,13 +5,16 @@ import councilIcon from '../../assets/sidebar/council-icon.svg';
 import reportIcon from '../../assets/sidebar/report-icon.svg';
 import configIcon from '../../assets/sidebar/config-icon.svg';
 import arrowRightIcon from '../../assets/sidebar/right-arrow-icon.svg';
+import { useNavigate } from 'react-router-dom';
 
 export function Sidebar() {
+  const navigate = useNavigate();
+
   // Estado para controlar se o submenu "Conselhos" inteiro está visível
   const [menuConselhoAberto, setMenuConselhoAberto] = useState(false);
   
   // Estado para saber qual filtro está aberto (null, 'intermediario', 'pre', ou 'final')
-  const [abaAberta, setAbaAberta] = useState(null); // Mudei para null como padrão para iniciar fechado
+  const [abaAberta, setAbaAberta] = useState(null);
 
   const toggleAba = (aba) => {
     setAbaAberta(abaAberta === aba ? null : aba);
@@ -62,7 +65,7 @@ export function Sidebar() {
       <div className="background_sidebar">
         <div className='div_buttons'>
           
-          <button className="btn_dashboard">
+          <button className="btn_dashboard" onClick={() => navigate('/dashboard')}>
             <img src={dashboardIcon} alt="Ícone Dashboard" />
             <p>Dashboard</p>
             <img src={arrowRightIcon} alt="Seta direita" />
@@ -72,7 +75,6 @@ export function Sidebar() {
           <button className="btn_conselho" onClick={toggleMenuConselho}>
             <img src={councilIcon} alt="Ícone Conselhos" />
             <p>Conselhos</p>
-            {/* Adicionei uma classe condicional para girar a setinha no CSS se quiser */}
             <img 
               src={arrowRightIcon} 
               alt="Seta direita" 
@@ -121,7 +123,7 @@ export function Sidebar() {
         </div>
         
         <div className="div_config">
-          <button className="btn_config">
+          <button className="btn_config" style={{ cursor: 'pointer' }} onClick={() => navigate('/configuracoes')}>
             <img src={configIcon} alt="Ícone Configurações" />
             <p>Configurações</p>
           </button>
