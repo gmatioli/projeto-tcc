@@ -1,7 +1,11 @@
 import React from 'react';
 import './configuracoes.css';
+import { useNavigate } from 'react-router-dom';
 
 export function Configuracoes() {
+  const navigate = useNavigate();
+
+
   return (
     <div className="configuracoes-wrapper">
       <h2 className="titulo-pagina">Configurações</h2>
@@ -33,7 +37,7 @@ export function Configuracoes() {
           <div className="coluna-dir">
             <div className="linha-acao">
               <label>Cadastrar Novo Usuário:</label>
-              <button className="btn-acao">Cadastrar</button>
+              <button className="btn-acao" onClick={() => navigate('/cadastrarusuario')}>Cadastrar</button>
             </div>
             
             <div className="linha-acao">
