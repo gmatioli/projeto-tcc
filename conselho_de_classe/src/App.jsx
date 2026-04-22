@@ -3,13 +3,14 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import './App.css';
 
 // 1. Importe a sua tela de Login (ajuste o caminho se necessário)
-import Login from './pages/Login'; 
+import Login from './pages/Login/Login.jsx'; 
 
 // 2. Importe os seus componentes visuais
 import { Header } from './components/header/Header.jsx';
 import { Sidebar } from './components/sidebar/sidebar.jsx';
 import { ConselhoIntermediario } from './components/conselho-intermediario/Conselho-intermediario.jsx';
 import { Configuracoes } from './pages/Configuracoes/Configuracoes.jsx';
+import { Cadastro } from './pages/Cadastro/Cadastro.jsx';
 
 // --- CRIANDO O MOLDE DO PAINEL ---
 // Esse componente vai envelopar as telas que precisam de menu e cabeçalho
@@ -52,7 +53,18 @@ function App() {
             </div>
           </div>
         } />
+
+        <Route path="/cadastrarusuario" element={
+        
+          <Cadastro/>
+              
+        } >
+        </Route>
+
       </Routes>
+
+     
+
   </BrowserRouter>
   );
 }

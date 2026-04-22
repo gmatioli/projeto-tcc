@@ -55,7 +55,7 @@ export function Sidebar() {
 
       <div className="botoes_filtro">
         <button className="btn_limpar">Limpar Filtro ⟲</button>
-        <button className="btn_pesquisar">Pesquisar 🔍</button>
+        <button className="btn_pesquisar" onClick={()=> navigate('/conselhointermediario')}>Pesquisar 🔍</button>
       </div>
     </div>
   );
