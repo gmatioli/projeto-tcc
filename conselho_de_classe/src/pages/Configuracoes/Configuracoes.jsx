@@ -42,7 +42,7 @@ export function Configuracoes() {
             
             <div className="linha-acao">
               <label>Recuperar/Alterar Senha:</label>
-              <button className="btn-acao">Recuperar</button>
+              <button className="btn-acao"  onClick={() => navigate('/recuperarsenha')}>Recuperar</button>
             </div>
             
             <div className="linha-acao">

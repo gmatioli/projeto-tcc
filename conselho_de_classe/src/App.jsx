@@ -1,8 +1,9 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+// IMPORTANTE: Adicionei o Outlet aqui no import do react-router-dom!
+import { BrowserRouter, Routes, Route, Outlet } from 'react-router-dom'; 
 import './App.css';
 
-// 1. Importe a sua tela de Login (ajuste o caminho se necessário)
+// 1. Importe a sua tela de Login
 import Login from './pages/Login/Login.jsx'; 
 
 // 2. Importe os seus componentes visuais
@@ -11,18 +12,20 @@ import { Sidebar } from './components/sidebar/sidebar.jsx';
 import { ConselhoIntermediario } from './components/conselho-intermediario/Conselho-intermediario.jsx';
 import { Configuracoes } from './pages/Configuracoes/Configuracoes.jsx';
 import { Cadastro } from './pages/Cadastro/Cadastro.jsx';
+import { Senha } from './pages/Senha/Senha.jsx'; 
+import { Perfil } from './pages/Perfil/Perfil.jsx';
+import { Dashboard } from './pages/Dashboard.jsx';
 
 // --- CRIANDO O MOLDE DO PAINEL ---
-// Esse componente vai envelopar as telas que precisam de menu e cabeçalho
 function LayoutDoSistema() {
   return (
     <div className="app-wrapper">
       <Header /> {/* Fica no topo */}
       <div className="main-container">
-        <Sidebar />
+        <Sidebar /> {/* Fica na lateral */}
         <main className="content-area">
-          {/* Aqui dentro vai o conteúdo principal */}
-          <ConselhoIntermediario />
+          {/* A MÁGICA: O Outlet é o espaço onde as páginas vão aparecer! */}
+          <Outlet /> 
         </main>
       </div>
     </div>
@@ -34,38 +37,24 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
+
+        {/* Rota Livre: Login não usa o Molde */}
         <Route path="/" element={<Login />} />
         
-        {/* LayoutDoSistema envelopa as rotas protegidas */}
-        <Route path="/conselhointermediario" element={<LayoutDoSistema />}>
-          {/* Se tiver sub-rotas, você pode configurar, ou usar rotas irmãs */}
+        {/* Bloco de Rotas que USAM o Molde (Header e Sidebar) */}
+        <Route element={<LayoutDoSistema />}>
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/conselhointermediario" element={<ConselhoIntermediario />} />
+          <Route path="/configuracoes" element={<Configuracoes />} />
+          <Route path="/perfil" element={<Perfil />} />
+
         </Route>
 
-        {/* Nova Rota para Configurações usando o mesmo molde! */}
-        <Route path="/configuracoes" element={
-          <div className="app-wrapper">
-            <Header />
-            <div className="main-container">
-              <Sidebar />
-              <main className="content-area">
-                <Configuracoes /> {/* A nova tela entra aqui! */}
-              </main>
-            </div>
-          </div>
-        } />
-
-        <Route path="/cadastrarusuario" element={
-        
-          <Cadastro/>
-              
-        } >
-        </Route>
+        <Route path="/cadastrarusuario" element={<Cadastro />} /> 
+        <Route path="/recuperarsenha" element={<Senha />} /> 
 
       </Routes>
-
-     
-
-  </BrowserRouter>
+    </BrowserRouter>
   );
 }
 

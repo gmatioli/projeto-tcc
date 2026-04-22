@@ -75,6 +75,76 @@ app.post('/login', (req, res) => {
   });
 });
 
+
+// ==========================================
+// ROTA 3: LISTAR USUÁRIOS (GET)
+// ==========================================
+app.get('/usuarios', (req, res) => {
+  // Busca apenas o ID e o Nome (não precisamos trazer a senha pro frontend!)
+  const sql = "SELECT idUsuario, nomeUsuario FROM Usuario ORDER BY nomeUsuario ASC";
+  
+  db.query(sql, (err, results) => {
+    if (err) {
+      console.error("Erro ao buscar usuários:", err);
+      return res.status(500).json({ sucesso: false, mensagem: "Erro ao buscar a lista de usuários." });
+    }
+    res.json({ sucesso: true, usuarios: results });
+  });
+});
+
+// ==========================================
+// ROTA 4: ATUALIZAR SENHA DO USUÁRIO (PUT)
+// ==========================================
+app.put('/usuarios/senha', async (req, res) => {
+  const { idUsuario, novaSenha } = req.body;
+
+  try {
+    // 1. Criptografa a nova senha gerada pelo admin
+    const salt = await bcrypt.genSalt(10);
+    const senhaCriptografada = await bcrypt.hash(novaSenha, salt);
+
+    // 2. Atualiza no banco de dados
+    const sql = "UPDATE Usuario SET senha = ? WHERE idUsuario = ?";
+    
+    db.query(sql, [senhaCriptografada, idUsuario], (err, results) => {
+      if (err) {
+        console.error("Erro ao atualizar senha:", err);
+        return res.status(500).json({ sucesso: false, mensagem: "Erro ao atualizar a senha no banco." });
+      }
+      res.json({ sucesso: true, mensagem: "Senha atualizada com sucesso!" });
+    });
+
+  } catch (erro) {
+    console.error("Erro interno:", erro);
+    res.status(500).json({ sucesso: false, mensagem: "Erro interno no servidor." });
+  }
+});
+
+// ==========================================
+// ROTA 5: BUSCAR DADOS DO PERFIL (GET)
+// ==========================================
+app.get('/perfil/:email', (req, res) => {
+  const emailLogado = req.params.email;
+  
+  const sql = "SELECT nomeUsuario, emailInstitucional, nivelAcesso FROM Usuario WHERE emailInstitucional = ?";  
+  
+  db.query(sql, [emailLogado], (err, results) => {
+    if (err) {
+      console.error("Erro ao buscar perfil:", err);
+      return res.status(500).json({ sucesso: false, mensagem: "Erro no servidor." });
+    }
+    
+    // Se encontrou o usuário, devolve os dados para o React
+    if (results.length > 0) {
+      res.json({ sucesso: true, usuario: results[0] });
+    } else {
+      res.status(404).json({ sucesso: false, mensagem: "Usuário não encontrado." });
+    }
+  });
+});
+
+
+
 // --- INICIALIZAÇÃO DO SERVIDOR ---
 // Isso sempre tem que ser a última coisa do arquivo!
 app.listen(3001, () => {

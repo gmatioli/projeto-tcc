@@ -1,0 +1,121 @@
+/* Container principal */
+.perfil-wrapper {
+  padding: 20px 40px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.perfil-titulo-pagina {
+  font-size: 16px;
+  font-weight: normal;
+  margin-bottom: 20px;
+  color: #111;
+}
+
+/* O Cartão Branco */
+.perfil-card {
+  background-color: #f9f9f9;
+  border-radius: 16px;
+  border: 1px solid #ddd;
+  display: flex;
+  padding: 40px;
+  max-width: 800px;
+  /* Uma leve sombrinha para destacar do fundo */
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05); 
+}
+
+/* ================================
+   COLUNA ESQUERDA (Foto)
+================================ */
+.perfil-coluna-esq {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding-right: 50px; /* Dá um espaço antes da linha divisória */
+}
+
+.perfil-circulo-foto {
+  width: 140px;
+  height: 140px;
+  background-color: #d9d9d9;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 20px;
+  border: 1px solid #aaa;
+}
+
+.btn-carregar-foto {
+  display: flex;
+  align-items: center;
+  background-color: transparent;
+  border: 1px solid #777;
+  border-radius: 20px;
+  padding: 8px 16px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+.btn-carregar-foto:hover {
+  background-color: #e5e5e5;
+}
+
+/* ================================
+   COLUNA DIREITA (Dados)
+================================ */
+.perfil-coluna-dir {
+  flex-grow: 1; /* Ocupa todo o resto do espaço */
+  padding-left: 50px;
+  border-left: 1px solid #999; /* <--- AQUI ESTÁ A LINHA DIVISÓRIA! */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.perfil-info-item {
+  margin-bottom: 18px;
+  font-size: 16px;
+  color: #111;
+}
+
+.perfil-info-item strong {
+  margin-right: 8px;
+  font-weight: bold;
+}
+
+/* Botões do Rodapé */
+.perfil-acoes {
+  display: flex;
+  gap: 15px;
+  margin-top: 30px;
+}
+
+.btn-fechar-perfil,
+.btn-salvar-perfil {
+  padding: 10px 40px;
+  border-radius: 8px;
+  font-size: 14px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: opacity 0.2s;
+}
+
+.btn-fechar-perfil {
+  background-color: #e5e5e5;
+  border: 1px solid #999;
+  color: #333;
+}
+
+.btn-salvar-perfil {
+  background-color: #e3352f; /* Vermelho Senai */
+  border: 1px solid #c82333;
+  color: white;
+}
+
+.btn-fechar-perfil:hover,
+.btn-salvar-perfil:hover {
+  opacity: 0.8;
+}
+

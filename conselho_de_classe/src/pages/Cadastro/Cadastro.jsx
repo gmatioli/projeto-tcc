@@ -19,6 +19,7 @@ export function Cadastro() {
 
   const [gatilhoAnimacao, setGatilhoAnimacao] = useState(0);
 
+  // Para mudar título da página
   useEffect(() => {
     document.title = "Cadastro de Usuário | Sistema de Conselhos";
   }, []);
@@ -30,7 +31,7 @@ export function Cadastro() {
       return false;
     }
     
-    const emailValido = email.toLowerCase();
+  const emailValido = email.toLowerCase();
     if (!emailValido.includes('@') || !emailValido.includes('senai')) {
       setEmailErro('Por favor, utilize um email institucional válido do SENAI.');
       return false; 
