@@ -102,6 +102,10 @@
     color: var(--font_light);
 }
 
+.buttons_avaliacoes button:hover {
+    cursor: pointer;
+}
+
 .card_alunos {
     display: flex;
     flex-direction: column;
@@ -127,6 +131,9 @@
     gap: 8px;
 }
 
+#checkbox_selecionar_tudo:hover {
+    cursor: pointer;
+}
 
 
 .tabela_alunos {
@@ -187,11 +194,19 @@
     height: 20px;
 }
 
+#checkbox_aluno:hover {
+    cursor: pointer;
+}
+
 .img_text_observacoes {
     display: flex;
     align-items: center;
     margin: 0 5px;
     gap: 5px;
+}
+
+.img_text_observacoes:hover {
+    cursor: pointer;
 }
 
 .img_text_observacoes img {

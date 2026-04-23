@@ -1,3 +1,4 @@
+import React, { useState } from 'react';
 import './conselho-intermediario.css'
 
 import totalAlunosIcon from '../../assets/conselho-intermediario/total-alunos-icon.svg'
@@ -6,6 +7,10 @@ import restritosIcon from '../../assets/conselho-intermediario/restritos-icon.sv
 import retidosIcon from '../../assets/conselho-intermediario/retidos-icon.svg'
 import notificationIcon from '../../assets/conselho-intermediario/notification-icon.svg'
 
+import ModalAvaliacao from '../../components/modalAvaliacaoConselhoIntermediario/modalAvaliacao'; // Caminho para o componente criado acima
+
+  
+
 const intTotalAlunos = 20
 const intSituacaoNormal = 16
 const intRestritos = 4
@@ -13,6 +18,13 @@ const intRetidos = 0
 const intObservacoes = 3
 
 export function ConselhoIntermediario() {
+
+    // Estado que controla se o modal está aberto ou não
+    const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // Funções para manipular o estado
+    const handleOpenModal = () => setIsModalOpen(true);
+    const handleCloseModal = () => setIsModalOpen(false);
 
   return (
       <section>
@@ -56,16 +68,15 @@ export function ConselhoIntermediario() {
                 </div>
                 <div className="card_avaliacoes">
                     <div className="buttons_avaliacoes">
-                        <button className="avaliar_toda_turma">
-                            Avaliar Toda Turma
-                        </button>
                         <button className="limpar_selecao">
                             Limpar Seleção
                         </button>
-                        <button className="avaliar_selecionados">
+                        <button onClick={handleOpenModal} className="avaliar_selecionados">
                             Avaliar Selecionados
                         </button>
                     </div>
+                    {/* Renderiza o Modal passando o estado e a função de fechar */}
+                    <ModalAvaliacao isOpen={isModalOpen} onClose={handleCloseModal} />
                 </div>
             </div>
             <div className="card_alunos">

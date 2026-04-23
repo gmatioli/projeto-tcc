@@ -1,0 +1,176 @@
+/* Mantenha o resto do seu CSS igual e atualize apenas a parte de justificativa no final */
+
+/* --- CONTROLE DE LARGURA DAS COLUNAS (Tabela mais fina) --- */
+.thin-table .col-turma { width: 15%; }
+.thin-table .col-pre { width: 25%; }
+.thin-table .col-final { width: 15%; }
+.thin-table .col-justificativa { width: 45%; }
+
+/* --- ESTILIZAÇÃO DOS CAMPOS DE JUSTIFICATIVA (Leitura) --- */
+.justificativa-cell {
+  padding: 10px 12px !important;
+  vertical-align: middle;
+}
+
+.text-muted {
+  color: #fc3c3c; /* Cor um pouco mais clara para diferenciar dos dados principais */
+  font-size: 13px;
+  font-style: italic; /* Opcional: deixa o texto da justificativa em itálico */
+}
+
+/* ---------------- SEÇÃO SUPERIOR (LADO A LADO) ---------------- */
+.top-section {
+  display: flex;
+  gap: 15px; /* Espaço entre as tabelas e os botões */
+  align-items: flex-start;
+  width: 100%;
+}
+
+/* Define a proporção de espaço que cada tabela vai ocupar */
+.turmas-wrapper {
+  flex: 1.3; /* A tabela de turmas fica um pouquinho maior por ter 3 colunas */
+  overflow: hidden;
+}
+
+.justificativas-wrapper {
+  flex: 1; /* Ocupa exatamente o espaço desenhado por você */
+  overflow: hidden;
+}
+
+.turmas-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  width: 150px;
+  flex-shrink: 0; /* Impede que os botões encolham se faltar espaço */
+}
+
+/* Ajustes visuais para os textos da justificativa */
+.text-muted {
+  color: #555;
+  font-style: italic;
+}
+
+.badge-justificativa {
+  background-color: #e2e8f0;
+  color: #475569;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: bold;
+}
+
+/* ---------------- TABELAS GERAIS ---------------- */
+.custom-table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: white;
+  font-size: 14px;
+}
+
+.custom-table th, .custom-table td {
+  padding: 12px 15px;
+  text-align: left;
+}
+
+.custom-table th {
+  font-weight: bold;
+  background-color: #fff;
+}
+
+/* Tabela com bordas (Conforme sua imagem, todas têm bordas finas) */
+.table-bordered th, .table-bordered td {
+  border: 1px solid #ddd;
+}
+
+.center-text {
+  text-align: center !important;
+}
+
+/* ---------------- SEÇÃO TURMAS ---------------- */
+.turmas-section {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+}
+
+.table-wrapper {
+  flex: 1;
+}
+
+.turmas-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  width: 160px; /* Largura fixa para os botões ficarem alinhados */
+}
+
+/* Botões ao lado da tabela */
+.btn-primary, .btn-secondary {
+  padding: 10px;
+  border-radius: 20px;
+  font-weight: bold;
+  cursor: pointer;
+  text-align: center;
+  border: none;
+}
+
+.btn-primary {
+  background-color: #ef4444; /* Vermelho SENAI */
+  color: white;
+}
+
+.btn-secondary {
+  background-color: #9ca3af; /* Cinza */
+  color: white;
+}
+
+/* ---------------- SEÇÃO ALUNOS (BOTÕES E STATUS) ---------------- */
+.link-btn {
+  background: none;
+  border: none;
+  color: #6b7280;
+  cursor: pointer;
+  font-size: 12px;
+  margin-top: 5px;
+  padding: 0;
+}
+
+.underline {
+  text-decoration: underline;
+  font-weight: bold;
+}
+
+.status-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+  padding: 8px !important;
+}
+
+.status-btn {
+  width: 100%;
+  max-width: 180px;
+  padding: 6px;
+  border-radius: 15px;
+  border: none;
+  background-color: #9ca3af; /* Cinza padrão inativo */
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+/* Cores Ativas (quando o status bate) */
+.status-btn.aprovado { 
+  background-color: #22c55e; /* Verde */
+}
+
+.status-btn.aprovado-conselho { 
+  background-color: #eab308; /* Amarelo */
+}
+
+.status-btn.reprovado { 
+  background-color: #ef4444; /* Vermelho */
+}
