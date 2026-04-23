@@ -29,10 +29,9 @@ export function Perfil() {
           const dados = await resposta.json();
 
           if (dados.sucesso) {
-            // A MÁGICA ACONTECE AQUI: Fazemos o "de/para" com os novos nomes do banco!
             setDadosUsuario({
-              nome: dados.usuario.nomeUsuario,             // Lendo a nova coluna do banco
-              email: dados.usuario.emailInstitucional,     // Lendo a nova coluna do banco
+              nome: dados.usuario.nomeUsuario,             
+              email: dados.usuario.emailInstitucional,     
               nivelAcesso: dados.usuario.nivelAcesso === 'admin' ? 'Administrador' : 'Docente'
             });
           } else {
@@ -63,12 +62,14 @@ export function Perfil() {
 
           </div>
           
-          <button className="btn-carregar-foto">
+          {/* <button className="btn-carregar-foto">
             Carregar Foto  
             
             <VscGitStashPop size={20} />
 
-          </button>
+          </button> */}
+
+          <input className="btn-carregar-foto" type="file"></input>
         </div>
 
         {/* COLUNA DA DIREITA: DADOS DO BANCO */}

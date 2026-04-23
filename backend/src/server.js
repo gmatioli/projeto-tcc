@@ -5,6 +5,27 @@ const db = require('./config/db');
 
 const app = express();
 
+// ==========================================
+// Permissões para o upload SGSET
+// ==========================================
+// Adicione estas importações lá no topo do seu arquivo do servidor
+const multer = require('multer');
+const fs = require('fs');
+const csv = require('csv-parser');
+
+// Configurando o Multer para salvar o arquivo temporariamente na pasta 'uploads'
+const upload = multer({ dest: 'uploads/' });
+
+// Função auxiliar para usar o db.query com 'await' (Isso evita o "Callback Hell")
+const queryAsync = (sql, params) => {
+  return new Promise((resolve, reject) => {
+    db.query(sql, params, (err, results) => {
+      if (err) reject(err);
+      else resolve(results);
+    });
+  });
+};
+
 // --- CONFIGURAÇÕES BÁSICAS ---
 app.use(cors()); // Libera o acesso para o React
 app.use(express.json()); // Permite que o Node entenda dados em formato JSON (importante para o login)
@@ -143,6 +164,119 @@ app.get('/perfil/:email', (req, res) => {
   });
 });
 
+// ==========================================
+// ROTA 6: UPLOAD DA PLANILHA SGSET (POST)
+// ==========================================
+app.post('/upload-planilha', upload.single('arquivo'), (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ sucesso: false, mensagem: "Nenhum arquivo enviado." });
+  }
+
+  // --- TRUQUE DE AUTO-DETEÇÃO DO SEPARADOR ---
+  // Lemos o ficheiro e apanhamos apenas a primeira linha (o cabeçalho)
+  const conteudoFicheiro = fs.readFileSync(req.file.path, 'utf-8');
+  const primeiraLinha = conteudoFicheiro.split('\n')[0];
+  
+  // Se a primeira linha tiver um ';', usamos isso. Caso contrário, usamos ','
+  const separadorDetectado = primeiraLinha.includes(';') ? ';' : ',';
+  // -------------------------------------------
+
+  const resultados = [];
+
+  // Lê o arquivo CSV que acabou de ser feito o upload
+  fs.createReadStream(req.file.path)
+    .pipe(csv({ separator: separadorDetectado }))
+    .on('data', (data) => resultados.push(data))
+    .on('end', async () => {
+      try {
+        // 1. Limpa a tabela temporária (Staging) para não misturar com envios antigos
+        await queryAsync('TRUNCATE TABLE tblAluno_copy1', []);
+
+        // 2. Insere os dados brutos na tabela temporária tblAluno_copy1
+        for (const linha of resultados) {
+          const nomeDaPrimeiraColuna = Object.keys(linha)[0];
+          const valorMatricula = linha['N° de Matrícula'] || linha[nomeDaPrimeiraColuna]
+
+          if(!valorMatricula){
+            continue;
+          }
+
+          const sqlCopy = `INSERT INTO tblAluno_copy1 
+            (matricula, nome, tipoCurso, areaCurso, curso, turma, \`AE/AD\`, praticaProfissional, horasPratica, empresaContrato) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+          
+          await queryAsync(sqlCopy, [
+            valorMatricula, 
+            linha['Nome'], 
+            linha['Tipo de Curso'], 
+            linha['Área do Curso'], 
+            linha['Curso'], 
+            linha['Turma'], 
+            linha['AE/AD'], 
+            linha['Prát. Prof. na Empresa com o emprego da guia de aprendizagem?'], 
+            linha['Prát. Prof. a ser desenvolvida exclusivamente na empresa (Horas)'] || 0, 
+            linha['Empresa do contrato de aprendizagem']
+          ]);
+        }
+
+        // ==========================================================
+        // 3. A MÁGICA DO ETL (Distribuindo para as tabelas oficiais)
+        // ==========================================================
+        
+        const dadosBrutos = await queryAsync('SELECT * FROM tblAluno_copy1', []);
+
+        for (const aluno of dadosBrutos) {
+          // A. Verifica/Cria o CURSO
+          let idCurso;
+          const cursoExiste = await queryAsync('SELECT idCurso FROM Cursos WHERE nomeCurso = ?', [aluno.curso]);
+          if (cursoExiste.length > 0) {
+            idCurso = cursoExiste[0].idCurso;
+          } else {
+            const novoCurso = await queryAsync('INSERT INTO Cursos (nomeCurso, tipo, area) VALUES (?, ?, ?)', [aluno.curso, aluno.tipoCurso, aluno.areaCurso]);
+            idCurso = novoCurso.insertId;
+          }
+
+          // B. Verifica/Cria a TURMA
+          let idTurma;
+          const turmaExiste = await queryAsync('SELECT idTurma FROM Turma WHERE codigo = ?', [aluno.turma]);
+          if (turmaExiste.length > 0) {
+            idTurma = turmaExiste[0].idTurma;
+          } else {
+           const novaTurma = await queryAsync(
+              'INSERT INTO Turma (codigo, semestreAtual, Cursos_idCurso) VALUES (?, ?, ?)', 
+              [aluno.turma, null, idCurso]
+            );
+            idTurma = novaTurma.insertId;
+          }
+
+          // C. Verifica/Cria a EMPRESA
+          let idEmpresa;
+          const empresaExiste = await queryAsync('SELECT idEmpresa FROM Empresa WHERE empresaContrato = ?', [aluno.empresaContrato]);
+          if (empresaExiste.length > 0) {
+            idEmpresa = empresaExiste[0].idEmpresa;
+          } else {
+            const novaEmpresa = await queryAsync('INSERT INTO Empresa (`AE/AD`, praticaProfissional, horasPratica, empresaContrato) VALUES (?, ?, ?, ?)', [aluno['AE/AD'], aluno.praticaProfissional, aluno.horasPratica, aluno.empresaContrato]);
+            idEmpresa = novaEmpresa.insertId;
+          }
+
+          // D. Verifica/Cria o ALUNO na tabela oficial (tblAluno limpa)
+          const alunoExiste = await queryAsync('SELECT idtblAluno FROM tblAluno WHERE matricula = ?', [aluno.matricula]);
+          if (alunoExiste.length === 0) {
+             await queryAsync('INSERT INTO tblAluno (matricula, nome, Empresa_idEmpresa, Turma_idTurma) VALUES (?, ?, ?, ?)', [aluno.matricula, aluno.nome, idEmpresa, idTurma]);
+          }
+        }
+
+        // Apaga o arquivo temporário da pasta uploads
+        fs.unlinkSync(req.file.path);
+
+        res.json({ sucesso: true, mensagem: "Planilha processada e banco de dados alimentado com sucesso!" });
+
+      } catch (erro) {
+        console.error("Erro ao processar planilha:", erro);
+        res.status(500).json({ sucesso: false, mensagem: "Erro ao processar os dados da planilha." });
+      }
+    });
+});
 
 
 // --- INICIALIZAÇÃO DO SERVIDOR ---
