@@ -1,0 +1,11 @@
+Nº de Matrícula,Nome,Tipo de Curso,Área do Curso,Curso,Turma,AE/AD,Prát. Prof. na Empresa com o emprego da guia de aprendizagem?,Prát. Prof. a ser desenvolvida exclusivamente na empresa (Horas),Empresa do contrato de aprendizagem
+10000001,Sofia Leiva Pires,Curso Técnico,Tecnologia da Informação,Técnico em Desenvolvimento de Sistemas,DEV 3N,AD,SIM,800.0,Companhia Paulista de Trens Metropolitanos
+10000002,João Pedro Silva,Curso Técnico,Tecnologia da Informação,Técnico em Desenvolvimento de Sistemas,DEV 3N,AD,NÃO,,
+10000003,Maria Fernanda Oliveira,Curso Técnico,Tecnologia da Informação,Técnico em Desenvolvimento de Sistemas,DEV 3N,AD,NÃO,,
+20000001,Bruno Fernandes,Aprendizagem Industrial,Gestão,Assistente Administrativo,ADM 1M,AE,SIM,600.0,Banco Bradesco
+20000002,Ana Clara Mendes,Aprendizagem Industrial,Gestão,Assistente Administrativo,ADM 1M,AE,SIM,600.0,Banco Bradesco
+30000001,Carlos Eduardo Souza,Aprendizagem Industrial,Metalmecânica,Eletricista de Manutenção Eletroeletrônica,T2D,AE,SIM,400.0,Sucoloco Serviços
+30000002,Pedro Henrique Costa,Aprendizagem Industrial,Metalmecânica,Eletricista de Manutenção Eletroeletrônica,T2D,AE,SIM,400.0,Sucoloco Serviços
+40000001,Lucas Almeida,Curso Técnico,Eletroeletrônica,Técnico de Mecatrônica,MECA 1M,AD,NÃO,,
+40000002,Beatriz Santos,Curso Técnico,Eletroeletrônica,Técnico de Mecatrônica,MECA 1M,AD,NÃO,,
+40000003,Elias Silva Gomes Duarte,Curso Técnico,Eletroeletrônica,Técnico de Mecatrônica,MECA 1M,AD,NÃO,,

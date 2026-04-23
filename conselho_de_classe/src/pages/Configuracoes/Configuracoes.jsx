@@ -1,10 +1,52 @@
-import React from 'react';
+import React, { useState } from 'react';
 import './configuracoes.css';
 import { useNavigate } from 'react-router-dom';
 
 export function Configuracoes() {
   const navigate = useNavigate();
+  
+  // Estado para guardar o arquivo selecionado e o status do envio
+  const [arquivo, setArquivo] = useState(null);
+  const [statusUpload, setStatusUpload] = useState('');
 
+  // Função que captura quando o usuário escolhe um arquivo
+  const handleSelecionarArquivo = (event) => {
+    setArquivo(event.target.files[0]);
+    setStatusUpload(''); // Limpa a mensagem anterior
+  };
+
+  // Função que envia o arquivo pro Backend
+  const handleEnviarPlanilha = async () => {
+    if (!arquivo) {
+      setStatusUpload('Por favor, selecione um arquivo primeiro.');
+      return;
+    }
+
+    setStatusUpload('Enviando e processando... Aguarde.');
+
+    // O FormData é o formato correto para enviar arquivos via fetch
+    const formData = new FormData();
+    formData.append('arquivo', arquivo); 
+
+    try {
+      const resposta = await fetch('http://localhost:3001/upload-planilha', {
+        method: 'POST',
+        body: formData, 
+      });
+
+      const dados = await resposta.json();
+
+      if (dados.sucesso) {
+        setStatusUpload('✅ ' + dados.mensagem);
+        setArquivo(null); // Limpa o input
+      } else {
+        setStatusUpload('❌ Erro: ' + dados.mensagem);
+      }
+    } catch (erro) {
+      console.error("Erro no upload:", erro);
+      setStatusUpload('❌ Erro de conexão com o servidor.');
+    }
+  };
 
   return (
     <div className="configuracoes-wrapper">
@@ -19,8 +61,21 @@ export function Configuracoes() {
             <div className="grupo-input">
               <label>Carregar Planilha SGSET:</label>
               <div className="input-falso">
-                <span className="texto-placeholder">Selecione um Arquivo...</span>
-                <span className="icone-nuvem"><img src="img\nuvem.png" alt="" /></span>
+                <input type="file"accept=".csv" onChange={handleSelecionarArquivo} style={{ marginBottom: '10px'}} />
+
+                <button 
+                className="btn-atualizar" 
+                onClick={handleEnviarPlanilha}
+                disabled={!arquivo} // Botão desativado se não tiver arquivo
+                style={{ width: '100%' }}
+               >
+                Processar Planilha
+              </button>
+              
+              {/* Mostra mensagem de sucesso ou erro */}
+              {statusUpload && <p style={{ fontSize: '14px', marginTop: '5px', fontWeight: 'bold' }}>{statusUpload}</p>}
+
+
               </div>
             </div>
 
@@ -55,7 +110,6 @@ export function Configuracoes() {
         {/* Botões do Rodapé */}
         <div className="rodape-acoes">
           <button className="btn-cancelar">Cancelar</button>
-          <button className="btn-atualizar">Atualizar</button>
         </div>
       </div>
     </div>
