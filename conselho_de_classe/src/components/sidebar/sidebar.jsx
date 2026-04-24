@@ -29,7 +29,7 @@ export function Sidebar() {
   };
 
   // Componente do Formulário 
-  const FormFiltros = () => (
+  const FormFiltros = ({ rotaDestino }) => (
     <div className="form_filtros">
       <div className="grupo_input">
         <label>Tipo de Curso:</label>
@@ -55,7 +55,7 @@ export function Sidebar() {
 
       <div className="botoes_filtro">
         <button className="btn_limpar">Limpar Filtro ⟲</button>
-        <button className="btn_pesquisar" onClick={()=> navigate('/conselhointermediario')}>Pesquisar 🔍</button>
+        <button className="btn_pesquisar" onClick={()=> navigate(rotaDestino)}>Pesquisar 🔍</button>
       </div>
     </div>
   );
@@ -92,7 +92,7 @@ export function Sidebar() {
               >
                 Conselho Intermediário
               </button>
-              {abaAberta === 'intermediario' && <FormFiltros />}
+              {abaAberta === 'intermediario' && <FormFiltros rotaDestino="/conselhointermediario"/>}
 
               {/* BOTÃO 2 */}
               <button 
@@ -101,7 +101,7 @@ export function Sidebar() {
               >
                 Pré-Conselho
               </button>
-              {abaAberta === 'pre' && <FormFiltros />}
+              {abaAberta === 'pre' && <FormFiltros rotaDestino="/preconselho" />}
 
               {/* BOTÃO 3 */}
               <button 
@@ -110,7 +110,7 @@ export function Sidebar() {
               >
                 Conselho Final
               </button>
-              {abaAberta === 'final' && <FormFiltros />}
+              {abaAberta === 'final' && <FormFiltros rotaDestino="/conselhofinal" />}
             </div>
           )}
 

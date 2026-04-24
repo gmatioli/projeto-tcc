@@ -16,6 +16,7 @@ import { Senha } from './pages/Senha/Senha.jsx';
 import { Perfil } from './pages/Perfil/Perfil.jsx';
 import { Dashboard } from './pages/Dashboard.jsx';
 import ConselhoFinal from './pages/ConselhoFinal/ConselhoFinal.jsx';
+// import { PreConselho } from './pages/PreConselho/PreConselho.jsx';
 
 // --- CRIANDO O MOLDE DO PAINEL ---
 function LayoutDoSistema() {
@@ -46,6 +47,7 @@ function App() {
         <Route element={<LayoutDoSistema />}>
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/conselhointermediario" element={<ConselhoIntermediario />} />
+          {/* <Route path="/preconselho" element={<PreConselho />} /> */}
           <Route path="/configuracoes" element={<Configuracoes />} />
           <Route path="/perfil" element={<Perfil />} />
           <Route path="/conselhofinal" element={<ConselhoFinal/>}/>
