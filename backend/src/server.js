@@ -274,6 +274,7 @@ app.post('/upload-planilha', upload.single('arquivo'), (req, res) => {
       } catch (erro) {
         console.error("Erro ao processar planilha:", erro);
         res.status(500).json({ sucesso: false, mensagem: "Erro ao processar os dados da planilha." });
+        
       }
     });
 });

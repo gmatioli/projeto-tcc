@@ -60,6 +60,7 @@ export function Sidebar() {
     </div>
   );
 
+  
   return (
     <section>
       <div className="background_sidebar">
@@ -118,6 +119,7 @@ export function Sidebar() {
             <img src={reportIcon} alt="Ícone Relatórios" />
             <p>Relatórios</p>
             <img src={arrowRightIcon} alt="Seta direita" />
+
           </button>
 
         </div>

@@ -102,7 +102,7 @@ export function Configuracoes() {
             
             <div className="linha-acao">
               <label>Atribuir Turma a Docente:</label>
-              <button className="btn-acao">Atribuir</button>
+              <button className="btn-acao" onClick={() => navigate('/atribuirturma')}>Atribuir</button>
             </div>
           </div>
         </div>
