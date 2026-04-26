@@ -16,9 +16,10 @@ import { Senha } from './pages/Senha/Senha.jsx';
 import { Perfil } from './pages/Perfil/Perfil.jsx';
 import { Dashboard } from './pages/Dashboard.jsx';
 import ConselhoFinal from './pages/ConselhoFinal/ConselhoFinal.jsx';
+import { Turma } from './pages/AtribuirTurma/Turma.jsx';
 // import { PreConselho } from './pages/PreConselho/PreConselho.jsx';
 
-// --- CRIANDO O MOLDE DO PAINEL ---
+// --- CRIANDO O MOLDE DO PAINEL ---  
 function LayoutDoSistema() {
   return (
     <div className="app-wrapper">
@@ -55,6 +56,7 @@ function App() {
 
         <Route path="/cadastrarusuario" element={<Cadastro />} /> 
         <Route path="/recuperarsenha" element={<Senha />} /> 
+        <Route path="/atribuirturma" element={<Turma />}/>
 
       </Routes>
     </BrowserRouter>

@@ -42,9 +42,7 @@ export function Header() {
             console.error("Erro de conexão:", erro);
             setDadosUsuario(prev => ({ ...prev, nome: "Erro no servidor" }));
           }
-        } else {
-          navigate('/'); 
-        }
+        } 
       };
   
       carregarPerfil();
