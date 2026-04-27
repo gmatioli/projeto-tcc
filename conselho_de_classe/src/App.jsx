@@ -27,11 +27,11 @@ import { GerarTermoCiencia } from './pages/Relatorios/GerarTermoCiencia.jsx';
 // --- CRIANDO O MOLDE DO PAINEL ---  
 function LayoutDoSistema() {
   return (
-    <div className="app-wrapper">
+    <div className="app-wrapper flex-column h-screen w-full">
       <Header /> {/* Fica no topo */}
-      <div className="main-container">
+      <div className="main-container flex grow overflow-hidden">
         <Sidebar /> {/* Fica na lateral */}
-        <main className="content-area">
+        <main className="content-area grow overflow-y-auto p-[20px] bg-neutral-100">
           {/* A MÁGICA: O Outlet é o espaço onde as páginas vão aparecer! */}
           <Outlet /> 
         </main>

@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import './header-style.css';
 
 export function Header() {
   const navigate = useNavigate(); 
@@ -49,51 +48,51 @@ export function Header() {
     }, [navigate]);
 
   return (
-      <header className='header'>
-        <div className="header_logo">
-          <img src="/img/logo-senai.png" alt="Logo da instituição SENAI" />
+      <header className='h-[8vh] bg-[var(--header_bg)] flex justify-between items-center'>
+        <div className="ml-7">
+          <img src="/img/logo-senai.png" alt="Logo da instituição SENAI" className='w-35 h-9' />
         </div>
-        <div className="header_profile">
-          <div className="header_profile_name">
-            <h3>{dadosUsuario.nome}</h3>
-            <p>{dadosUsuario.nivelAcesso}</p>
+        <div className="flex g-2 mr-7">
+          <div className="flex flex-col justify-center ">
+            <h3 className='font-[var(--font_inter)] text-xl'>{dadosUsuario.nome}</h3>
+            <p className='font-[var(--font_inter)] text-xs text-end'>{dadosUsuario.nivelAcesso}</p>
           </div>
           
-          <div className="header_profile_img" style={{ position: 'relative' }}>
+          <div className='ml-2 relative'>
             
             <img 
               src="/img/profile-icon.png" 
               onClick={() => setMenuAberto(!menuAberto)} 
               alt="Icone do perfil" 
-              style={{ cursor: 'pointer' }}
+              className='w-10 h-10 rounded-full cursor-pointer'
             />
 
             {/* 4. O MENU DROPDOWN (Só aparece se menuAberto for true) */}
             {menuAberto && (
-              <div className="dropdown-menu">
+              <div className="absolute top-[110%] right-0 bg-[#f0f0f0] rounded-lg shadow-[0_4px_12px_rgba(0,0,0,0.15)] w-[200px] py-2.5 z-[1000] flex flex-col">
                 
                 {/* Botão Configurações de Perfil */}
                 <button 
-                  className="dropdown-item" 
+                  className="flex items-center g-[15px] py-3 px-5 bg-transparent border-none w-full text-left text-base text-[#111] cursor-pointer transition-colors duration-200" 
                   onClick={() => {
                     navigate('/perfil'); 
                     setMenuAberto(false); 
                   }}
                 >
                   {/* Ícone de Usuário */}
-                <img src="./img/user.png" alt="" style={{ width: '22px', height: '22px', borderRadius: '0', objectFit: 'contain' }}/>
+                <img src="./img/user.png" alt="" className="w-[22px] h-[22px] object-contain mr-2"/>
                   Config. Perfil
                 </button>
 
                 {/* Linha divisória */}
-                <hr className="dropdown-divisor" />
+                <hr className="mx-5 border-none hover:bg-[rgb(201,198,198)]" />
 
                 {/* Botão Sair */}
                 <button 
-                  className="dropdown-item" 
+                  className="flex items-center g-[15px] py-3 px-5 bg-transparent border-none w-full text-left text-base text-[#111] cursor-pointer transition-colors duration-200 border-t border-neutral-800" 
                   onClick={handleLogout}
                 >
-                  <img src="./img/sair.png" alt="" style={{ width: '22px', height: '22px', borderRadius: '0', objectFit: 'contain' }}/>
+                  <img src="./img/sair.png" alt="" className="w-[22px] h-[22px] object-contain mr-2"/>
 
                   Sair
                 </button>
