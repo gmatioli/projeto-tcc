@@ -46,17 +46,18 @@ function Login() {
     
   return (
     
-    <div style={containerStyle}>
-      <div style={header_logo} className="header_logo">
-        <img style={logo} src="/img/logoSenaiS.png" alt="Logo da instituição SENAI" />
+    <div className="flex flex-col justify-center items-center h-screen bg-gray-100 relative">
+      <div className="absolute top-5 left-10">
+        <img className=" w-[350px] h-[70px]" src="/img/logoSenaiS.png" alt="Logo da instituição SENAI" />
       </div>
-      <div style={formStyle}>
-        <h2 style={h2}>Login</h2>
-        <h3 style={h3}>Bem-vindo(a) ao Sistema de Conselhos!</h3>
+      <div className="p-10 rounded-lg bg-[#f9f9f9] text-left w-[400px] h-auto">
+        <h2 className="font-bold text-3xl mb-2.5">Login</h2>
+        <h3 className="font-normal text-base mb-5">Bem-vindo(a) ao Sistema de Conselhos!</h3>
         
-        <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column' }}>
+        <form onSubmit={handleLogin} className='flex flex-col'>
           <label>Email:</label>
           <input 
+            className="w-full p-2.5 mt-[5px] mb-[15px] rounded border border-[#ccc]"
             placeholder='Digite seu e-mail' 
             type="email" 
             value={usuario} 
@@ -64,49 +65,38 @@ function Login() {
               setUsuario(e.target.value);
               setErroLogin(''); // Limpa o erro ao digitar
             }} 
-            style={inputStyle} 
             required
           />
           
           <label>Senha:</label>
           <input 
-            placeholder='Digite sua senha' 
+            className="w-full p-2.5 mt-[5px] mb-[15px] rounded border border-[#ccc]"
+            placeholder="Digite sua senha" 
             type="password" 
             value={senha} 
             onChange={e => {
               setSenha(e.target.value);
               setErroLogin(''); // Limpa o erro ao digitar
-            }} 
-            style={inputStyle} 
+            }}
             required
           />
 
           {/* Exibição do erro de forma simples e direta */}
           {erroLogin && (
-            <div style={errorStyle}>
+            <div className="text-[#e20814] text-sm text-center mb-2.5 font-medium">
               {erroLogin}
             </div>
           )}
 
-          <button type="submit" style={buttonStyle}>Login</button>
+          <button 
+          type="submit" 
+          className="w-full p-2.5 mt-2.5 border-none rounded bg-[#e20814] text-white cursor-pointer">
+            Login
+            </button>
         </form>
       </div>
     </div>
   );
 }
-
-// Estilos simplificados
-const containerStyle = { display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', backgroundColor: '#f0f0f0', flexDirection: 'column', position:'relative'};
-// Mudei height de '380px' para 'auto' para o card se adaptar quando o erro aparecer
-const formStyle = { padding: '40px', borderRadius: '8px', backgroundColor: '#f9f9f9', textAlign: 'left', width: '400px', height:'auto', boxSizing: 'border-box' };
-// Adicionado boxSizing para o input não vazar da tela
-const inputStyle = { width: '100%', padding: '10px', margin: '5px 0 15px', borderRadius: '4px', border: '1px solid #ccc', boxSizing: 'border-box' };
-const buttonStyle = { width: '100%', padding: '10px', marginTop:'10px', border: 'none', borderRadius: '4px', backgroundColor: '#e20814', color: 'white', cursor: 'pointer' };
-const header_logo = {position: 'absolute', top: '20px', left: '20px'}
-const h2 = {fontWeight: '700', fontSize:'30px', marginBottom:'10px'}
-const h3 = {fontWeight: 'normal', fontSize:'16px', marginBottom:'20px'}
-const logo = {width:'350px', height: '70px'}
-// Estilo exclusivo para a mensagem de erro
-const errorStyle = { color: '#e20814', fontSize: '14px', textAlign: 'center', marginBottom: '10px', fontWeight: '500' };
 
 export default Login;

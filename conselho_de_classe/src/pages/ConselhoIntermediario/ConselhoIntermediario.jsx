@@ -7,7 +7,7 @@ import restritosIcon from '../../assets/conselho-intermediario/restritos-icon.sv
 import retidosIcon from '../../assets/conselho-intermediario/retidos-icon.svg'
 import notificationIcon from '../../assets/conselho-intermediario/notification-icon.svg'
 
-import ModalAvaliacao from '../../components/modalAvaliacaoConselhoIntermediario/modalAvaliacao'; // Caminho para o componente criado acima
+import ModalAvaliacao from '../../components/modalAvaliacaoConselhoIntermediario/ModalAvaliacao'; // Caminho para o componente criado acima
 
   
 
