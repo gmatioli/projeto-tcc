@@ -19,6 +19,11 @@ import ConselhoFinal from './pages/ConselhoFinal/ConselhoFinal.jsx';
 import { Turma } from './pages/AtribuirTurma/Turma.jsx';
 // import { PreConselho } from './pages/PreConselho/PreConselho.jsx';
 
+// importacao das telas de relatorio
+import { GerarAta } from './pages/Relatorios/GerarAta.jsx';
+import { GerarRelatorio } from './pages/Relatorios/GerarRelatorio.jsx';
+import { GerarTermoCiencia } from './pages/Relatorios/GerarTermoCiencia.jsx';
+
 // --- CRIANDO O MOLDE DO PAINEL ---  
 function LayoutDoSistema() {
   return (
@@ -52,6 +57,11 @@ function App() {
           <Route path="/configuracoes" element={<Configuracoes />} />
           <Route path="/perfil" element={<Perfil />} />
           <Route path="/conselhofinal" element={<ConselhoFinal/>}/>
+
+          {/* rotas do relatorio */}
+          <Route path="/relatorios/ata" element={<GerarAta />} />
+          <Route path="/relatorios/relatorio" element={<GerarRelatorio />} />
+          <Route path="/relatorios/termo" element={<GerarTermoCiencia />} />
         </Route>
 
         <Route path="/cadastrarusuario" element={<Cadastro />} /> 
