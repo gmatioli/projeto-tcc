@@ -5,13 +5,17 @@ import councilIcon from '../../assets/sidebar/council-icon.svg';
 import reportIcon from '../../assets/sidebar/report-icon.svg';
 import configIcon from '../../assets/sidebar/config-icon.svg';
 import arrowRightIcon from '../../assets/sidebar/right-arrow-icon.svg';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 export function Sidebar() {
   const navigate = useNavigate();
+  const location = useLocation();
 
   // Estado para controlar se o submenu "Conselhos" inteiro está visível
   const [menuConselhoAberto, setMenuConselhoAberto] = useState(false);
+
+  //estado do submenu 'Relatorios'
+  const [menuRelatorioAberto, setMenuRelatorioAberto] = useState(false);
   
   // Estado para saber qual filtro está aberto (null, 'intermediario', 'pre', ou 'final')
   const [abaAberta, setAbaAberta] = useState(null);
@@ -27,6 +31,10 @@ export function Sidebar() {
       setAbaAberta(null); 
     }
   };
+
+  const toggleMenuRelatorio = () => {
+    setMenuRelatorioAberto(!menuRelatorioAberto);
+  }
 
   // Componente do Formulário 
   const FormFiltros = ({ rotaDestino }) => (
@@ -59,6 +67,9 @@ export function Sidebar() {
       </div>
     </div>
   );
+
+  //verificacao de relatorio ativo
+  const isRelatorioAtivo = ['/relatorios/ata', '/relatorios/relatorio', '/relatorios/termo'].includes(location.pathname)
 
   
   return (
@@ -115,12 +126,45 @@ export function Sidebar() {
             </div>
           )}
 
-          <button className="btn_relatorio">
+          {/* botão de relatorio */}
+          <button
+            className={`btn_relatorio ${isRelatorioAtivo ? 'btn_ativo' : ''}`}
+            onClick={toggleMenuRelatorio}
+          >
             <img src={reportIcon} alt="Ícone Relatórios" />
             <p>Relatórios</p>
-            <img src={arrowRightIcon} alt="Seta direita" />
-
+            <img
+              src={arrowRightIcon}
+              alt="Seta direita"
+              className={menuRelatorioAberto ? 'seta_aberta' : ''}
+            />
           </button>
+
+          {/* SUBMENU RELATÓRIOS */}
+          {menuRelatorioAberto && (
+            <div className="submenu_conselho">
+              <button
+                className={location.pathname === '/relatorios/ata' ? 'ativo' : ''}
+                onClick={() => navigate('/relatorios/ata')}
+              >
+                Gerar Ata
+              </button>
+ 
+              <button
+                className={location.pathname === '/relatorios/relatorio' ? 'ativo' : ''}
+                onClick={() => navigate('/relatorios/relatorio')}
+              >
+                Gerar Relatório
+              </button>
+ 
+              <button
+                className={location.pathname === '/relatorios/termo' ? 'ativo' : ''}
+                onClick={() => navigate('/relatorios/termo')}
+              >
+                Gerar Termo de Ciência
+              </button>
+            </div>
+          )}
 
         </div>
         
