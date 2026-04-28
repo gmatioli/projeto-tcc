@@ -19,14 +19,19 @@ import ConselhoFinal from './pages/ConselhoFinal/ConselhoFinal.jsx';
 import { Turma } from './pages/AtribuirTurma/Turma.jsx';
 // import { PreConselho } from './pages/PreConselho/PreConselho.jsx';
 
+// importacao das telas de relatorio
+import { GerarAta } from './pages/Relatorios/GerarAta.jsx';
+import { GerarRelatorio } from './pages/Relatorios/GerarRelatorio.jsx';
+import { GerarTermoCiencia } from './pages/Relatorios/GerarTermoCiencia.jsx';
+
 // --- CRIANDO O MOLDE DO PAINEL ---  
 function LayoutDoSistema() {
   return (
-    <div className="app-wrapper">
+    <div className="app-wrapper flex-column h-screen w-full">
       <Header /> {/* Fica no topo */}
-      <div className="main-container">
+      <div className="main-container flex grow overflow-hidden">
         <Sidebar /> {/* Fica na lateral */}
-        <main className="content-area">
+        <main className="content-area grow overflow-y-auto p-[20px] bg-neutral-100">
           {/* A MÁGICA: O Outlet é o espaço onde as páginas vão aparecer! */}
           <Outlet /> 
         </main>
@@ -52,6 +57,11 @@ function App() {
           <Route path="/configuracoes" element={<Configuracoes />} />
           <Route path="/perfil" element={<Perfil />} />
           <Route path="/conselhofinal" element={<ConselhoFinal/>}/>
+
+          {/* rotas do relatorio */}
+          <Route path="/relatorios/ata" element={<GerarAta />} />
+          <Route path="/relatorios/relatorio" element={<GerarRelatorio />} />
+          <Route path="/relatorios/termo" element={<GerarTermoCiencia />} />
         </Route>
 
         <Route path="/cadastrarusuario" element={<Cadastro />} /> 
