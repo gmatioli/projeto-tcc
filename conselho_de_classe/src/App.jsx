@@ -10,6 +10,7 @@ import Login from './pages/Login/Login.jsx';
 import { Header } from './components/header/Header.jsx';
 import { Sidebar } from './components/sidebar/sidebar.jsx';
 import { ConselhoIntermediario } from './pages/ConselhoIntermediario/ConselhoIntermediario.jsx';
+import { PreConselho } from './pages/PreConselho/PreConselho.jsx' ;
 import { Configuracoes } from './pages/Configuracoes/Configuracoes.jsx';
 import { Cadastro } from './pages/Cadastro/Cadastro.jsx';
 import { Senha } from './pages/Senha/Senha.jsx'; 
@@ -53,7 +54,7 @@ function App() {
         <Route element={<LayoutDoSistema />}>
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/conselhointermediario" element={<ConselhoIntermediario />} />
-          {/* <Route path="/preconselho" element={<PreConselho />} /> */}
+          <Route path="/preconselho" element={<PreConselho />} />
           <Route path="/configuracoes" element={<Configuracoes />} />
           <Route path="/perfil" element={<Perfil />} />
           <Route path="/conselhofinal" element={<ConselhoFinal/>}/>
