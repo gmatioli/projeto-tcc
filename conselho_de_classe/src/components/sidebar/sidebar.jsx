@@ -20,6 +20,9 @@ export function Sidebar() {
   // Estado para saber qual filtro está aberto (null, 'intermediario', 'pre', ou 'final')
   const [abaAberta, setAbaAberta] = useState(null);
 
+    //estado do submenu 'Relatorios'
+  const [menuRelatorioAberto, setMenuRelatorioAberto] = useState(false);
+
   const toggleAba = (aba) => {
     setAbaAberta(abaAberta === aba ? null : aba);
   };
@@ -68,14 +71,12 @@ export function Sidebar() {
     </div>
   );
 
-  //verificacao de relatorio ativo
   const isRelatorioAtivo = ['/relatorios/ata', '/relatorios/relatorio', '/relatorios/termo'].includes(location.pathname)
-
-  
+                                                                                                      
   return (
-    <section>
-      <div className="background_sidebar">
-        <div className='div_buttons'>
+    <section className="h-screen">
+      <div className=""bg-[var(--sidebar_bg)] w-[18vw] h-full flex flex-col border-r border-[#ccc] overflow-hidden">
+        <div className='flex-1 overflow-y-auto mt-[30px] px-4 pb-24 custom-scrollbar'>
           
           <button className="btn_dashboard" onClick={() => navigate('/dashboard')}>
             <img src={dashboardIcon} alt="Ícone Dashboard" />

@@ -49,27 +49,25 @@ export function Configuracoes() {
   };
 
   return (
-    <div className="configuracoes-wrapper">
-      <h2 className="titulo-pagina">Configurações</h2>
+    <div className="px-10 py-5 w-full box-border h-full flex flex-col">
+      <h2 className="text-[20px] ml-[10px] font-medium text-[#333] mb-[20px]">Configurações</h2>
 
-      <div className="card-config">
-        <h3 className="titulo-card">Configurações do Sistema</h3>
+      <div  className="bg-[#f8f9fa] border border-[#ccc] rounded-[16px] p-[60px] h-[90%] w-full m-auto flex flex-col">
+        <h3 className="text-[28px] font-bold text-[#333] mb-[60px]">Configurações do Sistema</h3>
 
-        <div className="grid-config">
+        <div className="flex justify-between gap-[100px] mt-[50px] mb-[50px]">
           {/* Coluna da Esquerda (Uploads) */}
-          <div className="coluna-esq">
-            <div className="grupo-input">
-              <label>Carregar Planilha SGSET:</label>
-              <div className="input-falso">
-                <input type="file"accept=".csv" onChange={handleSelecionarArquivo} style={{ marginBottom: '10px'}} />
+          <div className="flex-1 flex flex-col justify-around gap-[25px]">
+            <div className="">
+              <label className="block text-[22px] mb-[8px] text-black">Carregar Planilha SGSET:</label>
+              <div className="flex justify-between w-full h-[80px] px-[15px] py-[10px] border border-[#777] rounded-[8px] bg-white text-[14px] text-[#555] box-border items-center cursor-pointer">
+                <input type="file"accept=".csv" onChange={handleSelecionarArquivo} className="border border-gray-500 p-3 pr-[70px] rounded-[10px] t" />
 
-                <button 
-                className="btn-atualizar" 
+             <button
+                className="px-8  py-[10px] ml-3 rounded-[8px] text-[14px] cursor-pointer bg-[#E32623] border border-[#c82333] text-white font-bold"
                 onClick={handleEnviarPlanilha}
-                disabled={!arquivo} // Botão desativado se não tiver arquivo
-                style={{ width: '100%' }}
-               >
-                Processar Planilha
+                disabled={!arquivo}>
+                Carregar
               </button>
               
               {/* Mostra mensagem de sucesso ou erro */}
@@ -80,8 +78,8 @@ export function Configuracoes() {
             </div>
 
             <div className="grupo-input">
-              <label>Carregar Backup Database:</label>
-              <select className="input-select">
+              <label  className="block text-[22px] mb-[8px] text-black">Carregar Backup Database:</label>
+              <select  className="w-full h-[80px] px-[15px] py-[10px] border border-[#777] rounded-[8px] bg-white text-[14px] text-[#555] box-border">
                 <option value="">Selecione um backup...</option>
                 <option value="backup1">Backup - 10/04/2026</option>
               </select>
@@ -89,27 +87,27 @@ export function Configuracoes() {
           </div>
 
           {/* Coluna da Direita (Ações) */}
-          <div className="coluna-dir">
-            <div className="linha-acao">
-              <label>Cadastrar Novo Usuário:</label>
-              <button className="btn-acao" onClick={() => navigate('/cadastrarusuario')}>Cadastrar</button>
+          <div className="flex-1 flex flex-col justify-around gap-[25px]">
+            <div className="flex justify-center items-center">
+              <label className="text-[20px] text-black w-[260px] text-justify">Cadastrar Novo Usuário:</label>
+              <button className="p-[8px] border border-[#777] rounded-[15px] bg-[#e9ecef] text-[#242323] cursor-pointer text-[18px] w-[300px] h-[50px] hover:bg-[#E32623] hover:text-[#f8f9fa]" onClick={() => navigate('/cadastrarusuario')}>Cadastrar</button>
             </div>
             
-            <div className="linha-acao">
-              <label>Recuperar/Alterar Senha:</label>
-              <button className="btn-acao"  onClick={() => navigate('/recuperarsenha')}>Recuperar</button>
+            <div className="flex justify-center items-center">
+              <label className="text-[20px] text-black w-[260px] text-justify">Recuperar/Alterar Senha:</label>
+              <button className="p-[8px] border border-[#777] rounded-[15px] bg-[#e9ecef] text-[#242323] cursor-pointer text-[18px] w-[300px] h-[50px] hover:bg-[#E32623] hover:text-[#f8f9fa]"  onClick={() => navigate('/recuperarsenha')}>Recuperar</button>
             </div>
             
-            <div className="linha-acao">
-              <label>Atribuir Turma a Docente:</label>
-              <button className="btn-acao" onClick={() => navigate('/atribuirturma')}>Atribuir</button>
+            <div className="flex justify-center items-center">
+              <label className="text-[20px] text-black w-[260px] text-justify">Atribuir Turma a Docente:</label>
+              <button className="p-[8px] border border-[#777] rounded-[15px] bg-[#e9ecef] text-[#242323] cursor-pointer text-[18px] w-[300px] h-[50px] hover:bg-[#E32623] hover:text-[#f8f9fa]" onClick={() => navigate('/atribuirturma')}>Atribuir</button>
             </div>
           </div>
         </div>
 
         {/* Botões do Rodapé */}
-        <div className="rodape-acoes">
-          <button className="btn-cancelar">Cancelar</button>
+        <div className="flex justify-center gap-[100px] mt-[20px]">
+          <button  className="px-[80px] py-[20px] rounded-[8px] text-[14px] cursor-pointer bg-[#e9ecef] border border-[#777] text-[#333] ">Cancelar</button>
         </div>
       </div>
     </div>
