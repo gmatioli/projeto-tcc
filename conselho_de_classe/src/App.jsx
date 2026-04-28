@@ -8,7 +8,7 @@ import Login from './pages/Login/Login.jsx';
 
 // 2. Importe os seus componentes visuais
 import { Header } from './components/header/Header.jsx';
-import { Sidebar } from './components/sidebar/sidebar.jsx';
+import { Sidebar } from './components/sidebar/Sidebar.jsx';
 import { ConselhoIntermediario } from './pages/ConselhoIntermediario/ConselhoIntermediario.jsx';
 import { Configuracoes } from './pages/Configuracoes/Configuracoes.jsx';
 import { Cadastro } from './pages/Cadastro/Cadastro.jsx';

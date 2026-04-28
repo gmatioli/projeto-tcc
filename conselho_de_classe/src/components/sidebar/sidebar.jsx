@@ -1,26 +1,23 @@
 import { useState } from 'react';
-import './sidebar-style.css';
+import { useNavigate, useLocation } from 'react-router-dom';
+
 import dashboardIcon from '../../assets/sidebar/dashboard-icon.svg';
 import councilIcon from '../../assets/sidebar/council-icon.svg';
 import reportIcon from '../../assets/sidebar/report-icon.svg';
 import configIcon from '../../assets/sidebar/config-icon.svg';
 import arrowRightIcon from '../../assets/sidebar/right-arrow-icon.svg';
-import { useNavigate, useLocation } from 'react-router-dom';
 
 export function Sidebar() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Estado para controlar se o submenu "Conselhos" inteiro está visível
-  const [menuConselhoAberto, setMenuConselhoAberto] = useState(false);
+  // Estado para controlar qual botão principal está selecionado
+  const [botaoSelecionado, setBotaoSelecionado] = useState(null);
 
-  //estado do submenu 'Relatorios'
-  const [menuRelatorioAberto, setMenuRelatorioAberto] = useState(false);
-  
-  // Estado para saber qual filtro está aberto (null, 'intermediario', 'pre', ou 'final')
+  const [menuConselhoAberto, setMenuConselhoAberto] = useState(false);
   const [abaAberta, setAbaAberta] = useState(null);
 
-    //estado do submenu 'Relatorios'
+  // estado do submenu 'Relatorios'
   const [menuRelatorioAberto, setMenuRelatorioAberto] = useState(false);
 
   const toggleAba = (aba) => {
@@ -28,153 +25,219 @@ export function Sidebar() {
   };
 
   const toggleMenuConselho = () => {
-    setMenuConselhoAberto(!menuConselhoAberto);
-    // Opcional: fecha as abas internas caso feche o menu principal
-    if (menuConselhoAberto) {
-      setAbaAberta(null); 
+    const novoEstado = !menuConselhoAberto;
+    setMenuConselhoAberto(novoEstado);
+    
+    // Comportamento toggle: seleciona conselho e fecha relatórios
+    if (novoEstado) {
+      setBotaoSelecionado('conselhos');
+      setMenuRelatorioAberto(false);
+    } else {
+      setBotaoSelecionado(null);
     }
+    
+    if (!novoEstado) setAbaAberta(null);
   };
 
   const toggleMenuRelatorio = () => {
-    setMenuRelatorioAberto(!menuRelatorioAberto);
-  }
+    const novoEstado = !menuRelatorioAberto;
+    setMenuRelatorioAberto(novoEstado);
 
-  // Componente do Formulário 
+    // Comportamento toggle: seleciona relatório e fecha conselhos
+    if (novoEstado) {
+      setBotaoSelecionado('relatorios');
+      setMenuConselhoAberto(false);
+      setAbaAberta(null);
+    } else {
+      setBotaoSelecionado(null);
+    }
+  };
+
+  // Função para os outros botões (Dashboard, Configurações)
+  const handleClick = (rota, nomeBotao) => {
+    navigate(rota);
+    
+    // Fecha os submenus se clicar em botões que não tem dropdown
+    setMenuConselhoAberto(false);
+    setMenuRelatorioAberto(false);
+    setAbaAberta(null);
+
+    // Toggle: se já está selecionado, desmarca. Senão, seleciona.
+    setBotaoSelecionado(botaoSelecionado === nomeBotao ? null : nomeBotao);
+  };
+
+  // Formulário de Filtros 
   const FormFiltros = ({ rotaDestino }) => (
-    <div className="form_filtros">
-      <div className="grupo_input">
-        <label>Tipo de Curso:</label>
-        <select>
+    <div className="flex flex-col gap-[12px] border-l-[2px] border-[#df3535] pl-[15px] ml-[5px] mb-[10px]">
+      <div className="flex flex-col text-left gap-[5px]">
+        <label className="text-[0.9rem] font-medium text-[#333]">Tipo de Curso:</label>
+        <select className="p-[8px] rounded-[5px] border border-[#ccc] bg-white text-[0.9rem] outline-none focus:border-[#df3535]">
           <option>Técnico</option>
-          <option>CAD</option>
+          <option>CAI</option>
         </select>
       </div>
 
-      <div className="grupo_input">
-        <label>Curso:</label>
-        <select>
+      <div className="flex flex-col text-left gap-[5px]">
+        <label className="text-[0.9rem] font-medium text-[#333]">Curso:</label>
+        <select className="p-[8px] rounded-[5px] border border-[#ccc] bg-white text-[0.9rem] outline-none focus:border-[#df3535]">
           <option>Desenvolvimento de Sistemas</option>
         </select>
       </div>
 
-      <div className="grupo_input">
-        <label>Turma:</label>
-        <select>
+      <div className="flex flex-col text-left gap-[5px]">
+        <label className="text-[0.9rem] font-medium text-[#333]">Turma:</label>
+        <select className="p-[8px] rounded-[5px] border border-[#ccc] bg-white text-[0.9rem] outline-none focus:border-[#df3535]">
           <option>CPTMTDS4T126</option>
         </select>
       </div>
 
-      <div className="botoes_filtro">
-        <button className="btn_limpar">Limpar Filtro ⟲</button>
-        <button className="btn_pesquisar" onClick={()=> navigate(rotaDestino)}>Pesquisar 🔍</button>
+      <div className="flex gap-[10px] mt-[5px]">
+        <button className="flex-1 p-[10px] bg-[#ea4335] text-white rounded-[5px] text-[0.85rem] font-semibold hover:brightness-90 transition-all">
+          Limpar Filtro ⟲
+        </button>
+
+        <button
+          onClick={() => navigate(rotaDestino)}
+          className="flex-1 p-[10px] bg-[#ea4335] text-white rounded-[5px] text-[0.85rem] font-semibold hover:brightness-90 transition-all">
+          Iniciar Conselho
+        </button>
       </div>
     </div>
   );
 
-  const isRelatorioAtivo = ['/relatorios/ata', '/relatorios/relatorio', '/relatorios/termo'].includes(location.pathname)
-                                                                                                      
   return (
-    <section className="h-screen">
-      <div className=""bg-[var(--sidebar_bg)] w-[18vw] h-full flex flex-col border-r border-[#ccc] overflow-hidden">
-        <div className='flex-1 overflow-y-auto mt-[30px] px-4 pb-24 custom-scrollbar'>
-          
-          <button className="btn_dashboard" onClick={() => navigate('/dashboard')}>
-            <img src={dashboardIcon} alt="Ícone Dashboard" />
-            <p>Dashboard</p>
-            <img src={arrowRightIcon} alt="Seta direita" />
+    <section className="h-[calc(100vh-8vh)]">
+      <div className="bg-[var(--sidebar_bg)] w-[22vw] h-full flex flex-col border-r border-[#ccc] overflow-hidden">
+
+      <div className="flex-1 overflow-y-auto pt-6 px-4 pb-4 custom-scrollbar">
+
+          {/* DASHBOARD */}
+          <button
+            onClick={() => handleClick('/dashboard', 'dashboard')}
+            className={`flex items-center justify-between w-full h-[10vh] px-4 mx-auto mt-0 bg-[var(--button_bg)] rounded-[10px] font-bold text-[1.1rem] shadow-[0px_3px_3px_rgb(117,117,117)] cursor-pointer transition-all ${
+              botaoSelecionado === 'dashboard' ? 'bg-[#df3535] text-white' : ''
+            }`}>
+            <img src={dashboardIcon} className={`w-6 h-6 ${botaoSelecionado === 'dashboard' ? 'brightness-0 invert' : 'brightness-0'}`} alt="Dashboard" />
+            
+            {/* A MÁGICA AQUI: flex-1 faz o texto empurrar os ícones para as bordas e text-center centraliza a palavra */}
+            <p className="flex-1 text-center">Dashboard</p>
+            
+            <img src={arrowRightIcon} className={`w-6 h-6 ${botaoSelecionado === 'dashboard' ? 'brightness-0 invert' : 'brightness-0'}`} alt="Seta" />
           </button>
-          
-          {/* BOTÃO PRINCIPAL COM ONCLICK */}
-          <button className="btn_conselho" onClick={toggleMenuConselho}>
-            <img src={councilIcon} alt="Ícone Conselhos" />
-            <p>Conselhos</p>
-            <img 
-              src={arrowRightIcon} 
-              alt="Seta direita" 
-              className={menuConselhoAberto ? 'seta_aberta' : ''} 
+
+          {/* CONSELHOS */}
+          <button
+            onClick={toggleMenuConselho}
+            className={`flex items-center justify-between w-full h-[10vh] px-4 mx-auto mt-4 bg-[var(--button_bg)] rounded-[10px] font-bold text-[1.1rem] shadow-[0px_3px_3px_rgb(117,117,117)] cursor-pointer transition-all ${
+              botaoSelecionado === 'conselhos' || menuConselhoAberto ? 'bg-[#df3535] text-white' : ''
+            }`}>
+            <img src={councilIcon} className={`w-6 h-6 ${botaoSelecionado === 'conselhos' || menuConselhoAberto ? 'brightness-0 invert' : 'brightness-0'}`} alt="Conselhos" />
+            
+            <p className="flex-1 text-center">Conselhos</p>
+            
+            <img
+              src={arrowRightIcon}
+              className={`w-6 h-6 ${botaoSelecionado === 'conselhos' || menuConselhoAberto ? 'brightness-0 invert' : 'brightness-0'} transition-transform duration-300 ${menuConselhoAberto ? '[transform:rotate(90deg)]' : '[transform:rotate(0deg)]'}`}
+              alt="Seta"
             />
           </button>
 
-          {/* SÓ RENDERIZA SE menuConselhoAberto FOR TRUE */}
+          {/* SUBMENU CONSELHOS */}
           {menuConselhoAberto && (
-            <div className="submenu_conselho">
-              {/* BOTÃO 1 */}
-              <button 
-                className={`btn_conselho_intermediario ${abaAberta === 'intermediario' ? 'ativo' : ''}`}
+            <div className="flex flex-col w-full mx-auto mt-[10px] gap-2">
+              <button
                 onClick={() => toggleAba('intermediario')}
-              >
+                className={`w-full py-3 px-4 rounded-[8px] border text-[0.95rem] font-medium transition-all text-center whitespace-nowrap ${
+                  abaAberta === 'intermediario' ? 'bg-[#df3535] text-white border-[#df3535] shadow-md' : 'bg-[#d9d9d9] border-[#ccc] hover:bg-gray-300'
+                }`}>
                 Conselho Intermediário
               </button>
-              {abaAberta === 'intermediario' && <FormFiltros rotaDestino="/conselhointermediario"/>}
+              {abaAberta === 'intermediario' && <FormFiltros rotaDestino="/conselhointermediario" />}
 
-              {/* BOTÃO 2 */}
-              <button 
-                className={`pre_conselho ${abaAberta === 'pre' ? 'ativo' : ''}`}
+              <button
                 onClick={() => toggleAba('pre')}
-              >
+                className={`w-full py-3 px-4 rounded-[8px] border text-[0.95rem] font-medium transition-all text-center whitespace-nowrap ${
+                  abaAberta === 'pre' ? 'bg-[#df3535] text-white border-[#df3535] shadow-md' : 'bg-[#d9d9d9] border-[#ccc] hover:bg-gray-300'
+                }`}>
                 Pré-Conselho
               </button>
               {abaAberta === 'pre' && <FormFiltros rotaDestino="/preconselho" />}
 
-              {/* BOTÃO 3 */}
-              <button 
-                className={`conselho_final ${abaAberta === 'final' ? 'ativo' : ''}`}
+              <button
                 onClick={() => toggleAba('final')}
-              >
+                className={`w-full py-3 px-4 rounded-[8px] border text-[0.95rem] font-medium transition-all text-center whitespace-nowrap ${
+                  abaAberta === 'final' ? 'bg-[#df3535] text-white border-[#df3535] shadow-md' : 'bg-[#d9d9d9] border-[#ccc] hover:bg-gray-300'
+                }`}>
                 Conselho Final
               </button>
               {abaAberta === 'final' && <FormFiltros rotaDestino="/conselhofinal" />}
             </div>
           )}
 
-          {/* botão de relatorio */}
+          {/* RELATÓRIOS */}
           <button
-            className={`btn_relatorio ${isRelatorioAtivo ? 'btn_ativo' : ''}`}
             onClick={toggleMenuRelatorio}
-          >
-            <img src={reportIcon} alt="Ícone Relatórios" />
-            <p>Relatórios</p>
-            <img
-              src={arrowRightIcon}
-              alt="Seta direita"
-              className={menuRelatorioAberto ? 'seta_aberta' : ''}
+            className={`flex items-center justify-between w-full h-[10vh] px-4 mx-auto mt-4 bg-[var(--button_bg)] rounded-[10px] font-bold text-[1.1rem] shadow-[0px_3px_3px_rgb(117,117,117)] cursor-pointer transition-all ${
+              botaoSelecionado === 'relatorios' || menuRelatorioAberto ? 'bg-[#df3535] text-white' : ''
+            }`}>
+            <img src={reportIcon} className={`w-6 h-6 ${botaoSelecionado === 'relatorios' || menuRelatorioAberto ? 'brightness-0 invert' : 'brightness-0'}`} alt="Relatórios" />
+            
+            <p className="flex-1 text-center">Relatórios</p>
+            
+            <img 
+              src={arrowRightIcon} 
+              className={`w-6 h-6 ${botaoSelecionado === 'relatorios' || menuRelatorioAberto ? 'brightness-0 invert' : 'brightness-0'} transition-transform duration-300 ${menuRelatorioAberto ? '[transform:rotate(90deg)]' : '[transform:rotate(0deg)]'}`} 
+              alt="Seta" 
             />
           </button>
 
           {/* SUBMENU RELATÓRIOS */}
           {menuRelatorioAberto && (
-            <div className="submenu_conselho">
+            <div className="flex flex-col w-full mx-auto mt-[10px] gap-2">
               <button
-                className={location.pathname === '/relatorios/ata' ? 'ativo' : ''}
                 onClick={() => navigate('/relatorios/ata')}
-              >
+                className={`w-full py-3 px-4 rounded-[8px] border text-[0.95rem] font-medium transition-all text-center whitespace-nowrap ${
+                  location.pathname === '/relatorios/ata' ? 'bg-[#df3535] text-white border-[#df3535] shadow-md' : 'bg-[#d9d9d9] border-[#ccc] hover:bg-gray-300'
+                }`}>
                 Gerar Ata
               </button>
- 
+
               <button
-                className={location.pathname === '/relatorios/relatorio' ? 'ativo' : ''}
                 onClick={() => navigate('/relatorios/relatorio')}
-              >
+                className={`w-full py-3 px-4 rounded-[8px] border text-[0.95rem] font-medium transition-all text-center whitespace-nowrap ${
+                  location.pathname === '/relatorios/relatorio' ? 'bg-[#df3535] text-white border-[#df3535] shadow-md' : 'bg-[#d9d9d9] border-[#ccc] hover:bg-gray-300'
+                }`}>
                 Gerar Relatório
               </button>
- 
+
               <button
-                className={location.pathname === '/relatorios/termo' ? 'ativo' : ''}
                 onClick={() => navigate('/relatorios/termo')}
-              >
+                className={`w-full py-3 px-4 rounded-[8px] border text-[0.95rem] font-medium transition-all text-center whitespace-nowrap ${
+                  location.pathname === '/relatorios/termo' ? 'bg-[#df3535] text-white border-[#df3535] shadow-md' : 'bg-[#d9d9d9] border-[#ccc] hover:bg-gray-300'
+                }`}>
                 Gerar Termo de Ciência
               </button>
             </div>
           )}
 
         </div>
-        
-        <div className="div_config">
-          <button className="btn_config" style={{ cursor: 'pointer' }} onClick={() => navigate('/configuracoes')}>
-            <img src={configIcon} alt="Ícone Configurações" />
+
+
+        <div className="w-full flex justify-center border-t border-[#ccc]">
+          <button
+            onClick={() => handleClick('/configuracoes', 'configuracoes')}
+            className={`flex items-center justify-center w-full h-[60px] px-[20px] bg-[var(--button_bg)] font-bold text-[1.25rem] cursor-pointer transition-all gap-[15px] ${
+              botaoSelecionado === 'configuracoes' ? 'bg-[#df3535] text-white' : ''
+            }`}>
+            <img 
+              src={configIcon} 
+              className={`w-6 h-6 ${botaoSelecionado === 'configuracoes' ? 'brightness-0 invert' : ''}`} 
+              alt="Configurações" 
+            />
             <p>Configurações</p>
           </button>
         </div>
+
       </div>
     </section>
   );

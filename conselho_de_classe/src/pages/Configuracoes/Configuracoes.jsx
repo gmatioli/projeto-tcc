@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import './configuracoes.css';
 import { useNavigate } from 'react-router-dom';
 
 export function Configuracoes() {
@@ -48,67 +47,144 @@ export function Configuracoes() {
     }
   };
 
+  // Função para simular o download do backup
+  const handleDownloadBackup = () => {
+    alert("Iniciando download do backup do banco de dados...");
+  };
+
+  // Função para limpar o arquivo selecionado
+  const handleLimparArquivo = () => {
+    setArquivo(null);
+    setStatusUpload('');
+    // Isso aqui limpa o texto "nome-do-arquivo.csv" que fica escrito no input
+    document.getElementById('input-csv').value = ''; 
+  };
+
   return (
-    <div className="px-10 py-5 w-full box-border h-full flex flex-col">
-      <h2 className="text-[20px] ml-[10px] font-medium text-[#333] mb-[20px]">Configurações</h2>
+    <div className="h-full overflow-y-auto flex flex-col p-4 sm:p-6 bg-gray-100 custom-scrollbar">
+      
+      <h2 className="text-sm font-bold text-gray-700 mb-4 ">Configurações</h2>
 
-      <div  className="bg-[#f8f9fa] border border-[#ccc] rounded-[16px] p-[60px] h-[90%] w-full m-auto flex flex-col">
-        <h3 className="text-[28px] font-bold text-[#333] mb-[60px]">Configurações do Sistema</h3>
+      <div className="flex-1 bg-white border border-gray-300 rounded-2xl p-6 lg:p-8 shadow-sm flex flex-col">
+        <h3 className="text-2xl font-bold text-gray-800 mb-6">Configurações do Sistema</h3>
 
-        <div className="flex justify-between gap-[100px] mt-[50px] mb-[50px]">
-          {/* Coluna da Esquerda (Uploads) */}
-          <div className="flex-1 flex flex-col justify-around gap-[25px]">
-            <div className="">
-              <label className="block text-[22px] mb-[8px] text-black">Carregar Planilha SGSET:</label>
-              <div className="flex justify-between w-full h-[80px] px-[15px] py-[10px] border border-[#777] rounded-[8px] bg-white text-[14px] text-[#555] box-border items-center cursor-pointer">
-                <input type="file"accept=".csv" onChange={handleSelecionarArquivo} className="border border-gray-500 p-3 pr-[70px] rounded-[10px] t" />
-
-             <button
-                className="px-8  py-[10px] ml-3 rounded-[8px] text-[14px] cursor-pointer bg-[#E32623] border border-[#c82333] text-white font-bold"
-                onClick={handleEnviarPlanilha}
-                disabled={!arquivo}>
-                Carregar
-              </button>
+        <div className="grid grid-cols-1 xl:grid-cols-5 gap-8 lg:gap-12 flex-1">
+          
+          {/* Coluna da Esquerda (Upload e Backup) */}
+          <div className="xl:col-span-3 flex flex-col gap-6">
+            
+            <div className="bg-gray-50 p-5 rounded-xl border border-gray-200">
+              <label className="block text-lg font-semibold text-gray-800 mb-1">Carregar Planilha SGSET</label>
+              <p className="text-sm text-gray-500 mb-4">Selecione o arquivo .csv exportado do sistema para atualizar a base de alunos.</p>
               
-              {/* Mostra mensagem de sucesso ou erro */}
-              {statusUpload && <p style={{ fontSize: '14px', marginTop: '5px', fontWeight: 'bold' }}>{statusUpload}</p>}
+              <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
+                
+                {/* Envolvemos o input e o X nessa div relativa */}
+                <div className="relative flex items-center w-full">
+                  <input 
+                    id="input-csv"
+                    type="file" 
+                    accept=".csv" 
+                    onChange={handleSelecionarArquivo} 
+                    className="block w-full text-sm text-gray-500
+                      file:mr-4 file:py-2 file:px-4
+                      file:rounded-lg file:border file:border-red-300
+                      file:text-sm file:font-semibold
+                      file:bg-red-50 file:text-[#E20814]
+                      hover:file:bg-red-100 hover:file:border-red-400 
+                      file:cursor-pointer cursor-pointer
+                      border border-gray-300 rounded-lg bg-white transition-all pr-10"
+                  />
+                  
+                  {/* O X mágico que só aparece se tiver arquivo escolhido */}
+                  {arquivo && (
+                    <button
+                      type="button"
+                      onClick={handleLimparArquivo}
+                      className="absolute right-3 text-gray-400 hover:text-red-600 transition-colors"
+                      title="Remover arquivo"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  )}
+                </div>
+                
+                <button
+                  className="w-full sm:w-auto px-6 py-2 rounded-lg text-sm font-bold transition-all bg-red-600 text-white hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  onClick={handleEnviarPlanilha}
+                  disabled={!arquivo}
+                >
+                  Carregar
+                </button>
+              </div>
+              
+              {statusUpload && (
+                <p className={`mt-3 text-sm font-medium ${statusUpload.includes('❌') ? 'text-red-600' : 'text-green-600'}`}>
+                  {statusUpload}
+                </p>
+              )}
+            </div>
 
+            {/* Seção Backup */}
+            <div className="bg-gray-50 p-5 rounded-xl border border-gray-200">
+              <label className="block text-lg font-semibold text-gray-800 mb-1">Backup do Banco de Dados</label>
+              <p className="text-sm text-gray-500 mb-4">Gere e faça o download de uma cópia de segurança de todos os dados atuais do sistema.</p>
+              
+              <button 
+                onClick={handleDownloadBackup}
+                className="flex items-center justify-center sm:justify-start gap-2 px-6 py-2.5 bg-red-600 text-white text-sm font-semibold rounded-lg hover:bg-red-700 transition-all shadow-sm w-full sm:w-max"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
+                Fazer Download do Backup
+              </button>
+            </div>
 
+          </div>
+
+          {/* Coluna da Direita - Removido o esticamento, usando apenas gap-4 para juntar os cards */}
+          <div className="xl:col-span-2 flex flex-col gap-4">
+            <h4 className="text-lg font-semibold text-gray-800 mb-1">Ações de Gerenciamento</h4>
+
+            {/* Flex column simples com gap-4 */}
+            <div className="flex flex-col gap-4">
+              <div className="flex items-center justify-between p-4 bg-white border border-gray-200 rounded-xl shadow-sm hover:border-gray-300 transition-colors">
+                <span className="text-gray-700 font-medium text-sm">Cadastrar Novo Usuário</span>
+                <button 
+                  onClick={() => navigate('/cadastrarusuario')}
+                  className="w-[120px] py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-700 text-sm font-semibold hover:bg-red-600 hover:text-white hover:border-[#E20814] transition-colors text-center"
+                >
+                  Cadastrar
+                </button>
+              </div>
+
+              <div className="flex items-center justify-between p-4 bg-white border border-gray-200 rounded-xl shadow-sm hover:border-gray-300 transition-colors">
+                <span className="text-gray-700 font-medium text-sm">Recuperar/Alterar Senha</span>
+                <button 
+                  onClick={() => navigate('/recuperarsenha')}
+                  className="w-[120px] py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-700 text-sm font-semibold hover:bg-red-600 hover:text-white hover:border-[#E20814] transition-colors text-center"
+                >
+                  Recuperar
+                </button>
+              </div>
+
+              <div className="flex items-center justify-between p-4 bg-white border border-gray-200 rounded-xl shadow-sm hover:border-gray-300 transition-colors">
+                <span className="text-gray-700 font-medium text-sm">Atribuir Turma a Docente</span>
+                <button 
+                  onClick={() => navigate('/atribuirturma')}
+                  className="w-[120px] py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-700 text-sm font-semibold hover:bg-red-600 hover:text-white hover:border-[#E20814] transition-colors text-center"
+                >
+                  Atribuir
+                </button>
               </div>
             </div>
 
-            <div className="grupo-input">
-              <label  className="block text-[22px] mb-[8px] text-black">Carregar Backup Database:</label>
-              <select  className="w-full h-[80px] px-[15px] py-[10px] border border-[#777] rounded-[8px] bg-white text-[14px] text-[#555] box-border">
-                <option value="">Selecione um backup...</option>
-                <option value="backup1">Backup - 10/04/2026</option>
-              </select>
-            </div>
-          </div>
-
-          {/* Coluna da Direita (Ações) */}
-          <div className="flex-1 flex flex-col justify-around gap-[25px]">
-            <div className="flex justify-center items-center">
-              <label className="text-[20px] text-black w-[260px] text-justify">Cadastrar Novo Usuário:</label>
-              <button className="p-[8px] border border-[#777] rounded-[15px] bg-[#e9ecef] text-[#242323] cursor-pointer text-[18px] w-[300px] h-[50px] hover:bg-[#E32623] hover:text-[#f8f9fa]" onClick={() => navigate('/cadastrarusuario')}>Cadastrar</button>
-            </div>
-            
-            <div className="flex justify-center items-center">
-              <label className="text-[20px] text-black w-[260px] text-justify">Recuperar/Alterar Senha:</label>
-              <button className="p-[8px] border border-[#777] rounded-[15px] bg-[#e9ecef] text-[#242323] cursor-pointer text-[18px] w-[300px] h-[50px] hover:bg-[#E32623] hover:text-[#f8f9fa]"  onClick={() => navigate('/recuperarsenha')}>Recuperar</button>
-            </div>
-            
-            <div className="flex justify-center items-center">
-              <label className="text-[20px] text-black w-[260px] text-justify">Atribuir Turma a Docente:</label>
-              <button className="p-[8px] border border-[#777] rounded-[15px] bg-[#e9ecef] text-[#242323] cursor-pointer text-[18px] w-[300px] h-[50px] hover:bg-[#E32623] hover:text-[#f8f9fa]" onClick={() => navigate('/atribuirturma')}>Atribuir</button>
-            </div>
           </div>
         </div>
 
-        {/* Botões do Rodapé */}
-        <div className="flex justify-center gap-[100px] mt-[20px]">
-          <button  className="px-[80px] py-[20px] rounded-[8px] text-[14px] cursor-pointer bg-[#e9ecef] border border-[#777] text-[#333] ">Cancelar</button>
-        </div>
       </div>
     </div>
   );
