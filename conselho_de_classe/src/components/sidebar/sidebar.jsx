@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 import dashboardIcon from '../../assets/sidebar/dashboard-icon.svg';
 import councilIcon from '../../assets/sidebar/council-icon.svg';
@@ -9,11 +9,16 @@ import arrowRightIcon from '../../assets/sidebar/right-arrow-icon.svg';
 
 export function Sidebar() {
   const navigate = useNavigate();
+  const location = useLocation();
 
   // Estado para controlar qual botão principal está selecionado
   const [botaoSelecionado, setBotaoSelecionado] = useState(null);
 
+  // Estados de abertura dos menus
   const [menuConselhoAberto, setMenuConselhoAberto] = useState(false);
+  const [menuRelatorioAberto, setMenuRelatorioAberto] = useState(false);
+  
+  // Estado para saber qual filtro está aberto (null, 'intermediario', 'pre', ou 'final')
   const [abaAberta, setAbaAberta] = useState(null);
 
   const toggleAba = (aba) => {
@@ -24,9 +29,10 @@ export function Sidebar() {
     const novoEstado = !menuConselhoAberto;
     setMenuConselhoAberto(novoEstado);
     
-    // Comportamento toggle igual ao submenu
+    // Se abrir conselhos, fecha relatórios
     if (novoEstado) {
       setBotaoSelecionado('conselhos');
+      setMenuRelatorioAberto(false); 
     } else {
       setBotaoSelecionado(null);
     }
@@ -34,15 +40,29 @@ export function Sidebar() {
     if (!novoEstado) setAbaAberta(null);
   };
 
-  // Função para os outros botões (Dashboard, Relatórios, Configurações)
-  const handleClick = (rota, nomeBotao) => {
-    navigate(rota);
+  const toggleMenuRelatorio = () => {
+    const novoEstado = !menuRelatorioAberto;
+    setMenuRelatorioAberto(novoEstado);
     
-    // Toggle: se já está selecionado, desmarca. Senão, seleciona.
-    setBotaoSelecionado(botaoSelecionado === nomeBotao ? null : nomeBotao);
+    // Se abrir relatórios, fecha conselhos
+    if (novoEstado) {
+      setBotaoSelecionado('relatorios');
+      setMenuConselhoAberto(false);
+      setAbaAberta(null);
+    } else {
+      setBotaoSelecionado(null);
+    }
   };
 
-  // Formulário de Filtros 
+  // Função para botões simples (Dashboard, Configurações)
+  const handleClick = (rota, nomeBotao) => {
+    navigate(rota);
+    setBotaoSelecionado(botaoSelecionado === nomeBotao ? null : nomeBotao);
+    setMenuConselhoAberto(false);
+    setMenuRelatorioAberto(false);
+  };
+
+  // Componente do Formulário 
   const FormFiltros = ({ rotaDestino }) => (
     <div className="flex flex-col gap-[12px] border-l-[2px] border-[#df3535] pl-[15px] ml-[5px] mb-[10px]">
       <div className="flex flex-col text-left gap-[5px]">
@@ -80,6 +100,9 @@ export function Sidebar() {
       </div>
     </div>
   );
+
+  // Verificação de relatório ativo pela URL
+  const isRelatorioAtivo = ['/relatorios/ata', '/relatorios/relatorio', '/relatorios/termo'].includes(location.pathname);
 
   return (
     <section className="h-screen">
@@ -129,7 +152,7 @@ export function Sidebar() {
             />
           </button>
 
-          {/* SUBMENU */}
+          {/* SUBMENU CONSELHOS */}
           {menuConselhoAberto && (
             <div className="flex flex-col w-[14vw] mx-auto mt-[10px] gap-[10px]">
               <button
@@ -167,33 +190,74 @@ export function Sidebar() {
             </div>
           )}
 
-          {/* RELATÓRIO */}
+          {/* RELATÓRIOS (Agora com a fusão do menu dropdown + Tailwind!) */}
           <button
-            onClick={() => handleClick('/relatorios', 'relatorios')}
+            onClick={toggleMenuRelatorio}
             className={`flex items-center justify-between w-[14vw] h-[10vh] px-[20px] mx-auto mt-[25px] bg-[var(--button_bg)] rounded-[10px] font-bold text-[1.25rem] shadow-[0px_3px_3px_rgb(117,117,117)] cursor-pointer transition-all ${
-              botaoSelecionado === 'relatorios' 
+              botaoSelecionado === 'relatorios' || menuRelatorioAberto || isRelatorioAtivo
                 ? 'bg-[#df3535] text-white' 
                 : ''
             }`}>
             <img 
               src={reportIcon} 
-              className={`w-6 h-6 ${botaoSelecionado === 'relatorios' ? 'brightness-0 invert' : 'brightness-0'}`} 
+              className={`w-6 h-6 ${botaoSelecionado === 'relatorios' || menuRelatorioAberto || isRelatorioAtivo ? 'brightness-0 invert' : 'brightness-0'}`} 
               alt="Relatórios" 
             />
             <p>Relatórios</p>
             <img 
               src={arrowRightIcon} 
-              className={`w-6 h-6 ${botaoSelecionado === 'relatorios' ? 'brightness-0 invert' : 'brightness-0'}`} 
+              className={`w-6 h-6 ${botaoSelecionado === 'relatorios' || menuRelatorioAberto || isRelatorioAtivo ? 'brightness-0 invert' : 'brightness-0'} transition-transform duration-300 ${menuRelatorioAberto ? 'rotate-90' : ''}`} 
               alt="Seta" 
             />
           </button>
 
-          {/* CONFIGURAÇÕES */}
+          {/* SUBMENU RELATÓRIOS */}
+          {menuRelatorioAberto && (
+            <div className="flex flex-col w-[14vw] mx-auto mt-[10px] gap-[10px]">
+              <button
+                className={`p-[15px] rounded-[8px] border text-[1rem] font-medium transition-all ${
+                  location.pathname === '/relatorios/ata'
+                    ? 'bg-[#df3535] text-white border-[#df3535] shadow-md'
+                    : 'bg-[#d9d9d9] border-[#ccc]'
+                }`}
+                onClick={() => navigate('/relatorios/ata')}
+              >
+                Gerar Ata
+              </button>
+
+              <button
+                className={`p-[15px] rounded-[8px] border text-[1rem] font-medium transition-all ${
+                  location.pathname === '/relatorios/relatorio'
+                    ? 'bg-[#df3535] text-white border-[#df3535] shadow-md'
+                    : 'bg-[#d9d9d9] border-[#ccc]'
+                }`}
+                onClick={() => navigate('/relatorios/relatorio')}
+              >
+                Gerar Relatório
+              </button>
+
+              <button
+                className={`p-[15px] rounded-[8px] border text-[1rem] font-medium transition-all ${
+                  location.pathname === '/relatorios/termo'
+                    ? 'bg-[#df3535] text-white border-[#df3535] shadow-md'
+                    : 'bg-[#d9d9d9] border-[#ccc]'
+                }`}
+                onClick={() => navigate('/relatorios/termo')}
+              >
+                Gerar Termo de Ciência
+              </button>
+            </div>
+          )}
+
+        </div>
+        
+        {/* CONFIGURAÇÕES */}
+        <div className="flex flex-row w-full border-t border-[#ccc]">
           <button
             onClick={() => handleClick('/configuracoes', 'configuracoes')}
-            className={`flex items-center justify-center w-[14vw] h-[60px] px-[20px] mx-auto mt-[25px] bg-[var(--button_bg)] rounded-[10px] font-bold text-[1.25rem] shadow-[0px_3px_3px_rgb(117,117,117)] cursor-pointer transition-all ${
+            className={`w-full h-[60px] flex flex-row items-center justify-center rounded-none gap-2.5 text-xl cursor-pointer hover:bg-gray-200 transition-colors ${
               botaoSelecionado === 'configuracoes' 
-                ? 'bg-[#df3535] text-white' 
+                ? 'bg-[#df3535] text-white hover:bg-[#df3535]' 
                 : ''
             }`}>
             <img 
@@ -203,7 +267,6 @@ export function Sidebar() {
             />
             <p>Configurações</p>
           </button>
-
         </div>
 
       </div>

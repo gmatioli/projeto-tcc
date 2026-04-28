@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import './conselho-intermediario.css'
 
 import totalAlunosIcon from '../../assets/conselho-intermediario/total-alunos-icon.svg'
 import situacaoNormalIcon from '../../assets/conselho-intermediario/situacao-normal-icon.svg'
@@ -7,7 +6,7 @@ import restritosIcon from '../../assets/conselho-intermediario/restritos-icon.sv
 import retidosIcon from '../../assets/conselho-intermediario/retidos-icon.svg'
 import notificationIcon from '../../assets/conselho-intermediario/notification-icon.svg'
 
-import ModalAvaliacao from '../../components/modalAvaliacaoConselhoIntermediario/modalAvaliacao'; // Caminho para o componente criado acima
+import ModalAvaliacao from '../../components/modalAvaliacaoConselhoIntermediario/ModalAvaliacao'; // Caminho para o componente criado acima
 
   
 
@@ -28,53 +27,53 @@ export function ConselhoIntermediario() {
 
   return (
       <section>
-        <div className="content_conselho_intermediario">
-            <div className="cards_turma_info">
-                <div className="card_total_alunos">
-                    <div className="int_text_total_alunos">
-                        <h3 className="int_total_alunos">{intTotalAlunos}</h3>
+        <div className="flex flex-col min-w-[72vw] m-5 gap-[150px]">
+            <div className="flex justify-around">
+                <div className="flex flex-col justify-between border border-black rounded-[15px] py-0 px-5 shadow-[0_0_5px_rgba(0,0,0,0.25)] bg-gray-150 border border-[#CCC]">
+                    <div className="mt-[50px] font-bold">
+                        <h3 className="text-2xl italic">{intTotalAlunos}</h3>
                         <p className="text_total_alunos">Total de Alunos</p>
                     </div>
-                    <div className="icon">
-                        <img src={totalAlunosIcon} alt="" />
+                    <div className="flex items-end justify-end m-0">
+                        <img src={totalAlunosIcon} alt="" className="w-10"/>
                     </div>
                 </div>
-                <div className="card_situacao_normal">
-                    <div className="int_text_situacao_normal">
-                        <h3 className="int_situacao_normal">{intSituacaoNormal}</h3>
+                <div className="flex flex-col justify-between border border-black rounded-[15px] py-0 px-5 text-green-600 shadow-[0_0_5px_rgba(0,0,0,0.25)] bg-green-50 border-green-600">
+                    <div className="mt-[50px] font-bold">
+                        <h3 className="text-2xl italic">{intSituacaoNormal}</h3>
                         <p className="text_situacao_normal">Total de Alunos</p>
                     </div>
-                    <div className="icon">
-                        <img src={situacaoNormalIcon} alt="" />
+                    <div className="flex items-end justify-end m-0">
+                        <img src={situacaoNormalIcon} alt=""className="w-10" />
                     </div>
                 </div>
-                <div className="card_restritos">
-                    <div className="int_text_restritos">
-                        <h3 className="int_restritos">{intRestritos}</h3>
+                <div className="flex flex-col justify-between border border-black rounded-[15px] py-0 px-5 text-yellow-600 shadow-[0_0_5px_rgba(0,0,0,0.25)] bg-yellow-50 border border-yellow-600">
+                    <div className="mt-[50px] font-bold">
+                        <h3 className="text-2xl italic">{intRestritos}</h3>
                         <p className="text_restritos">Total de Alunos</p>
                     </div>
-                    <div className="icon">
-                        <img src={restritosIcon} alt="" />
+                    <div className="flex items-end justify-end m-0">
+                        <img src={restritosIcon} alt="" className="w-10"/>
                     </div>
                 </div>
-                <div className="card_retidos">
-                    <div className="int_text_retidos">
-                        <h3 className="int_retidos">{intRetidos}</h3>
+                <div className="flex flex-col justify-between border border-black rounded-[15px] py-0 px-5 text-red-600 shadow-[0_0_5px_rgba(0,0,0,0.25)] bg-red-50 border border-red-600">
+                    <div className="mt-[50px] font-bold">
+                        <h3 className="text-2xl italic">{intRetidos}</h3>
                         <p className="text_retidos">Total de Alunos</p>
                     </div>
-                    <div className="icon">
-                        <img src={retidosIcon} alt="" />
+                    <div className="flex items-end justify-end m-0">
+                        <img src={retidosIcon} alt="" className="w-10"/>
                     </div>
                 </div>
                 <div className="card_avaliacoes">
-                    <div className="buttons_avaliacoes">
-                        <button onClick={handleOpenModal} className="avaliar_toda_turma">
+                    <div className="flex flex-col gap-5 p-5">
+                        <button onClick={handleOpenModal} className="avaliar_toda_turma p-[10px] w-[350px] rounded-[15px] border border-black shadow-[0_0_3px_black] cursor-pointer">
                             Avaliar Toda Turma
                         </button>
-                        <button className="limpar_selecao">
+                        <button className="limpar_selecao p-[10px] w-[350px] rounded-[15px] border border-black shadow-[0_0_3px_black] cursor-pointer">
                             Limpar Seleção
                         </button>
-                        <button onClick={handleOpenModal} className="avaliar_selecionados">
+                        <button onClick={handleOpenModal} className="p-[10px] w-[350px] rounded-[15px] border border-black shadow-[0_0_3px_black] bg-red-600 text-white cursor-pointer">
                             Avaliar Selecionados
                         </button>
                     </div>
@@ -82,35 +81,43 @@ export function ConselhoIntermediario() {
                     <ModalAvaliacao isOpen={isModalOpen} onClose={handleCloseModal} />
                 </div>
             </div>
-            <div className="card_alunos">
-                <div className="top_tabela_alunos">
-                    <div className="checkbox_selecionar_tudo">
-                        <input type="checkbox" id="checkbox_selecionar_tudo" />
+            <div className="flex flex-col">
+                <div className="flex justify-between my-0 mx-[10px] text-xl ">
+                    <div className="flex gap-2">
+                        <input type="checkbox" id="checkbox_selecionar_tudo" className="w-5 h-5 cursor-pointer" />
                         <p>Selecionar Tudo</p>
                     </div>
                     <div className="quatidade_alunos_selecionados">
                         <p>Alunos Selecionados: 0</p>
                     </div>
                 </div>
-                <div className="container_tabela_alunos">
-                    <div className="tabela_alunos">
-                            <div className="div_aluno">
-                                <div className="div_aluno_info">
-                                    <input type="checkbox" id="checkbox_aluno" />
-                                    <p>Jorge Marques de Salves</p>
-                                    <div className="img_text_observacoes">
-                                        <img src={notificationIcon} alt="" />
-                                        <div className="div_observacoes">
-                                            <p>Ver Observações</p>
-                                            <p>({intObservacoes})</p>
+                <div className="overflow-y-auto
+                                [&::-webkit-scrollbar]:w-2
+                                [&::-webkit-scrollbar-track]:bg-[#f1f1f1]
+                                [&::-webkit-scrollbar-track]:rounded-full
+                                [&::-webkit-scrollbar-track]:m-[5px]
+                                [&::-webkit-scrollbar-thumb]:bg-[#888]
+                                [&::-webkit-scrollbar-thumb]:rounded-full
+                                [&::-webkit-scrollbar-thumb:hover]:bg-[#555]
+                                ">
+                    <div className="p-5 w-[98.5%] border border-black rounded-[10px] box-border m-[10px] max-h-[40vh] overflow-y-auto overflow overflow-x-hidden pr-[5px]  ">
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                    <input type="checkbox" id="checkbox_aluno" className='w-5 h-5 cursor-pointer'/>
+                                    <p className="text-xl">Jorge Marques de Salves</p>
+                                    <div className="flex items-center my-0 mx-1 gap-1">
+                                        <img src={notificationIcon} alt="" className="w-6 h-6 border border-yellow-600 rounded-full p-[1px]"/>
+                                        <div className='flex'>
+                                            <p className="text-m underline">Ver Observações</p>
+                                            <p className="text-m underline">({intObservacoes})</p>
                                         </div>
                                     </div>
                                 </div>
                                 <div className="div_btn_restrito">
-                                    <button className="btn_restrito">Restrito</button>
+                                    <button className="bg-gray-500 shadow-[inset_0_0_10px_rgba(0,0,0,0.5)] w-[150px] p-1 text-xl rounded-[20px] mr-4">Restrito</button>
                                 </div>
                             </div>
-                            <hr />
+                            <hr className='my-[10px] mx-0' />
                             
                     </div>
                 </div>
