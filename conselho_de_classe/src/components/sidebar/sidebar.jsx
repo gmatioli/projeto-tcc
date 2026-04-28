@@ -16,6 +16,9 @@ export function Sidebar() {
   const [menuConselhoAberto, setMenuConselhoAberto] = useState(false);
   const [abaAberta, setAbaAberta] = useState(null);
 
+    //estado do submenu 'Relatorios'
+  const [menuRelatorioAberto, setMenuRelatorioAberto] = useState(false);
+
   const toggleAba = (aba) => {
     setAbaAberta(abaAberta === aba ? null : aba);
   };
@@ -33,6 +36,10 @@ export function Sidebar() {
     
     if (!novoEstado) setAbaAberta(null);
   };
+
+   const toggleMenuRelatorio = () => {
+    setMenuRelatorioAberto(!menuRelatorioAberto);
+  }
 
   // Função para os outros botões (Dashboard, Relatórios, Configurações)
   const handleClick = (rota, nomeBotao) => {
@@ -80,6 +87,8 @@ export function Sidebar() {
       </div>
     </div>
   );
+
+  const isRelatorioAtivo = ['/relatorios/ata', '/relatorios/relatorio', '/relatorios/termo'].includes(location.pathname)
 
   return (
     <section className="h-screen">
@@ -169,7 +178,7 @@ export function Sidebar() {
 
           {/* RELATÓRIO */}
           <button
-            onClick={() => handleClick('/relatorios', 'relatorios')}
+            onClick={toggleMenuRelatorio}
             className={`flex items-center justify-between w-[14vw] h-[10vh] px-[20px] mx-auto mt-[25px] bg-[var(--button_bg)] rounded-[10px] font-bold text-[1.25rem] shadow-[0px_3px_3px_rgb(117,117,117)] cursor-pointer transition-all ${
               botaoSelecionado === 'relatorios' 
                 ? 'bg-[#df3535] text-white' 
