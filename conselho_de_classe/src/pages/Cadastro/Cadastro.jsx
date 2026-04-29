@@ -158,7 +158,7 @@ export function Cadastro() {
                   required
                   className="w-full border border-gray-400 rounded-2xl p-3 outline-none text-base bg-white focus:border-gray-600 transition-colors"
                 >
-                  <option value="">Selecione...</option>
+                  <option value="" disabled hidden>Selecione</option>
                   <option value="docente">Docente</option>
                   <option value="admin">Administrador</option>
                 </select>

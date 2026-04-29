@@ -256,7 +256,7 @@ export function Sidebar() {
           {/* RELATÓRIOS */}
           <button
             onClick={toggleMenuRelatorio}
-            className={`flex items-center justify-between w-full h-[10vh] px-4 mx-auto mt-4 bg-[var(--button_bg)] rounded-[10px] border border-black font-bold text-[1.1rem] shadow-[0px_3px_3px_rgb(117,117,117)] cursor-pointer transition-all ${
+            className={`flex items-center justify-between w-full h-[10vh] px-4 mx-auto mt-4 bg-[var(--button_bg)] rounded-[10px] border border-black font-bold text-xl shadow-[0px_3px_3px_rgb(117,117,117)] cursor-pointer transition-all ${
               botaoSelecionado === 'relatorios' || menuRelatorioAberto ? 'bg-[#df3535] text-white' : ''
             }`}>
             <img src={reportIcon} className={`w-6 h-6 ${botaoSelecionado === 'relatorios' || menuRelatorioAberto ? 'brightness-0 invert' : 'brightness-0'}`} alt="Relatórios" />
