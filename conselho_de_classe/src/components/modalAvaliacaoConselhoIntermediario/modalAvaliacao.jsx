@@ -34,9 +34,9 @@ const ModalAvaliacao = ({ isOpen, onClose }) => {
             <label>Natureza da Ocorrência:</label>
             <div className="flex justify-center items-center gap-[75px] mt-[25px]">
               <label><input type="checkbox" /> Comportamental</label>
-              <label style={{ marginLeft: '10px' }}><input type="checkbox" /> Aproveitamento Escolar</label>
-              <label style={{ marginLeft: '10px' }}><input type="checkbox" /> Frequência</label>
-              <label style={{ marginLeft: '10px' }}><input type="checkbox" /> Outro: <input type="text" className="border border-[#ccc]" /></label>
+              <label className="ml-[10px] "><input type="checkbox" /> Aproveitamento Escolar</label>
+              <label className="ml-[10px] "><input type="checkbox" /> Frequência</label>
+              <label className="ml-[10px] "><input type="checkbox" /> Outro: <input type="text" className="border border-[#ccc]" /></label>
             </div>
           </div>
 

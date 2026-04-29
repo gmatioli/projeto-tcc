@@ -107,7 +107,7 @@ export function Sidebar() {
 
   return (
     <section className="h-[calc(100vh-8vh)]">
-      <div className="bg-[var(--sidebar_bg)] w-[22vw] h-full flex flex-col border-r border-[#ccc] overflow-hidden">
+      <div className="bg-[var(--sidebar_bg)] w-[20vw] h-full flex flex-col border-r border-[#ccc] overflow-hidden">
 
       <div className="flex-1 overflow-y-auto pt-6 px-4 pb-4 custom-scrollbar">
 
