@@ -31,6 +31,18 @@ export function ConselhoIntermediario() {
 
   return (
       <section>
+        <nav className="mb-4">
+        <span className="text-sm text-gray-500">
+          <button
+            onClick={() => navigate('/dashboard')}
+            className="hover:underline text-gray-500"
+          >
+            Conselhos
+          </button>
+          {' / '}
+          <span className="font-medium text-gray-700">Conselho Intermediário</span>
+        </span>
+      </nav>
         <div className="flex flex-col min-w-[72vw] m-5 gap-[150px]">
             <div className="flex justify-around">
                 {/* ... (Cards superiores mantidos iguais) ... */}

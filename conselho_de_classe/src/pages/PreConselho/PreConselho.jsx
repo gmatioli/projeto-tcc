@@ -26,6 +26,18 @@ export function PreConselho() {
 
   return (
       <section>
+      <nav className="mb-4">
+        <span className="text-sm text-gray-500">
+          <button
+            onClick={() => navigate('/dashboard')}
+            className="hover:underline text-gray-500"
+          >
+            Conselhos
+          </button>
+          {' / '}
+          <span className="font-medium text-gray-700">Pré-Conselho</span>
+        </span>
+      </nav>
         <div className="flex flex-col min-w-[72vw] m-5 gap-[150px]">
             <div className="flex justify-around">
                 <div className="flex flex-col justify-between border border-black rounded-[15px] py-0 px-5 shadow-[0_0_5px_rgba(0,0,0,0.25)] bg-gray-150 border border-[#CCC]">

@@ -32,7 +32,18 @@ const ConselhoFinal = () => {
 
   return (
     <div className="conselho-tables-container">
-      
+      <nav className="mb-4">
+        <span className="text-sm text-gray-500">
+          <button
+            onClick={() => navigate('/dashboard')}
+            className="hover:underline text-gray-500"
+          >
+            Conselhos
+          </button>
+          {' / '}
+          <span className="font-medium text-gray-700">Conselho Final</span>
+        </span>
+      </nav>
       {/* SEÇÃO SUPERIOR: TURMAS + JUSTIFICATIVAS LADO A LADO */}
       <section className="top-section">
         
