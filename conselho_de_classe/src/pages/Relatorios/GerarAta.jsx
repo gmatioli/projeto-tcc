@@ -16,14 +16,69 @@ export function GerarAta() {
     setDataConselho('2024-03-18');
   };
  
-  const handleGerar = () => {
-    if (!conselho || !ano || !semestre || !dataConselho) {
-      alert('Por favor, preencha todos os campos obrigatórios.');
-      return;
-    }
-    alert('Ata gerada com sucesso!');
-  };
+  // const handleGerar = () => {
+  //   if (!conselho || !ano || !semestre || !dataConselho) {
+  //     alert('Por favor, preencha todos os campos obrigatórios.');
+  //     return;
+  //   }
+  //   alert('Ata gerada com sucesso!');
+  // };
  
+
+  //docs gerar ataaaaa----------------------------------------------------
+ const gerarAta = async () => {
+
+  if (!conselho || !ano || !semestre || !dataConselho) {
+    alert('Por favor, preencha todos os campos.');
+    return;
+  }
+
+  try {
+
+    const dados = {
+      conselho,
+      semestre,
+      ano,
+      data: dataConselho
+    };
+
+    const response = await fetch(
+      'http://localhost:3001/gerar-doc',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(dados)
+      }
+    );
+
+    const blob = await response.blob();
+
+    const url = window.URL.createObjectURL(blob);
+
+    const a = document.createElement('a');
+
+    a.href = url;
+    a.download = 'ata.docx';
+
+    document.body.appendChild(a);
+
+    a.click();
+
+    a.remove();
+
+  } catch (error) {
+
+    console.log(error);
+
+    alert('Erro ao gerar ata');
+  }
+};
+
+
+
+
   return (
     <div className="flex flex-col h-full bg-gray-100 p-5 overflow-auto">
       {/* Breadcrumb */}
@@ -122,7 +177,7 @@ export function GerarAta() {
             Limpar
           </button>
           <button
-            onClick={handleGerar}
+            onClick={gerarAta}
             className="px-10 py-3 rounded-full bg-red-600 text-white hover:bg-red-700 transition font-medium text-sm shadow"
           >
             Gerar

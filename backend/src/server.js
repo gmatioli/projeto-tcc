@@ -3,6 +3,13 @@ const cors = require('cors');
 const bcrypt = require('bcrypt');
 const db = require('./config/db');
 
+//docs 
+const path = require('path');
+const fs = require('fs');
+const PizZip = require('pizzip');
+const Docxtemplater = require('docxtemplater');
+
+
 const app = express();
 
 // ==========================================
@@ -10,7 +17,7 @@ const app = express();
 // ==========================================
 // Adicione estas importações lá no topo do seu arquivo do servidor
 const multer = require('multer');
-const fs = require('fs');
+// const fs = require('fs');
 const csv = require('csv-parser');
 
 // Configurando o Multer para salvar o arquivo temporariamente na pasta 'uploads'
@@ -277,6 +284,68 @@ app.post('/upload-planilha', upload.single('arquivo'), (req, res) => {
         
       }
     });
+});
+
+
+//================================================
+// rota p gerar o docs
+app.post('/gerar-doc', (req, res) => {
+
+  try {
+
+    const {
+      conselho,
+      semestre,
+      ano,
+      data
+    } = req.body;
+
+    // caminho correto do template
+    const templatePath = path.join(
+      __dirname,
+      '../docs/template.docx'
+    );
+
+    // lê template
+    const content = fs.readFileSync(
+      templatePath,
+      'binary'
+    );
+
+    const zip = new PizZip(content);
+
+    const doc = new Docxtemplater(zip, {
+      paragraphLoop: true,
+      linebreaks: true,
+    });
+
+    // substitui campos
+    doc.setData({
+      tipo_conselho: conselho,
+      semestre: semestre,
+      ano: ano,
+      data_conselho: data
+    });
+
+    doc.render();
+
+    const buffer = doc.getZip().generate({
+      type: 'nodebuffer'
+    });
+
+    res.setHeader(
+      'Content-Disposition',
+      'attachment; filename=ata.docx'
+    );
+
+    res.send(buffer);
+
+  } catch (error) {
+
+    console.log(error);
+
+    res.status(500).send('Erro ao gerar documento');
+  }
 });
 
 
