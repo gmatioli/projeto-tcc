@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import './cadastro.css'; 
 
 export function Cadastro() {
   const navigate = useNavigate();
@@ -14,8 +13,8 @@ export function Cadastro() {
 
   // Estados exclusivos para as mensagens de erro pulsantes
   const [emailErro, setEmailErro] = useState('');
-  const [senhaForteErro, setSenhaForteErro] = useState(''); // NOVO: Erro para o tamanho da senha
-  const [senhaErro, setSenhaErro] = useState('');           // Erro para senhas diferentes
+  const [senhaForteErro, setSenhaForteErro] = useState('');
+  const [senhaErro, setSenhaErro] = useState('');           
 
   const [gatilhoAnimacao, setGatilhoAnimacao] = useState(0);
 
@@ -110,43 +109,64 @@ export function Cadastro() {
   };
 
   return (
-    <div className="cadastro-wrapper">
+    <div className="min-h-screen flex flex-col bg-white">
+      {/* Injeção do Keyframe de animação para não depender de CSS externo */}
+      <style>
+        {`
+          @keyframes pulsarErro {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); color: #ff0000; font-weight: bold; }
+            100% { transform: scale(1); }
+          }
+          .animacao-erro {
+            display: inline-block;
+            animation: pulsarErro 0.4s ease-in-out;
+            transform-origin: left center;
+          }
+        `}
+      </style>
       
-      <header className="cadastro-header">
-        <img src="/img/logo-senai.png" alt="Logo SENAI" className="logo-senai" />
-        <h1 className="titulo-cadastro">CADASTRO DE USUÁRIO</h1>
+      <header className="absolute w-full pt-5 pl-[50px] top-0 left-0 ">
+        <img src="/img/logo-senai.png" alt="Logo SENAI" className="h-[45px] mt-2" />
       </header>
 
-      <main className="cadastro-card">
-        <form onSubmit={handleCadastro}>
-          
-          <div className="linha-form">
-            <div className="grupo-input">
-              <label>Nome Completo:</label>
-              <input 
-                type="text" 
-                value={nome} 
-                onChange={(e) => setNome(e.target.value)} 
-                required 
-              />
-            </div>
-            <div className="grupo-input">
-              <label>Tipo de acesso:</label>
-              <select 
-                value={tipoAcesso} 
-                onChange={(e) => setTipoAcesso(e.target.value)} 
-                required
-              >
-                <option value="">Selecione...</option>
-                <option value="docente">Docente</option>
-                <option value="admin">Administrador</option>
-              </select>
-            </div>
-          </div>
+      <main className="flex-1 flex flex-col justify-center items-center px-4 ">
+        
+        <h1 className="text-2xl font-bold text-gray-800 uppercase mb-8 tracking-wide">
+          Cadastro de Usuário
+        </h1>
 
-          <div className="linha-form">
-            <div className="grupo-input full-width">
-              <label>Email Institucional:</label>
+        <div className="w-full max-w-4xl bg-[#E9E9E9] rounded-xl p-10 shadow-lg">
+          <form onSubmit={handleCadastro} className="flex flex-col gap-6">
+            
+            <div className="flex flex-col md:flex-row gap-8">
+              <div className="flex flex-col flex-1">
+                <label className="text-base font-medium mb-2 text-gray-900">Nome Completo:</label>
+                <input 
+                  type="text" 
+                  value={nome} 
+                  onChange={(e) => setNome(e.target.value)} 
+                  required 
+                  className="w-full border border-gray-400 rounded-2xl p-3 outline-none text-base bg-white focus:border-gray-600 transition-colors"
+                />
+              </div>
+              <div className="flex flex-col flex-1">
+                <label className="text-base font-medium mb-2 text-gray-900">Tipo de acesso:</label>
+                <select 
+                  value={tipoAcesso} 
+                  onChange={(e) => setTipoAcesso(e.target.value)} 
+                  required
+                  className="w-full border border-gray-400 rounded-2xl p-3 outline-none text-base bg-white focus:border-gray-600 transition-colors"
+                >
+                  <option value="">Selecione...</option>
+                  <option value="docente">Docente</option>
+                  <option value="admin">Administrador</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="flex flex-col w-full">
+              <label className="text-base font-medium mb-2 text-gray-900">Email Institucional:</label>
               <input 
                 type="email" 
                 value={email} 
@@ -156,61 +176,75 @@ export function Cadastro() {
                 }} 
                 onBlur={validarEmail} 
                 required 
+                className="w-full border border-gray-400 rounded-2xl p-3 outline-none text-base bg-white focus:border-gray-600 transition-colors"
               />
-              {emailErro && <span key={`email-${gatilhoAnimacao}`} className="mensagem-erro">{emailErro}</span>}
+              {emailErro && (
+                <span key={`email-${gatilhoAnimacao}`} className="text-[#e3352f] text-sm mt-2 font-medium pl-1 animacao-erro">
+                  {emailErro}
+                </span>
+              )}
             </div>
-          </div>
 
-          <div className="linha-form align-start">
-            
-            {/* CAMPO DE SENHA (AGORA COM O AVISO PULSANTE DE 8 CARACTERES) */}
-            <div className="grupo-input">
-              <label>Senha:</label>
-              <input 
-                type="password" 
-                value={senha} 
-                onChange={(e) => {
-                  setSenha(e.target.value);
-                  setSenhaForteErro(''); // Limpa o erro ao digitar
-                }} 
-                onBlur={validarSenhaForte} // Valida quando o usuário clica fora da caixa
-                required 
-              />
-              {/* O alerta de 8 caracteres só aparece aqui se der erro! */}
-              {senhaForteErro && <span key={`senhaForte-${gatilhoAnimacao}`} className="mensagem-erro">{senhaForteErro}</span>}
+            <div className="flex flex-col md:flex-row gap-8 items-start">
+              <div className="flex flex-col flex-1 w-full">
+                <label className="text-base font-medium mb-2 text-gray-900">Senha:</label>
+                <input 
+                  type="password" 
+                  value={senha} 
+                  onChange={(e) => {
+                    setSenha(e.target.value);
+                    setSenhaForteErro(''); 
+                  }} 
+                  onBlur={validarSenhaForte} 
+                  required 
+                  className="w-full border border-gray-400 rounded-2xl p-3 outline-none text-base bg-white focus:border-gray-600 transition-colors"
+                />
+                {senhaForteErro && (
+                  <span key={`senhaForte-${gatilhoAnimacao}`} className="text-[#e3352f] text-sm mt-2 font-medium pl-1 animacao-erro">
+                    {senhaForteErro}
+                  </span>
+                )}
+              </div>
+              
+              <div className="flex flex-col flex-1 w-full">
+                <label className="text-base font-medium mb-2 text-gray-900">Confirme sua senha:</label>
+                <input 
+                  type="password" 
+                  value={confirmaSenha} 
+                  onChange={(e) => {
+                    setConfirmaSenha(e.target.value);
+                    setSenhaErro(''); 
+                  }} 
+                  onBlur={validarSenhasIguais} 
+                  required 
+                  className="w-full border border-gray-400 rounded-2xl p-3 outline-none text-base bg-white focus:border-gray-600 transition-colors"
+                />
+                {senhaErro && (
+                  <span key={`senhaConfirma-${gatilhoAnimacao}`} className="text-[#e3352f] text-sm mt-2 font-medium pl-1 animacao-erro">
+                    {senhaErro}
+                  </span>
+                )}
+              </div>
+            </div> 
+
+            <div className="flex justify-center gap-6 mt-8">
+              <button 
+                type="button" 
+                onClick={() => navigate("/configuracoes")}
+                className="w-40 py-3 rounded-2xl border border-gray-400 bg-[#e9ecef] text-gray-800 font-semibold hover:bg-[#d6d8db] transition-colors"
+              >
+                Voltar
+              </button>
+              <button 
+                type="submit" 
+                className="w-40 py-3 rounded-2xl bg-[#E20814] text-white font-semibold hover:bg-red-700 transition-colors border border-transparent"
+              >
+                Cadastrar
+              </button>
             </div>
-            
-            {/* CAMPO DE CONFIRMAR SENHA */}
-            <div className="grupo-input">
-              <label>Confirme sua senha:</label>
-              <input 
-                type="password" 
-                value={confirmaSenha} 
-                onChange={(e) => {
-                  setConfirmaSenha(e.target.value);
-                  setSenhaErro(''); 
-                }} 
-                onBlur={validarSenhasIguais} 
-                required 
-              />
-              {senhaErro && <span key={`senhaConfirma-${gatilhoAnimacao}`} className="mensagem-erro">{senhaErro}</span>}
-            </div>
-          </div> 
 
-          <div className="acoes-form">
-            <button 
-              type="button" 
-              className="btn-voltar-cad" 
-              onClick={() => navigate("/configuracoes")}
-            >
-              Voltar
-            </button>
-            <button type="submit" className="btn-enviar-cad">
-              Cadastrar
-            </button>
-          </div>
-
-        </form>
+          </form>
+        </div>
       </main>
     </div>
   );

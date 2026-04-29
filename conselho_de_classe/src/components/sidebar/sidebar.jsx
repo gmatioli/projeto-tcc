@@ -111,7 +111,6 @@ export function Sidebar() {
 
       <div className="flex-1 overflow-y-auto pt-6 px-4 pb-4 custom-scrollbar">
 
-          {/* DASHBOARD */}
           <button
             onClick={() => handleClick('/dashboard', 'dashboard')}
             className={`flex items-center justify-between w-full h-[10vh] px-4 mx-auto mt-0 bg-[var(--button_bg)] rounded-[10px] font-bold text-[1.1rem] shadow-[0px_3px_3px_rgb(117,117,117)] cursor-pointer transition-all ${
@@ -119,7 +118,6 @@ export function Sidebar() {
             }`}>
             <img src={dashboardIcon} className={`w-6 h-6 ${botaoSelecionado === 'dashboard' ? 'brightness-0 invert' : 'brightness-0'}`} alt="Dashboard" />
             
-            {/* A MÁGICA AQUI: flex-1 faz o texto empurrar os ícones para as bordas e text-center centraliza a palavra */}
             <p className="flex-1 text-center">Dashboard</p>
             
             <img src={arrowRightIcon} className={`w-6 h-6 ${botaoSelecionado === 'dashboard' ? 'brightness-0 invert' : 'brightness-0'}`} alt="Seta" />

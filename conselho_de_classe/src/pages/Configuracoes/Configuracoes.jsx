@@ -36,14 +36,14 @@ export function Configuracoes() {
       const dados = await resposta.json();
 
       if (dados.sucesso) {
-        setStatusUpload('✅ ' + dados.mensagem);
+        setStatusUpload(dados.mensagem);
         setArquivo(null); // Limpa o input
       } else {
-        setStatusUpload('❌ Erro: ' + dados.mensagem);
+        setStatusUpload('Erro: ' + dados.mensagem);
       }
     } catch (erro) {
       console.error("Erro no upload:", erro);
-      setStatusUpload('❌ Erro de conexão com o servidor.');
+      setStatusUpload('Erro de conexão com o servidor.');
     }
   };
 
@@ -56,7 +56,6 @@ export function Configuracoes() {
   const handleLimparArquivo = () => {
     setArquivo(null);
     setStatusUpload('');
-    // Isso aqui limpa o texto "nome-do-arquivo.csv" que fica escrito no input
     document.getElementById('input-csv').value = ''; 
   };
 
@@ -145,11 +144,9 @@ export function Configuracoes() {
 
           </div>
 
-          {/* Coluna da Direita - Removido o esticamento, usando apenas gap-4 para juntar os cards */}
           <div className="xl:col-span-2 flex flex-col gap-4">
             <h4 className="text-lg font-semibold text-gray-800 mb-1">Ações de Gerenciamento</h4>
 
-            {/* Flex column simples com gap-4 */}
             <div className="flex flex-col gap-4">
               <div className="flex items-center justify-between p-4 bg-white border border-gray-200 rounded-xl shadow-sm hover:border-gray-300 transition-colors">
                 <span className="text-gray-700 font-medium text-sm">Cadastrar Novo Usuário</span>

@@ -10,7 +10,7 @@ export function Turma(){
 
     return(
         <div className='min-h-screen flex flex-col'>
-            <header className="w-full pt-5 pl-[50px]">
+            <header className="absolute w-full pt-5 pl-[50px]">
                 <img src="/img/logo-senai.png" alt="Logo SENAI" className="h-[50px] mt-2" />
             </header>
             
@@ -66,7 +66,7 @@ export function Turma(){
                     </div>
 
                     <div className="flex justify-center gap-4 mt-8">
-                        <button className="px-8 py-2 rounded-full border border-gray-400 bg-gray-200 text-gray-700 font-semibold hover:bg-gray-300 transition-colors">
+                        <button onClick={() => navigate('/configuracoes') } className="px-8 py-2 rounded-full border border-gray-400 bg-gray-200 text-gray-700 font-semibold hover:bg-gray-300 transition-colors">
                             Fechar
                         </button>
                         <button className="px-8 py-2 rounded-full bg-[#E20814] text-white font-semibold hover:bg-red-700 transition-colors">
