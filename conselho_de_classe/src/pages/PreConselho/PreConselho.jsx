@@ -66,10 +66,10 @@ export function PreConselho() {
                 </div>
                 <div className="card_avaliacoes">
                     <div className="flex flex-col gap-5 p-5 min-h-[220px]">
-                        <button className="limpar_selecao p-[10px] w-[350px] mt-[40px] rounded-[15px] border border-black shadow-[0_0_3px_black] cursor-pointer">
+                        <button className="limpar_selecao p-[10px] w-[350px] mt-[40px] rounded-[15px] border border-black shadow-[0_0_3px_black] cursor-pointer trasition-all duration-200 active:scale-95">
                             Limpar Seleção
                         </button>
-                        <button onClick={handleOpenModal} className="p-[10px] w-[350px] rounded-[15px] border border-black shadow-[0_0_3px_black] bg-red-600 text-white cursor-pointer">
+                        <button onClick={handleOpenModal} className="p-[10px] w-[350px] rounded-[15px] border border-black shadow-[0_0_3px_black] bg-red-600 text-white cursor-pointer trasition-all duration-200 active:scale-95">
                             Avaliar Selecionados
                         </button>
                     </div>

@@ -6,10 +6,9 @@ import restritosIcon from '../../assets/conselho-intermediario/restritos-icon.sv
 import retidosIcon from '../../assets/conselho-intermediario/retidos-icon.svg'
 import notificationIcon from '../../assets/conselho-intermediario/notification-icon.svg'
 
-import ModalAvaliacao from '../../components/modalAvaliacaoConselhoIntermediario/ModalAvaliacao'; // Caminho para o componente criado acima
-
+import ModalAvaliacaoAlunos from '../../components/modalAvaliacaoConselhoIntermediario/ModalAvaliacaoAlunos';
+import ModalAvaliacaoTurma from '../../components/modalAvaliacaoConselhoIntermediario/ModalAvaliacaoTurma';
   
-
 const intTotalAlunos = 20
 const intSituacaoNormal = 16
 const intRestritos = 4
@@ -18,17 +17,23 @@ const intObservacoes = 3
 
 export function ConselhoIntermediario() {
 
-    // Estado que controla se o modal está aberto ou não
-    const [isModalOpen, setIsModalOpen] = useState(false);
+    // Estados independentes para controlar cada modal
+    const [isModalTurmaOpen, setIsModalTurmaOpen] = useState(false);
+    const [isModalAlunosOpen, setIsModalAlunosOpen] = useState(false);
 
-  // Funções para manipular o estado
-    const handleOpenModal = () => setIsModalOpen(true);
-    const handleCloseModal = () => setIsModalOpen(false);
+    // Funções para manipular o Modal da Turma
+    const handleOpenModalTurma = () => setIsModalTurmaOpen(true);
+    const handleCloseModalTurma = () => setIsModalTurmaOpen(false);
+
+    // Funções para manipular o Modal dos Alunos Selecionados
+    const handleOpenModalAlunos = () => setIsModalAlunosOpen(true);
+    const handleCloseModalAlunos = () => setIsModalAlunosOpen(false);
 
   return (
       <section>
         <div className="flex flex-col min-w-[72vw] m-5 gap-[150px]">
             <div className="flex justify-around">
+                {/* ... (Cards superiores mantidos iguais) ... */}
                 <div className="flex flex-col justify-between border border-black rounded-[15px] py-0 px-5 shadow-[0_0_5px_rgba(0,0,0,0.25)] bg-gray-150 border border-[#CCC]">
                     <div className="mt-[50px] font-bold">
                         <h3 className="text-2xl italic">{intTotalAlunos}</h3>
@@ -65,22 +70,30 @@ export function ConselhoIntermediario() {
                         <img src={retidosIcon} alt="" className="w-10"/>
                     </div>
                 </div>
+
                 <div className="card_avaliacoes">
                     <div className="flex flex-col gap-5 p-5 min-h-[220px]">
-                        <button onClick={handleOpenModal} className="avaliar_toda_turma p-[10px] w-[350px] rounded-[15px] border border-black shadow-[0_0_3px_black] cursor-pointer">
+                        {/* Botão que abre o modal da turma inteira */}
+                        <button onClick={handleOpenModalTurma} className="avaliar_toda_turma p-[10px] w-[350px] rounded-[15px] border border-black shadow-[0_0_3px_black] cursor-pointer trasition-all duration-200 active:scale-95">
                             Avaliar Toda Turma
                         </button>
-                        <button className="limpar_selecao p-[10px] w-[350px] rounded-[15px] border border-black shadow-[0_0_3px_black] cursor-pointer">
+                        
+                        <button className="limpar_selecao p-[10px] w-[350px] rounded-[15px] border border-black shadow-[0_0_3px_black] cursor-pointer  trasition-all duration-200 active:scale-95">
                             Limpar Seleção
                         </button>
-                        <button onClick={handleOpenModal} className="p-[10px] w-[350px] rounded-[15px] border border-black shadow-[0_0_3px_black] bg-red-600 text-white cursor-pointer">
+
+                        {/* Botão que abre o modal dos alunos selecionados */}
+                        <button onClick={handleOpenModalAlunos} className="p-[10px] w-[350px] rounded-[15px] border border-black shadow-[0_0_3px_black] bg-red-600 text-white cursor-pointer  trasition-all duration-200 active:scale-95">
                             Avaliar Selecionados
                         </button>
                     </div>
-                    {/* Renderiza o Modal passando o estado e a função de fechar */}
-                    <ModalAvaliacao isOpen={isModalOpen} onClose={handleCloseModal} />
+
+                    {/* Renderiza ambos os Modais passando seus respectivos estados e funções de fechar */}
+                    <ModalAvaliacaoTurma isOpen={isModalTurmaOpen} onClose={handleCloseModalTurma} />
+                    <ModalAvaliacaoAlunos isOpen={isModalAlunosOpen} onClose={handleCloseModalAlunos} />
                 </div>
             </div>
+            
             <div className="flex flex-col">
                 <div className="flex justify-between my-0 mx-[10px] text-xl ">
                     <div className="flex gap-2">
@@ -114,7 +127,7 @@ export function ConselhoIntermediario() {
                                     </div>
                                 </div>
                                 <div className="div_btn_restrito">
-                                    <button className="bg-gray-400 shadow-[inset_0_0_10px_rgba(0,0,0,0.5)] w-[150px] p-1 text-xl rounded-[20px] mr-4">Restrito</button>
+                                    <button className="bg-gray-400 shadow-[inset_0_0_10px_rgba(0,0,0,0.5)] w-[150px] p-1 text-xl rounded-[20px] mr-4  trasition-all duration-200 active:scale-95">Restrito</button>
                                 </div>
                             </div>
                             <hr className='my-[10px] mx-0' />
