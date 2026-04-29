@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 import dashboardIcon from '../../assets/sidebar/dashboard-icon.svg';
@@ -67,27 +67,106 @@ export function Sidebar() {
   };
 
   // Formulário de Filtros 
-  const FormFiltros = ({ rotaDestino }) => (
+  const FormFiltros = ({ rotaDestino }) => {
+    const navigate = useNavigate();
+
+    // Guarda todos os dados vindos do banco
+    const [dadosCompletos, setDadosCompletos] = useState([]);
+    
+    // Guarda o que o usuário selecionou em cada etapa
+    const [tipoSelecionado, setTipoSelecionado] = useState("");
+    const [cursoSelecionado, setCursoSelecionado] = useState("");
+    const [turmaSelecionada, setTurmaSelecionada] = useState("");
+    
+    // Busca os dados do banco assim que o menu abre
+    useEffect(() => {
+      fetch('http://localhost:3001/api/turmas-filtro')
+        .then(res => res.json())
+        .then(data => {
+          if (data.sucesso) setDadosCompletos(data.dados);
+        });
+    }, []);
+
+    // 1. Extrai os tipos cursos existentes
+    const tiposCursos = [...new Set(dadosCompletos.map(item => item.tipo))];
+
+    // 2. Extrai os cursos de acordo com o tipo selecionado
+    const cursosFiltrados = dadosCompletos.filter(item => item.tipo === tipoSelecionado);
+    const cursosDisponiveis = [...new Set(cursosFiltrados.map(item => item.curso))];
+
+    // 3. Extrai as turmas de acordo com o curso selecionado
+    const turmasDisponiveis = dadosCompletos.filter(item => item.curso === cursoSelecionado && item.tipo === tipoSelecionado );
+
+    // Função para limpar campos após filtro
+    const handleMudarTipo = (e) => {
+      setTipoSelecionado(e.target.value);
+      setCursoSelecionado("");
+      setTurmaSelecionada("");
+    };
+
+    const handleMudarCurso = (e) => {
+      setCursoSelecionado(e.target.value);
+      setTurmaSelecionada("");
+    };
+
+    const handleIniciarConselho = () => {
+      if (!turmaSelecionada) {
+        alert("Por favor, selecione uma Turma para iniciar o conselho!");
+        return;
+      }
+      navigate(`${rotaDestino}?turma=${turmaSelecionada}`);
+    };
+
+    const handleLimparFiltro = () => {
+      setTipoSelecionado("");
+      setCursoSelecionado("");
+      setTurmaSelecionada("");
+    };
+
+
+
+    
+    return (
     <div className="flex flex-col gap-[12px] border-l-[2px] border-[#df3535] pl-[15px] ml-[5px] mb-[10px]">
       <div className="flex flex-col text-left gap-[5px]">
         <label className="text-[0.9rem] font-medium text-[#333]">Tipo de Curso:</label>
-        <select className="p-[8px] rounded-[5px] border border-[#ccc] bg-white text-[0.9rem] outline-none focus:border-[#df3535]">
-          <option>Técnico</option>
-          <option>CAI</option>
+        <select className="p-[8px] rounded-[5px] border border-[#ccc] bg-white text-[0.9rem] outline-none focus:border-[#df3535]"
+          value={tipoSelecionado}
+          onChange={handleMudarTipo}
+        >
+          <option value="" disabled hidden >Selecione</option>
+          {tiposCursos.map(tipo => (
+            <option key={tipo} value={tipo}>{tipo}</option>
+          ))}
+
         </select>
       </div>
 
       <div className="flex flex-col text-left gap-[5px]">
         <label className="text-[0.9rem] font-medium text-[#333]">Curso:</label>
-        <select className="p-[8px] rounded-[5px] border border-[#ccc] bg-white text-[0.9rem] outline-none focus:border-[#df3535]">
-          <option>Desenvolvimento de Sistemas</option>
+        <select className="p-[8px] rounded-[5px] border border-[#ccc] bg-white text-[0.9rem] outline-none focus:border-[#df3535]"
+        value={cursoSelecionado}
+        onChange={handleMudarCurso}
+        disabled={!tipoSelecionado}
+        >
+          <option value="" disabled hidden>Selecione</option>
+          {cursosDisponiveis.map(curso => (
+            <option key={curso} value={curso}>{curso}</option>
+          ))}
         </select>
       </div>
 
       <div className="flex flex-col text-left gap-[5px]">
         <label className="text-[0.9rem] font-medium text-[#333]">Turma:</label>
-        <select className="p-[8px] rounded-[5px] border border-[#ccc] bg-white text-[0.9rem] outline-none focus:border-[#df3535]">
-          <option>CPTMTDS4T126</option>
+        <select className="p-[8px] rounded-[5px] border border-[#ccc] bg-white text-[0.9rem] outline-none focus:border-[#df3535]"
+        value={turmaSelecionada}
+        onChange={(e) => setTurmaSelecionada(e.target.value)}
+        disabled={!cursoSelecionado}
+        >
+          <option value="" disabled hidden>Selecione</option>
+          {turmasDisponiveis.map(item => (
+            <option key={item.idTurma} value={item.idTurma}>{item.turma}</option>
+          ))}
         </select>
       </div>
 
@@ -104,6 +183,8 @@ export function Sidebar() {
       </div>
     </div>
   );
+}
+
 
   return (
     <section className="h-[calc(100vh-8vh)]">

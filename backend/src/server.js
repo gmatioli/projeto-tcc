@@ -273,11 +273,39 @@ app.post('/upload-planilha', upload.single('arquivo'), (req, res) => {
 
       } catch (erro) {
         console.error("Erro ao processar planilha:", erro);
-        res.status(500).json({ sucesso: false, mensagem: "Erro ao processar os dados da planilha." });
+        res.status(500).json({ sucesso: false, mensagem: " processar os dados da planilha." });
         
       }
     });
 });
+
+// ==========================================
+// ROTA 7: FILTRO DE DADOS SIDEBAR CONSELHOS
+// ==========================================
+app.get('/api/turmas-filtro', async (req, res) => {
+  try {
+    const sql = `
+      SELECT
+        T.idTurma,
+        T.codigo AS turma,
+        C.nomeCurso AS curso,
+        C.tipo
+      FROM Turma T
+      INNER JOIN Cursos C on T.Cursos_idCurso = C.idCurso
+      ORDER BY C.tipo ASC, C.nomeCurso ASC, T.codigo ASC `;
+
+      const dados = await queryAsync(sql);
+      res.json({sucesso: true, dados})
+  } catch (erro){
+    console.error("Erro ao buscar filtros:", erro);
+    res.status(500).json({ sucesso: false, mensagem: "Erro no servidor" });
+  
+  }
+
+});
+
+
+
 
 
 // --- INICIALIZAÇÃO DO SERVIDOR ---
