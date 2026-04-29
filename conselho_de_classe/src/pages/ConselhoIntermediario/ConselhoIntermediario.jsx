@@ -66,7 +66,7 @@ export function ConselhoIntermediario() {
                     </div>
                 </div>
                 <div className="card_avaliacoes">
-                    <div className="flex flex-col gap-5 p-5">
+                    <div className="flex flex-col gap-5 p-5 min-h-[220px]">
                         <button onClick={handleOpenModal} className="avaliar_toda_turma p-[10px] w-[350px] rounded-[15px] border border-black shadow-[0_0_3px_black] cursor-pointer">
                             Avaliar Toda Turma
                         </button>
@@ -114,7 +114,7 @@ export function ConselhoIntermediario() {
                                     </div>
                                 </div>
                                 <div className="div_btn_restrito">
-                                    <button className="bg-gray-500 shadow-[inset_0_0_10px_rgba(0,0,0,0.5)] w-[150px] p-1 text-xl rounded-[20px] mr-4">Restrito</button>
+                                    <button className="bg-gray-400 shadow-[inset_0_0_10px_rgba(0,0,0,0.5)] w-[150px] p-1 text-xl rounded-[20px] mr-4">Restrito</button>
                                 </div>
                             </div>
                             <hr className='my-[10px] mx-0' />
@@ -126,5 +126,5 @@ export function ConselhoIntermediario() {
         </div>
       </section>
       
-  )
+  );
 }
