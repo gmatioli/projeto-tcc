@@ -48,7 +48,7 @@ function Login() {
     
     <div className="flex flex-col justify-center items-center h-screen bg-gray-100 relative">
       <div className="absolute top-5 left-10">
-        <img className=" w-[350px] h-[70px]" src="/img/logoSenaiS.png" alt="Logo da instituição SENAI" />
+        <img className="mt-5 ml-2" src="/img/LogoLogin.png" alt="Logo da instituição SENAI" />
       </div>
       <div className="p-10 rounded-lg bg-[#f9f9f9] text-left w-[400px] h-auto">
         <h2 className="font-bold text-3xl mb-2.5">Login</h2>

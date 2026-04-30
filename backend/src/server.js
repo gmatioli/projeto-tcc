@@ -314,6 +314,16 @@ app.get('/api/turmas-filtro', async (req, res) => {
 });
 
 
+// ==========================================
+// ROTA 8: FILTRO DE DADOS SIDEBAR CONSELHOS
+// ==========================================
+
+
+
+
+
+
+
 //================================================
 // rota p gerar o docs
 app.post('/gerar-doc', (req, res) => {
