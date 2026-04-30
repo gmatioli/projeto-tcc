@@ -1,10 +1,13 @@
 import React, { useState } from 'react';
-import './conselho-final.css';
 
 const ConselhoFinal = () => {
   const turmas = [
     { id: 1, nome: 'CPTMTDS4T126', preConselho: 'Reprovado(s):0 Restrito(s):2', conselhoFinal: 'Pendente' },
     { id: 2, nome: 'CPTMTDS2T', preConselho: 'Reprovado(s):0 Restrito(s):2', conselhoFinal: 'Realizada' },
+    { id: 3, nome: 'CPTMTDS2T', preConselho: 'Reprovado(s):0 Restrito(s):2', conselhoFinal: 'Realizada' },
+    { id: 4, nome: 'CPTMTDS2T', preConselho: 'Reprovado(s):0 Restrito(s):2', conselhoFinal: 'Realizada' },
+    { id: 5, nome: 'CPTMTDS2T', preConselho: 'Reprovado(s):0 Restrito(s):2', conselhoFinal: 'Realizada' },
+    { id: 6, nome: 'CPTMTDS2T', preConselho: 'Reprovado(s):0 Restrito(s):2', conselhoFinal: 'Realizada' },
   ];
 
   const alunos = [
@@ -22,17 +25,38 @@ const ConselhoFinal = () => {
       id: 3, nome: 'Roberto Paulo Dominique', 
       preConselhoTexto: 'Excesso de faltas em PSOF 30/20 e plano de reposição de aulas',
       obsCount: 3, temJustificativa: true, textoJustificativa: 'Problemas familiares.', status: 'reprovado'
+    },
+    { 
+      id: 4, nome: 'Ana Carolina Mendonça', 
+      preConselhoTexto: 'Desempenho abaixo da média em Banco de Dados (BD) no 2º semestre',
+      obsCount: 0, temJustificativa: false, textoJustificativa: '', status: 'reprovado'
+    },
+    { 
+      id: 5, nome: 'Lucas Ferreira Gomes', 
+      preConselhoTexto: 'Faltas pontuais em LOP, mas entregou o projeto final com sucesso',
+      obsCount: 2, temJustificativa: true, textoJustificativa: 'Declaração de trabalho no dia das aulas.', status: 'aprovado-conselho'
+    },
+    { 
+      id: 6, nome: 'Beatriz Souza Lima', 
+      preConselhoTexto: 'Sem pendências graves, atingiu todas as competências necessárias',
+      obsCount: 0, temJustificativa: false, textoJustificativa: '', status: 'aprovado'
     }
   ];
 
   const [turmaSelecionada, setTurmaSelecionada] = useState(turmas[0].id);
 
-  // Filtra apenas os alunos que possuem justificativa
   const alunosComJustificativa = alunos.filter(aluno => aluno.temJustificativa);
 
+  // Variável para evitar repetição nas células de tabela padronizadas
+  const tableThClasses = "border border-[#ddd] p-[12px_15px] text-left font-bold bg-white sticky top-0 z-10";
+  const tableTdClasses = "border border-[#ddd] p-[12px_15px] text-left";
+  const btnClasses = "border border-black shadow-[3px_3px_5px_gray]"
+
   return (
-    <div className="conselho-tables-container">
-      <nav className="mb-4">
+    <div id="conselho-tables-container" className="flex flex-col gap-2">
+
+      {/* Barra subtitulo */}
+      <nav>
         <span className="text-sm text-gray-500">
           <button
             onClick={() => navigate('/dashboard')}
@@ -44,24 +68,25 @@ const ConselhoFinal = () => {
           <span className="font-medium text-gray-700">Conselho Final</span>
         </span>
       </nav>
+
       {/* SEÇÃO SUPERIOR: TURMAS + JUSTIFICATIVAS LADO A LADO */}
-      <section className="top-section">
+      <section className="flex gap-[15px] items-start w-full mb-6">
         
-        {/* Tabela de Turmas (Esquerda) */}
-        <div className="table-wrapper turmas-wrapper">
-          <table className="custom-table table-bordered">
+        {/* Tabela de Turmas (Esquerda - flex 1.3) */}
+        <div className="flex-[1.3] max-h-[180px] overflow-y-auto">
+          <table className="w-full border-collapse bg-white text-sm">
             <thead>
               <tr>
-                <th>Turma(s)</th>
-                <th>Pré Conselho</th>
-                <th>Conselho Final</th>
+                <th className={`${tableThClasses}`}>Turma(s)</th>
+                <th className={`${tableThClasses}`}>Pré Conselho</th>
+                <th className={`${tableThClasses}`}>Conselho Final</th>
               </tr>
             </thead>
             <tbody>
               {turmas.map(turma => (
                 <tr key={turma.id}>
-                  <td>
-                    <label style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', margin: 0 }}>
+                  <td className={`${tableTdClasses}`}>
+                    <label className='flex items-center gap-2 m-0 cursor-pointer'>
                       <input 
                         type="radio" 
                         name="turma" 
@@ -71,34 +96,40 @@ const ConselhoFinal = () => {
                       {turma.nome}
                     </label>
                   </td>
-                  <td>{turma.preConselho}</td>
-                  <td>{turma.conselhoFinal}</td>
+                  <td className={`${tableTdClasses}`}>{turma.preConselho}</td>
+                  <td className={`${tableTdClasses}`}>{turma.conselhoFinal}</td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
 
-        {/* Tabela de Justificativas (Direita - Ocupando o espaço vazio) */}
-        <div className="table-wrapper justificativas-wrapper">
-          <table className="custom-table table-bordered">
+        {/* Tabela de Justificativas (Direita - flex 1) */}
+        <div className="flex-1 max-h-[180px] overflow-y-auto">
+          <table className="w-full border-collapse bg-white text-sm">
             <thead>
               <tr>
-                <th style={{ width: '40%' }}>Aluno</th>
-                <th style={{ width: '60%' }}>Justificativa</th>
+                <th className={`${tableThClasses} w-[40%]`}>Aluno</th>
+                <th className={`${tableThClasses} w-[60%]`}>Justificativa</th>
               </tr>
             </thead>
             <tbody>
               {alunosComJustificativa.length > 0 ? (
                 alunosComJustificativa.map(aluno => (
                   <tr key={`just-${aluno.id}`}>
-                    <td style={{ fontWeight: 'bold', fontSize: '12px' }}>{aluno.nome}</td>
-                    <td className="text-muted" style={{ fontSize: '12px' }}>{aluno.textoJustificativa}</td>
+                    <td className={`${tableTdClasses} font-bold text-[12px]`}>
+                      {aluno.nome}
+                    </td>
+                    <td className={`${tableTdClasses} text-[#555] italic text-[12px]`}>
+                      {aluno.textoJustificativa}
+                    </td>
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan="2" className="center-text text-muted">Nenhuma justificativa na turma.</td>
+                  <td colSpan="2" className={`${tableTdClasses} text-center text-[#555] italic`}>
+                    Nenhuma justificativa na turma.
+                  </td>
                 </tr>
               )}
             </tbody>
@@ -106,47 +137,58 @@ const ConselhoFinal = () => {
         </div>
         
         {/* Botões de Ação (Extrema Direita) */}
-        <div className="turmas-actions">
-          <button className="btn-primary">Avaliar turma</button>
-          <button className="btn-secondary">Salvar alterações</button>
+        <div className="flex flex-col justify-center gap-[15px] w-[150px] shrink-0 h-[180px] ">
+          <button className={`${btnClasses} bg-red-500 text-white p-[10px] rounded-[20px] font-bold text-center`}>
+            Avaliar turma
+          </button>
+          <button className={`${btnClasses} bg-gray-400 text-white p-[10px] rounded-[20px] font-bold text-center`}>
+            Salvar
+          </button>
         </div>
 
       </section>
 
       {/* SEÇÃO INFERIOR: ALUNOS GERAL */}
-      <section className="alunos-section">
-        <table className="custom-table table-bordered">
+      <section className='h-[64vh] overflow-y-auto'>
+        <table className="w-full border-collapse bg-white text-sm">
           <thead>
             <tr>
-              <th>Alunos</th>
-              <th>Pré Conselho</th>
-              <th>Conselho final</th>
-              <th>Avaliação Situação Final</th>
+              <th className={`${tableThClasses}`}>Alunos</th>
+              <th className={`${tableThClasses}`}>Pré Conselho</th>
+              <th className={`${tableThClasses}`}>Conselho final</th>
+              <th className={`${tableThClasses}`}>Avaliação Situação Final</th>
             </tr>
           </thead>
           <tbody>
             {alunos.map(aluno => (
               <tr key={aluno.id}>
-                <td>{aluno.nome}</td>
-                <td>
+                <td className={`${tableTdClasses} `}>{aluno.nome}</td>
+                <td className={`${tableTdClasses} `}>
                   <p>{aluno.preConselhoTexto}</p>
-                  <button className="link-btn">🔔 Ver Observações ({aluno.obsCount})</button>
+                  <button className="text-gray-500 text-xs mt-[5px] hover:underline">
+                    🔔 Ver Observações ({aluno.obsCount})
+                  </button>
                 </td>
-                <td className="center-text">
+                <td className={`${tableTdClasses} text-center `}>
                   {aluno.temJustificativa ? (
-                    <span className="badge-justificativa">Ver Acima</span>
+                    <button className=" text-orange-600 px-2 py-1 rounded text-xs underline font-bold ">
+                      Ver Justificativa
+                    </button>
                   ) : '-'}
                 </td>
-                <td className="status-cell">
-                  <button className={`status-btn ${aluno.status === 'aprovado' ? 'aprovado' : ''}`}>
+                <td className={`${tableTdClasses} flex flex-col gap-2 items-center p-2`}>
+                  
+                  {/* Botões de Status com renderização condicional de classes */}
+                  <button className={`${btnClasses} w-full max-w-[250px] p-[6px] rounded-[15px] font-bold text-[17px] text-white ${aluno.status === 'aprovado' ? 'bg-green-500' : 'bg-gray-400'}`}>
                     Aprovado
                   </button>
-                  <button className={`status-btn ${aluno.status === 'aprovado-conselho' ? 'aprovado-conselho' : ''}`}>
+                  <button className={`${btnClasses} w-full max-w-[250px] p-[6px] rounded-[15px] font-bold text-[17px] text-white ${aluno.status === 'aprovado-conselho' ? 'bg-yellow-500' : 'bg-gray-400'}`}>
                     Aprovado pelo Conselho
                   </button>
-                  <button className={`status-btn ${aluno.status === 'reprovado' ? 'reprovado' : ''}`}>
+                  <button className={`${btnClasses} w-full max-w-[250px] p-[6px] rounded-[15px] font-bold text-[17px] text-white ${aluno.status === 'reprovado' ? 'bg-red-500' : 'bg-gray-400'}`}>
                     Reprovado
                   </button>
+
                 </td>
               </tr>
             ))}
