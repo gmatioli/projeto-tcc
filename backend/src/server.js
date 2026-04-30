@@ -316,7 +316,7 @@ app.get('/api/turmas-filtro', async (req, res) => {
 
 
 //================================================
-// rota p gerar o docs
+// rota p gerar o docs - ATA
 app.post('/gerar-doc', (req, res) => {
 
   try {
@@ -353,6 +353,67 @@ app.post('/gerar-doc', (req, res) => {
       semestre: semestre,
       ano: ano,
       data_conselho: data
+    });
+
+    doc.render();
+
+    const buffer = doc.getZip().generate({
+      type: 'nodebuffer'
+    });
+
+    res.setHeader(
+      'Content-Disposition',
+      'attachment; filename=ata.docx'
+    );
+
+    res.send(buffer);
+
+  } catch (error) {
+
+    console.log(error);
+
+    res.status(500).send('Erro ao gerar documento');
+  }
+});
+
+//gerar termo de ciencia
+app.post('/termoDeCiencia', (req, res) => {
+
+  try {
+
+    const {
+      aluno,
+      data,
+      turma,
+      observacao
+
+    } = req.body;
+
+    // caminho correto do template
+    const templatePath = path.join(
+      __dirname,
+      '../docs/termoCiencia.docx'
+    );
+
+    // lê template
+    const content = fs.readFileSync(
+      templatePath,
+      'binary'
+    );
+
+    const zip = new PizZip(content);
+
+    const doc = new Docxtemplater(zip, {
+      paragraphLoop: true,
+      linebreaks: true,
+    });
+
+    // substitui campos
+    doc.setData({
+      aluno: aluno,
+      data: data,
+      turma: turma,
+      observacao: observacao
     });
 
     doc.render();

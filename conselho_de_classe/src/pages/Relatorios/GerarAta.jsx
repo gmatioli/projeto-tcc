@@ -34,12 +34,14 @@ export function GerarAta() {
   }
 
   try {
+   const dataFormatada = new Date(dataConselho)
+        .toLocaleDateString('pt-BR');
 
     const dados = {
       conselho,
       semestre,
       ano,
-      data: dataConselho
+      data: dataFormatada
     };
 
     const response = await fetch(

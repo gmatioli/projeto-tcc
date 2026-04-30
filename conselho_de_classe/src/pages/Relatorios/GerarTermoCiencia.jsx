@@ -18,13 +18,65 @@ export function GerarTermoCiencia() {
     setObservacoes('');
   };
  
-  const handleGerar = () => {
-    if (!tipoCurso || !turma || !aluno || !dataConselho) {
-      alert('Por favor, preencha todos os campos obrigatórios.');
-      return;
-    }
-    alert('Termo de Ciência gerado com sucesso!');
-  };
+  // const handleGerar = () => {
+  //   if (!tipoCurso || !turma || !aluno || !dataConselho) {
+  //     alert('Por favor, preencha todos os campos obrigatórios.');
+  //     return;
+  //   }
+  //   alert('Termo de Ciência gerado com sucesso!');
+  // };
+
+
+  //docs gerar termo ciencia----------------------------------------------------
+ const gerarTermo = async () => {
+
+  try {
+
+    //data em br
+     const dataFormatada = new Date(dataConselho)
+        .toLocaleDateString('pt-BR');
+
+    const dados = {
+      aluno,
+      data: dataFormatada,
+      turma,
+      observacao: observacoes
+    };
+
+    const response = await fetch(
+      'http://localhost:3001/termoDeCiencia',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(dados)
+      }
+    );
+
+    const blob = await response.blob();
+
+    const url = window.URL.createObjectURL(blob);
+
+    const a = document.createElement('a');
+
+    a.href = url;
+    a.download = 'termoDeCiencia.docx';
+
+    document.body.appendChild(a);
+
+    a.click();
+
+    a.remove();
+
+  } catch (error) {
+
+    console.log(error);
+
+    alert('Erro ao gerar Termo de ciencia');
+  }
+};
+
  
   return (
     <div className="flex flex-col h-full bg-gray-100 p-5 overflow-auto">
@@ -95,10 +147,10 @@ export function GerarTermoCiencia() {
               className="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-red-400 focus:border-transparent transition"
             >
               <option value="">Selecione...</option>
-              <option value="sofia">Sofia Leiva Pires</option>
-              <option value="joao">João Pedro Silva</option>
-              <option value="bruno">Bruno Fernandes</option>
-              <option value="carlos">Carlos Eduardo Souza</option>
+              <option value="Sofia Leiva Pires">Sofia Leiva Pires</option>
+              <option value="João Pedro Silva">João Pedro Silva</option>
+              <option value="Bruno Fernandes">Bruno Fernandes</option>
+              <option value="Carlos Eduardo Souza">Carlos Eduardo Souza</option>
             </select>
           </div>
  
@@ -138,7 +190,7 @@ export function GerarTermoCiencia() {
             Limpar
           </button>
           <button
-            onClick={handleGerar}
+            onClick={gerarTermo}
             className="px-10 py-3 rounded-full bg-red-600 text-white hover:bg-red-700 transition font-medium text-sm shadow"
           >
             Gerar
