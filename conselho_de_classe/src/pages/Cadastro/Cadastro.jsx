@@ -14,7 +14,8 @@ export function Cadastro() {
   // Estados exclusivos para as mensagens de erro pulsantes
   const [emailErro, setEmailErro] = useState('');
   const [senhaForteErro, setSenhaForteErro] = useState('');
-  const [senhaErro, setSenhaErro] = useState('');           
+  const [senhaErro, setSenhaErro] = useState('');   
+  const [mensagem, setMensagemSucesso] = useState('');
 
   const [gatilhoAnimacao, setGatilhoAnimacao] = useState(0);
 
@@ -97,7 +98,11 @@ export function Cadastro() {
       const dados = await resposta.json();
 
       if (dados.sucesso) {
-        navigate('/'); 
+        setMensagemSucesso('Cadastro realizado com sucesso! Redirecionando para o login')
+        setTimeout(() => {
+          navigate('/'); 
+
+        }, 3000);
       } else {
         alert(dados.mensagem); 
       }
@@ -109,8 +114,8 @@ export function Cadastro() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-white">
-      {/* Injeção do Keyframe de animação para não depender de CSS externo */}
+  <div className={`min-h-screen flex flex-col bg-white ${mensagem !== '' ? 'cursor-wait' : ''}`}>      
+  {/* Injeção do Keyframe de animação para não depender de CSS externo */}
       <style>
         {`
           @keyframes pulsarErro {
@@ -227,7 +232,13 @@ export function Cadastro() {
               </div>
             </div> 
 
-            <div className="flex justify-center gap-6 mt-8">
+            {mensagem && (
+              <div className="text-green-600 text-center font-semibold mt-1 cursor-wait">
+                {mensagem}
+              </div>
+            )}
+
+            <div className="flex justify-center gap-6 mt-4">
               <button 
                 type="button" 
                 onClick={() => navigate("/configuracoes")}
@@ -237,10 +248,14 @@ export function Cadastro() {
               </button>
               <button 
                 type="submit" 
-                className="w-40 py-3 rounded-2xl bg-[#E20814] text-white font-semibold hover:bg-red-700 transition-colors border border-transparent"
+                disabled={mensagem !== '' }
+                className="w-40 py-3 rounded-2xl bg-[#E20814] text-white font-semibold hover:bg-red-700 transition-colors border border-transparent "
               >
+                
                 Cadastrar
               </button>
+
+
             </div>
 
           </form>

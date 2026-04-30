@@ -29,12 +29,13 @@ export function ConselhoIntermediario() {
     const handleOpenModalAlunos = () => setIsModalAlunosOpen(true);
     const handleCloseModalAlunos = () => setIsModalAlunosOpen(false);
 
+
+
   return (
       <section>
         <nav className="mb-4">
         <span className="text-sm text-gray-500">
           <button
-            onClick={() => navigate('/dashboard')}
             className="hover:underline text-gray-500"
           >
             Conselhos
@@ -58,7 +59,7 @@ export function ConselhoIntermediario() {
                 <div className="flex flex-col justify-between border border-black rounded-[15px] py-0 px-5 text-green-600 shadow-[0_0_5px_rgba(0,0,0,0.25)] bg-green-50 border-green-600">
                     <div className="mt-[50px] font-bold">
                         <h3 className="text-2xl italic">{intSituacaoNormal}</h3>
-                        <p className="text_situacao_normal">Total de Alunos</p>
+                        <p className="text_situacao_normal">Situação Normal</p>
                     </div>
                     <div className="flex items-end justify-end m-0">
                         <img src={situacaoNormalIcon} alt=""className="w-10" />
@@ -67,7 +68,7 @@ export function ConselhoIntermediario() {
                 <div className="flex flex-col justify-between border border-black rounded-[15px] py-0 px-5 text-yellow-600 shadow-[0_0_5px_rgba(0,0,0,0.25)] bg-yellow-50 border border-yellow-600">
                     <div className="mt-[50px] font-bold">
                         <h3 className="text-2xl italic">{intRestritos}</h3>
-                        <p className="text_restritos">Total de Alunos</p>
+                        <p className="text_restritos">Total Observações</p>
                     </div>
                     <div className="flex items-end justify-end m-0">
                         <img src={restritosIcon} alt="" className="w-10"/>
@@ -76,7 +77,7 @@ export function ConselhoIntermediario() {
                 <div className="flex flex-col justify-between border border-black rounded-[15px] py-0 px-5 text-red-600 shadow-[0_0_5px_rgba(0,0,0,0.25)] bg-red-50 border border-red-600">
                     <div className="mt-[50px] font-bold">
                         <h3 className="text-2xl italic">{intRetidos}</h3>
-                        <p className="text_retidos">Total de Alunos</p>
+                        <p className="text_retidos">Alunos Restritos</p>
                     </div>
                     <div className="flex items-end justify-end m-0">
                         <img src={retidosIcon} alt="" className="w-10"/>

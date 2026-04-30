@@ -124,13 +124,12 @@ export function Sidebar() {
     };
 
 
-
     
     return (
     <div className="flex flex-col gap-[12px] border-l-[2px] border-[#df3535] pl-[15px] ml-[5px] mb-[10px]">
       <div className="flex flex-col text-left gap-[5px]">
-        <label className="text-[0.9rem] font-medium text-[#333]">Tipo de Curso:</label>
-        <select className="p-[8px] rounded-[5px] border border-[#ccc] bg-white text-[0.9rem] outline-none focus:border-[#df3535]"
+        <label className="text-xl font-medium text-[#333]">Tipo de Curso:</label>
+        <select className="p-[8px] rounded-[5px] border border-[#ccc] bg-white text-lg  outline-none focus:border-[#df3535]"
           value={tipoSelecionado}
           onChange={handleMudarTipo}
         >
@@ -143,8 +142,8 @@ export function Sidebar() {
       </div>
 
       <div className="flex flex-col text-left gap-[5px]">
-        <label className="text-[0.9rem] font-medium text-[#333]">Curso:</label>
-        <select className="p-[8px] rounded-[5px] border border-[#ccc] bg-white text-[0.9rem] outline-none focus:border-[#df3535]"
+        <label className="text-xl font-medium text-[#333]">Curso:</label>
+        <select className="p-[8px] rounded-[5px] border border-[#ccc] bg-white text-lg outline-none focus:border-[#df3535]"
         value={cursoSelecionado}
         onChange={handleMudarCurso}
         disabled={!tipoSelecionado}
@@ -157,8 +156,8 @@ export function Sidebar() {
       </div>
 
       <div className="flex flex-col text-left gap-[5px]">
-        <label className="text-[0.9rem] font-medium text-[#333]">Turma:</label>
-        <select className="p-[8px] rounded-[5px] border border-[#ccc] bg-white text-[0.9rem] outline-none focus:border-[#df3535]"
+        <label className="text-xl font-medium text-[#333]">Turma:</label>
+        <select className="p-[8px] rounded-[5px] border border-[#ccc] bg-white text-lg  outline-none focus:border-[#df3535]"
         value={turmaSelecionada}
         onChange={(e) => setTurmaSelecionada(e.target.value)}
         disabled={!cursoSelecionado}
@@ -171,19 +170,130 @@ export function Sidebar() {
       </div>
 
       <div className="flex gap-[10px] mt-[5px]">
-        <button className="flex-1 p-[10px] bg-[#ea4335] text-white rounded-[5px] text-[0.85rem] font-semibold hover:brightness-90 transition-all">
-          Limpar Filtro ⟲
+        <button onClick={handleLimparFiltro} className="flex-1 p-[10px] bg-[#ea4335] text-white rounded-[5px] text-lg  font-semibold hover:brightness-90 transition-all">
+          Limpar ⟲
         </button>
 
         <button
           onClick={() => navigate(rotaDestino)}
-          className="flex-1 p-[10px] bg-[#ea4335] text-white rounded-[5px] text-[0.85rem] font-semibold hover:brightness-90 transition-all">
-          Iniciar Conselho
+          className="flex-1 p-[10px] bg-[#ea4335] text-white rounded-[5px] text-lg  font-semibold hover:brightness-90 transition-all">
+          Pesquisar 
         </button>
       </div>
+      <button onClick={handleIniciarConselho} className="flex-1 p-[10px] bg-[#ea4335] text-white rounded-[5px] text-lg font-semibold hover:brightness-90 transition-all">
+        Iniciar Conselho
+      </button>
     </div>
   );
 }
+
+  const FormConselhoFinal = ({rotaDestino}) => {
+    const navigate = useNavigate();
+
+    // Guarda todos os dados vindos do banco
+      const [dadosCompletos, setDadosCompletos] = useState([]);
+      
+      // Guarda o que o usuário selecionou em cada etapa
+      const [areaSelecionada, setAreaSelecionada] = useState("");
+      const [cursoSelecionado, setCursoSelecionado] = useState("");
+      
+      // Busca os dados do banco assim que o menu abre
+      useEffect(() => {
+        fetch('http://localhost:3001/api/turmas-filtro')
+          .then(res => res.json())
+          .then(data => {
+            if (data.sucesso) setDadosCompletos(data.dados);
+          });
+      }, []);
+
+      // 1. Extrai as areas cursos existentes
+      const areaCurso = [...new Set(dadosCompletos.map(item => item.area))];
+
+      // 2. Extrai os cursos de acordo com a area selecionado
+      const cursosFiltrados = dadosCompletos.filter(item => item.area === areaSelecionada);
+      const cursosDisponiveis = [...new Set(cursosFiltrados.map(item => item.curso))];
+
+      // 3. Extrai as turmas de acordo com o curso selecionado
+      // const turmasDisponiveis = dadosCompletos.filter(item => item.curso === cursoSelecionado && item.area === areaSelecionada );
+
+      // Função para limpar campos após filtro
+      const handleMudarArea = (e) => {
+        setAreaSelecionada(e.target.value);
+        setCursoSelecionado("");
+        // setTurmaSelecionada("");
+      };
+
+      const handleMudarCurso = (e) => {
+        setCursoSelecionado(e.target.value);
+        // setTurmaSelecionada("");
+      };
+
+      const handleIniciarConselho = () => {
+      if (!cursoSelecionado) {
+        alert("Por favor, selecione um Curso para iniciar o conselho!");
+        return;
+      }
+      // Redireciona enviando o nome do curso na URL
+      navigate(`${rotaDestino}?curso=${encodeURIComponent(cursoSelecionado)}`);
+    };
+
+      const handleLimparFiltro = () => {
+        setAreaSelecionada("");
+        setCursoSelecionado("");
+        setTurmaSelecionada("");
+      };
+
+
+    return (
+      <div className="flex flex-col gap-[12px] border-l-[2px] border-[#df3535] pl-[15px] ml-[5px] mb-[10px]">
+        <div className="flex flex-col text-left gap-[5px]">
+            <label className="text-xl font-medium text-[#333]">Área curso:</label>
+            <select className="p-[8px] rounded-[5px] border border-[#ccc] bg-white text-lg outline-none focus:border-[#df3535]"
+            value={areaSelecionada}
+            onChange={handleMudarArea}
+            >
+              <option value="" disabled hidden>Selecione</option>
+              {areaCurso.map(areaCurso => (
+                <option key={areaCurso} value={areaCurso}>{areaCurso}</option>
+              ))}
+            </select>
+        </div>
+
+      <div className="flex flex-col text-left gap-[5px]">
+            <label className="text-xl font-medium text-[#333]">Curso:</label>
+            <select className="p-[8px] rounded-[5px] border border-[#ccc] bg-white text-lg outline-none focus:border-[#df3535]"
+            value={cursoSelecionado}
+            onChange={handleMudarCurso}
+            disabled={!areaSelecionada}
+
+            >
+              <option value="" disabled hidden>Selecione</option>
+              {cursosDisponiveis.map(curso => (
+                <option key={curso} value={curso}>{curso}</option>
+              ))}
+            </select>
+        </div>
+
+        <div className="flex gap-[10px] mt-[5px]">
+          <button onClick={handleLimparFiltro} className="flex-1 p-[10px] bg-[#ea4335] text-white rounded-[5px]  text-lg font-semibold hover:brightness-90 transition-all">
+            Limpar ⟲
+          </button>
+
+          <button
+            onClick={() => navigate(rotaDestino)}
+            className="flex-1 p-[10px] bg-[#ea4335] text-white rounded-[5px]  text-lg font-semibold hover:brightness-90 transition-all">
+            Pesquisar 
+          </button>
+        </div>
+        <button onClick={handleIniciarConselho} className="flex-1 p-[10px] bg-[#ea4335] text-white rounded-[5px] text-lg font-semibold hover:brightness-90 transition-all">
+          Iniciar Conselho
+        </button>
+      </div>
+      
+    );
+  }
+
+
 
 
   return (
@@ -194,7 +304,7 @@ export function Sidebar() {
 
           <button
             onClick={() => handleClick('/dashboard', 'dashboard')}
-            className={`flex items-center justify-between w-full h-[10vh] px-4 mx-auto mt-0 bg-[var(--button_bg)] rounded-[10px] font-bold border border-black text-xl shadow-[0px_3px_3px_rgb(117,117,117)] cursor-pointer transition-all ${
+            className={`flex items-center justify-between w-full h-[10vh] px-10 mx-auto mt-0 bg-[var(--button_bg)] rounded-[10px] font-bold border border-black text-[26px] shadow-[0px_3px_3px_rgb(117,117,117)] cursor-pointer transition-all ${
               botaoSelecionado === 'dashboard' ? 'bg-[#df3535] text-white' : ''
             }`}>
             <img src={dashboardIcon} className={`w-6 h-6 ${botaoSelecionado === 'dashboard' ? 'brightness-0 invert' : 'brightness-0'}`} alt="Dashboard" />
@@ -207,10 +317,10 @@ export function Sidebar() {
           {/* CONSELHOS */}
           <button
             onClick={toggleMenuConselho}
-            className={`flex items-center justify-between w-full h-[10vh] px-4 mx-auto mt-4 bg-[var(--button_bg)] rounded-[10px] font-bold border border-black text-xl shadow-[0px_3px_3px_rgb(117,117,117)] cursor-pointer transition-all ${
+            className={`flex items-center justify-between w-full h-[10vh] px-10  mx-auto mt-4 bg-[var(--button_bg)] rounded-[10px] font-bold border border-black text-[26px] shadow-[0px_3px_3px_rgb(117,117,117)] cursor-pointer transition-all ${
               botaoSelecionado === 'conselhos' || menuConselhoAberto ? 'bg-[#df3535] text-white' : ''
             }`}>
-            <img src={councilIcon} className={`w-6 h-6 ${botaoSelecionado === 'conselhos' || menuConselhoAberto ? 'brightness-0 invert' : 'brightness-0'}`} alt="Conselhos" />
+            <img src={councilIcon} className={`w-7 h-7 ${botaoSelecionado === 'conselhos' || menuConselhoAberto ? 'brightness-0 invert' : 'brightness-0'}`} alt="Conselhos" />
             
             <p className="flex-1 text-center">Conselhos</p>
             
@@ -226,7 +336,7 @@ export function Sidebar() {
             <div className="flex flex-col w-full mx-auto mt-[10px] gap-2">
               <button
                 onClick={() => toggleAba('intermediario')}
-                className={`w-full py-3 px-4 rounded-[8px] border border-gray-500  text-[0.95rem] font-medium transition-all text-center whitespace-nowrap ${
+                className={`w-full py-3 px-4 rounded-[8px] border border-gray-500  text-xl font-medium transition-all text-center whitespace-nowrap ${
                   abaAberta === 'intermediario' ? 'bg-[#df3535] text-white border border-gray-500  shadow-md' : 'bg-[#d9d9d9] border-[#ccc] hover:bg-gray-300'
                 }`}>
                 Conselho Intermediário
@@ -235,7 +345,7 @@ export function Sidebar() {
 
               <button
                 onClick={() => toggleAba('pre')}
-                className={`w-full py-3 px-4 rounded-[8px] border border-gray-500  text-[0.95rem] font-medium transition-all text-center whitespace-nowrap ${
+                className={`w-full py-3 px-4 rounded-[8px] border border-gray-500 text-xl font-medium transition-all text-center whitespace-nowrap ${
                   abaAberta === 'pre' ? 'bg-[#df3535] text-white border border-gray-500  shadow-md' : 'bg-[#d9d9d9] border-[#ccc] hover:bg-gray-300'
                 }`}>
                 Pré-Conselho
@@ -244,22 +354,22 @@ export function Sidebar() {
 
               <button
                 onClick={() => toggleAba('final')}
-                className={`w-full py-3 px-4 rounded-[8px] border border-gray-500  text-[0.95rem] font-medium transition-all text-center whitespace-nowrap ${
+                className={`w-full py-3 px-4 rounded-[8px] border border-gray-500  text-xl font-medium transition-all text-center whitespace-nowrap ${
                   abaAberta === 'final' ? 'bg-[#df3535] text-white border border-gray-500  shadow-md' : 'bg-[#d9d9d9] border-[#ccc] hover:bg-gray-300'
                 }`}>
                 Conselho Final
               </button>
-              {abaAberta === 'final' && <FormFiltros rotaDestino="/conselhofinal" />}
+              {abaAberta === 'final' && <FormConselhoFinal rotaDestino="/conselhofinal" />}
             </div>
           )}
 
           {/* RELATÓRIOS */}
           <button
             onClick={toggleMenuRelatorio}
-            className={`flex items-center justify-between w-full h-[10vh] px-4 mx-auto mt-4 bg-[var(--button_bg)] rounded-[10px] border border-black font-bold text-xl shadow-[0px_3px_3px_rgb(117,117,117)] cursor-pointer transition-all ${
+            className={`flex items-center justify-between w-full h-[10vh] px-10  mx-auto mt-4 bg-[var(--button_bg)] rounded-[10px] border border-black font-bold text-[26px] shadow-[0px_3px_3px_rgb(117,117,117)] cursor-pointer transition-all ${
               botaoSelecionado === 'relatorios' || menuRelatorioAberto ? 'bg-[#df3535] text-white' : ''
             }`}>
-            <img src={reportIcon} className={`w-6 h-6 ${botaoSelecionado === 'relatorios' || menuRelatorioAberto ? 'brightness-0 invert' : 'brightness-0'}`} alt="Relatórios" />
+            <img src={reportIcon} className={`w-7 h-7 ${botaoSelecionado === 'relatorios' || menuRelatorioAberto ? 'brightness-0 invert' : 'brightness-0'}`} alt="Relatórios" />
             
             <p className="flex-1 text-center">Relatórios</p>
             
@@ -275,7 +385,7 @@ export function Sidebar() {
             <div className="flex flex-col w-full mx-auto mt-[10px] gap-2">
               <button
                 onClick={() => navigate('/relatorios/ata')}
-                className={`w-full py-3 px-4 rounded-[8px] border border-gray-500 text-[0.95rem] font-medium transition-all text-center whitespace-nowrap ${
+                className={`w-full py-3 px-4 rounded-[8px] border border-gray-500 text-lg font-medium transition-all text-center whitespace-nowrap ${
                   location.pathname === '/relatorios/ata' ? 'bg-[#df3535] text-white border border-black shadow-md' : 'bg-[#d9d9d9] border-[#ccc] hover:bg-gray-300'
                 }`}>
                 Gerar Ata
@@ -283,7 +393,7 @@ export function Sidebar() {
 
               <button
                 onClick={() => navigate('/relatorios/relatorio')}
-                className={`w-full py-3 px-4 rounded-[8px] border border-gray-500 text-[0.95rem] font-medium transition-all text-center whitespace-nowrap ${
+                className={`w-full py-3 px-4 rounded-[8px] border border-gray-500 text-lg font-medium transition-all text-center whitespace-nowrap ${
                   location.pathname === '/relatorios/relatorio' ? 'bg-[#df3535] text-white border border-black shadow-md' : 'bg-[#d9d9d9] border-[#ccc] hover:bg-gray-300'
                 }`}>
                 Gerar Relatório
@@ -291,7 +401,7 @@ export function Sidebar() {
 
               <button
                 onClick={() => navigate('/relatorios/termo')}
-                className={`w-full py-3 px-4 rounded-[8px] border border-gray-500 text-[0.95rem] font-medium transition-all text-center whitespace-nowrap ${
+                className={`w-full py-3 px-4 rounded-[8px] border border-gray-500 text-lg font-medium transition-all text-center whitespace-nowrap ${
                   location.pathname === '/relatorios/termo' ? 'bg-[#df3535] text-white border border-black shadow-md' : 'bg-[#d9d9d9] border-[#ccc] hover:bg-gray-300'
                 }`}>
                 Gerar Termo de Ciência
@@ -305,7 +415,7 @@ export function Sidebar() {
         <div className="w-full flex justify-center border-t border-[#ccc]">
           <button
             onClick={() => handleClick('/configuracoes', 'configuracoes')}
-            className={`flex items-center justify-center w-full h-[60px] px-[20px] bg-[var(--button_bg)] border shadow-[0px_-1px_5px_rgb(150,150,150)] font-bold text-xl cursor-pointer transition-all gap-[15px] ${
+            className={`flex items-center justify-center w-full h-[70px] px-[20px] bg-[var(--button_bg)] border shadow-[0px_-1px_5px_rgb(150,150,150)] font-bold text-[26px] cursor-pointer transition-all gap-[15px] ${
               botaoSelecionado === 'configuracoes' ? 'bg-[#df3535] text-white border border-[#df3535]' : '' 
             }`}>
             <img 
