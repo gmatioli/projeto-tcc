@@ -292,14 +292,16 @@ app.post('/upload-planilha', upload.single('arquivo'), (req, res) => {
 app.get('/api/turmas-filtro', async (req, res) => {
   try {
     const sql = `
-      SELECT
-        T.idTurma,
-        T.codigo AS turma,
-        C.nomeCurso AS curso,
-        C.tipo
-      FROM Turma T
-      INNER JOIN Cursos C on T.Cursos_idCurso = C.idCurso
-      ORDER BY C.tipo ASC, C.nomeCurso ASC, T.codigo ASC `;
+     
+    SELECT
+      T.idTurma,
+      T.codigo AS turma,
+      C.nomeCurso AS curso,
+      C.tipo,
+      C.area
+    FROM Turma T
+    INNER JOIN Cursos C on T.Cursos_idCurso = C.idCurso
+    ORDER BY C.tipo ASC, C.nomeCurso ASC, T.codigo ASC `;
 
       const dados = await queryAsync(sql);
       res.json({sucesso: true, dados})
@@ -310,9 +312,6 @@ app.get('/api/turmas-filtro', async (req, res) => {
   }
 
 });
-
-
-
 
 
 //================================================
