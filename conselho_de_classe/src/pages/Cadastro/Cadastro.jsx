@@ -98,9 +98,9 @@ export function Cadastro() {
       const dados = await resposta.json();
 
       if (dados.sucesso) {
-        setMensagemSucesso('Cadastro realizado com sucesso! Redirecionando para o login')
+        setMensagemSucesso('Cadastro realizado com sucesso!')
         setTimeout(() => {
-          navigate('/'); 
+        setMensagemSucesso('')
 
         }, 3000);
       } else {
@@ -111,6 +111,15 @@ export function Cadastro() {
       console.error("Erro ao conectar com o backend:", erro);
       alert("Servidor indisponível no momento.");
     }
+  };
+
+  const handleLimparFiltro = () => {
+    setNome("");
+    setTipoAcesso("");
+    setEmail("");
+    setSenha("");
+    setConfirmaSenha("");
+
   };
 
   return (
@@ -254,7 +263,7 @@ export function Cadastro() {
                 
                 Cadastrar
               </button>
-
+              handleLimparFiltro
 
             </div>
 
