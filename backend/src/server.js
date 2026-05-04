@@ -14,6 +14,8 @@ app.use('/', require('./routes/usuario'));
 app.use('/api', require('./routes/turma'));
 app.use('/', require('./routes/planilha'));
 app.use('/', require('./routes/relatorio'));
+app.use('/', require('./routes/termo'));
+
 
 // ==========================================
 // INICIALIZAÇÃO DO SERVIDOR

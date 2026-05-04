@@ -7,7 +7,7 @@ export function GerarTermoCiencia() {
   const [tipoCurso, setTipoCurso] = useState('');
   const [turma, setTurma] = useState('');
   const [aluno, setAluno] = useState('');
-  const [dataConselho, setDataConselho] = useState('2024-03-18');
+  const [dataConselho, setDataConselho] = useState('2024-05-04');
   const [observacoes, setObservacoes] = useState('');
  
   const handleLimpar = () => {
@@ -18,12 +18,50 @@ export function GerarTermoCiencia() {
     setObservacoes('');
   };
  
-  const handleGerar = () => {
+  const handleGerar = async () => {
     if (!tipoCurso || !turma || !aluno || !dataConselho) {
       alert('Por favor, preencha todos os campos obrigatórios.');
       return;
     }
-    alert('Termo de Ciência gerado com sucesso!');
+    try {
+      const dataFormatada = new Date(dataConselho).toLocaleDateString('pt-BR');
+
+      const dados = {
+        aluno,
+        data: dataFormatada,
+        turma,
+        observacao: observacoes
+      };
+
+      const response = await fetch('http://localhost:3001/termoDeCiencia', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(dados)
+      });
+
+      if (!response.ok) {
+        const erroServidor = await response.json();
+        alert(`Erro do servidor: ${erroServidor.mensagem}`);
+        return; 
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+
+      a.href = url;
+      a.download = 'termoDeCiencia.docx';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+
+    } catch (error) {
+      console.error('Erro no fetch:', error);
+      alert('Erro de conexão com o servidor ao gerar Termo de Ciência.');
+    }
+
   };
  
   return (
@@ -95,10 +133,10 @@ export function GerarTermoCiencia() {
               className="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-red-400 focus:border-transparent transition"
             >
               <option value="">Selecione...</option>
-              <option value="sofia">Sofia Leiva Pires</option>
-              <option value="joao">João Pedro Silva</option>
-              <option value="bruno">Bruno Fernandes</option>
-              <option value="carlos">Carlos Eduardo Souza</option>
+              <option value="Sofia Leiva Pires">Sofia Leiva Pires</option>
+              <option value="João Pedro Silva">João Pedro Silva</option>
+              <option value="Bruno Fernandes">Bruno Fernandes</option>
+              <option value="Carlos Eduardo Souza">Carlos Eduardo Souza</option>
             </select>
           </div>
  
