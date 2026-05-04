@@ -131,13 +131,15 @@ export function ConselhoIntermediario() {
                                 <div className="flex items-center gap-2">
                                     <input type="checkbox" id="checkbox_aluno" className='w-5 h-5 cursor-pointer'/>
                                     <p className="text-xl">Jorge Marques de Salves</p>
-                                    <div className="flex items-center my-0 mx-1 gap-1">
-                                        <img src={notificationIcon} alt="" className="w-6 h-6 border border-yellow-600 rounded-full p-[1px]"/>
-                                        <div className='flex'>
-                                            <p className="text-m underline">Ver Observações</p>
-                                            <p className="text-m underline">({intObservacoes})</p>
+                                    <button className='text-gray-500 text-xs mt-[5px] hover:underline'>
+                                        <div className="flex items-center my-0 mx-1 gap-1">
+                                            <img src={notificationIcon} alt="" className="w-6 h-6 border border-yellow-600 rounded-full p-[1px]"/>
+                                            <div className='flex'>
+                                                <p className="text-m underline">Ver Observações</p>
+                                                <p className="text-m underline">3</p>
+                                            </div>
                                         </div>
-                                    </div>
+                                    </button>
                                 </div>
                                 <div className="div_btn_restrito">
                                     <button className="bg-gray-400 shadow-[inset_0_0_10px_rgba(0,0,0,0.5)] w-[150px] p-1 text-xl rounded-[20px] mr-4  trasition-all duration-200 active:scale-95">Restrito</button>

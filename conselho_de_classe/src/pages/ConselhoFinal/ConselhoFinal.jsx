@@ -1,4 +1,8 @@
 import React, { useState } from 'react';
+import notificationIcon from '../../assets/conselho-intermediario/notification-icon.svg';
+import ModalJustificativa from '../../components/modalJustificativa/ModalJustificativa.jsx';
+
+const intObservacoes = 3
 
 const ConselhoFinal = () => {
   const turmas = [
@@ -51,6 +55,11 @@ const ConselhoFinal = () => {
   const tableThClasses = "border border-[#ddd] p-[12px_15px] text-left font-bold bg-white sticky top-0 z-10";
   const tableTdClasses = "border border-[#ddd] p-[12px_15px] text-left";
   const btnClasses = "border border-black shadow-[3px_3px_5px_gray]"
+
+  const [isModalJustificativaOpen, setIsModalJustificativaOpen] = useState(false);
+
+  const handleOpenModalJustificativa = () => setIsModalJustificativaOpen(true);
+  const handleCloseModalJustificativa = () => setIsModalJustificativaOpen(false);
 
   return (
     <div id="conselho-tables-container" className="flex flex-col gap-2">
@@ -166,12 +175,18 @@ const ConselhoFinal = () => {
                 <td className={`${tableTdClasses} `}>
                   <p>{aluno.preConselhoTexto}</p>
                   <button className="text-gray-500 text-xs mt-[5px] hover:underline">
-                    🔔 Ver Observações ({aluno.obsCount})
+                    <div className="flex items-center my-0 mx-1 gap-1">
+                      <img src={notificationIcon} alt="" className="w-6 h-6 border border-yellow-600 rounded-full p-[1px]"/>
+                      <div className='flex'>
+                          <p className="text-m underline">Ver Observações</p>
+                          <p className="text-m underline">({intObservacoes})</p>
+                      </div>
+                  </div>
                   </button>
                 </td>
                 <td className={`${tableTdClasses} text-center `}>
                   {aluno.temJustificativa ? (
-                    <button className=" text-orange-600 px-2 py-1 rounded text-xs underline font-bold ">
+                    <button onClick={handleOpenModalJustificativa} className=" text-orange-600 px-2 py-1 rounded text-xs underline font-bold ">
                       Ver Justificativa
                     </button>
                   ) : '-'}
@@ -195,7 +210,7 @@ const ConselhoFinal = () => {
           </tbody>
         </table>
       </section>
-
+      <ModalJustificativa isOpen={isModalJustificativaOpen} onClose={handleCloseModalJustificativa} />
     </div>
   );
 };
