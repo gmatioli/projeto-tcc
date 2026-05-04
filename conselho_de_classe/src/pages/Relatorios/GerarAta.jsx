@@ -7,13 +7,13 @@ export function GerarAta() {
   const [conselho, setConselho] = useState('');
   const [ano, setAno] = useState('');
   const [semestre, setSemestre] = useState('');
-  const [dataConselho, setDataConselho] = useState('2024-03-18');
+  const [dataConselho, setDataConselho] = useState('2024-05-04');
  
   const handleLimpar = () => {
     setConselho('');
     setAno('');
     setSemestre('');
-    setDataConselho('2024-03-18');
+    setDataConselho('2024-05-04');
   };
  
   // const handleGerar = () => {
@@ -34,12 +34,14 @@ export function GerarAta() {
   }
 
   try {
+   const dataFormatada = new Date(dataConselho)
+        .toLocaleDateString('pt-BR');
 
     const dados = {
       conselho,
       semestre,
       ano,
-      data: dataConselho
+      data: dataFormatada
     };
 
     const response = await fetch(
