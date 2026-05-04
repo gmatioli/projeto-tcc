@@ -26,7 +26,7 @@ export function Perfil() {
         
         try {
           const resposta = await fetch(`http://localhost:3001/perfil/${email}`);
-          const dados = await resposta.json();
+          const dados = await resposta.json(); 
 
           if (dados.sucesso) {
             setDadosUsuario({
@@ -48,14 +48,19 @@ export function Perfil() {
   }, [navigate]);
 
   return (
-    <div className="perfil-wrapper">
-      <h2 className="perfil-titulo-pagina">Perfil</h2>
+    <div className="py-5 px-10 w-full box-border">
+      <nav className='mb-20'>
+        <span className="text-sm text-gray-500">
+          {' / '}
+          <span className="font-medium text-gray-700">Perfil</span>
+        </span>
+      </nav>
 
-      <div className="perfil-card">
+      <div className="flex p-10 max-w-[1100px] bg-[#F9F9F9] rounded-[16px] border border-gray-500 shadow-[4px_4px_12px_gray]">
         
         {/* COLUNA DA ESQUERDA: FOTO */}
-        <div className="perfil-coluna-esq">
-          <div className="perfil-circulo-foto">
+        <div className="flex flex-col items-center justify-center pr-12">
+          <div className="flex items-center justify-center bg-[#D9D9D9] w-[150px] h-[150px] rounded-full mb-5 border border-gray-600 ">
            <VscAccount size={140} color={"#747272ff"} />
 
           </div>
@@ -67,30 +72,30 @@ export function Perfil() {
 
           </button> */}
 
-          <input className="btn-carregar-foto" type="file"></input>
+          <input className="flex items-center bg-transparent border border-gray-600 rounded-[10px] py-4 px-8 cursor-pointer trasition-all duration-200 hover:bg-[#E5E5E5] hover:scale-95 " type="file"></input>
         </div>
 
         {/* COLUNA DA DIREITA: DADOS DO BANCO */}
-        <div className="perfil-coluna-dir">
-          <div className="perfil-info-item">
-            <strong>Nome:</strong> <span>{dadosUsuario.nome}</span>
+        <div className="flex flex-col justify-center pl-12 border-l border-gray-700">
+          <div className="mb-5 text-xl">
+            <strong className="mr-2 font-bold">Nome:</strong> <span>{dadosUsuario.nome}</span>
           </div>
           
-          <div className="perfil-info-item">
-            <strong>E-mail:</strong> <span>{dadosUsuario.email}</span>
+          <div className="mb-5 text-xl">
+            <strong className="mr-2 font-bold">E-mail:</strong> <span>{dadosUsuario.email}</span>
           </div>
           
-          <div className="perfil-info-item">
-            <strong>Nível de Acesso:</strong> <span>{dadosUsuario.nivelAcesso}</span>
+          <div className="mb-5 text-xl">
+            <strong className="mr-2 font-bold">Nível de Acesso:</strong> <span>{dadosUsuario.nivelAcesso}</span>
           </div>
           
       
 
-          <div className="perfil-acoes">
-            <button className="btn-fechar-perfil" onClick={() => navigate('/dashboard')}>
+          <div className="flex gap-[15px] mt-[30px] ">
+            <button className="py-3 px-10 rounded-[8px] text-xl cursor-pointer trasition-all duration-200 bg-[#C82333] border border-red-900 text-white hover:scale-95 hover:opacity[0.8]" onClick={() => navigate('/dashboard')}>
               Fechar
             </button>
-            <button className="btn-salvar-perfil">
+            <button className="py-3 px-10 rounded-[8px] text-xl cursor-pointer trasition-all duration-200 bg-[#E5E5E5] border border-gray-600 text-gray-800 hover:scale-95 hover:opacity[0.8] ">
               Salvar
             </button>
           </div>
