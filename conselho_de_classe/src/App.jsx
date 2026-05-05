@@ -15,7 +15,7 @@ import { Configuracoes } from './pages/Configuracoes/Configuracoes.jsx';
 import { Cadastro } from './pages/Cadastro/Cadastro.jsx';
 import { Senha } from './pages/Senha/Senha.jsx'; 
 import { Perfil } from './pages/Perfil/Perfil.jsx';
-import { Dashboard } from './pages/Dashboard.jsx';
+import { Dashboard } from './pages/Dashboard/Dashboard.jsx';
 import ConselhoFinal from './pages/ConselhoFinal/ConselhoFinal.jsx';
 import { Turma } from './pages/AtribuirTurma/Turma.jsx';
 // import { PreConselho } from './pages/PreConselho/PreConselho.jsx';
