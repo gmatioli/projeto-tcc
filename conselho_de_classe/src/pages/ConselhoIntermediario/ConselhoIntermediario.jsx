@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useSearchParams } from 'react-router-dom'
 
 import totalAlunosIcon from '../../assets/conselho-intermediario/total-alunos-icon.svg'
 import situacaoNormalIcon from '../../assets/conselho-intermediario/situacao-normal-icon.svg'
@@ -8,14 +9,16 @@ import notificationIcon from '../../assets/conselho-intermediario/notification-i
 
 import ModalAvaliacaoAlunos from '../../components/modalAvaliacaoConselhoIntermediario/ModalAvaliacaoAlunos';
 import ModalAvaliacaoTurma from '../../components/modalAvaliacaoConselhoIntermediario/ModalAvaliacaoTurma';
+import { useEffect } from 'react';
   
-const intTotalAlunos = 20
-const intSituacaoNormal = 16
-const intRestritos = 4
-const intRetidos = 0
-const intObservacoes = 3
 
 export function ConselhoIntermediario() {
+    const [searchParams] = useSearchParams();
+    const idTurma = searchParams.get('turma');
+
+    const [alunos, setAlunos] = useState([]);
+    const [alunosSelecionados, setAlunosSelecionados] = useState([]);
+    const [carregando, setCarregando] = useState(false);
 
     // Estados independentes para controlar cada modal
     const [isModalTurmaOpen, setIsModalTurmaOpen] = useState(false);
@@ -29,7 +32,33 @@ export function ConselhoIntermediario() {
     const handleOpenModalAlunos = () => setIsModalAlunosOpen(true);
     const handleCloseModalAlunos = () => setIsModalAlunosOpen(false);
 
+    useEffect(() => {
+        if(!idTurma) return;
 
+        setCarregando(true);
+        fetch(`http://localhost:3001/api/alunos/${idTurma}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.sucesso) setAlunos(data.alunos);
+            })
+            .finally(() => setCarregando(false));
+    }, [idTurma]);
+
+    const handleToogleAluno = (id) => {
+        setAlunosSelecionados(prev => 
+            prev.includes(id) ? prev.filter(a => a !== id) : [...prev, id]
+        );
+    };
+
+    const handleSelecionarTudo = (e) => {
+        if (e.target.checked) {
+        setAlunosSelecionados(alunos.map(a => a.idtblAluno));
+        } else {
+        setAlunosSelecionados([]);
+        }
+    };
+
+    const handleLimparSelecao = () => setAlunosSelecionados([]);
 
   return (
       <section>
@@ -49,7 +78,7 @@ export function ConselhoIntermediario() {
                 {/* ... (Cards superiores mantidos iguais) ... */}
                 <div className="flex flex-col justify-between border border-black rounded-[15px] py-0 px-5 shadow-[0_0_5px_rgba(0,0,0,0.25)] bg-gray-150 border border-[#CCC]">
                     <div className="mt-[50px] font-bold">
-                        <h3 className="text-2xl italic">{intTotalAlunos}</h3>
+                        <h3 className="text-2xl italic">{alunos.length}</h3>
                         <p className="text_total_alunos">Total de Alunos</p>
                     </div>
                     <div className="flex items-end justify-end m-0">
@@ -58,7 +87,7 @@ export function ConselhoIntermediario() {
                 </div>
                 <div className="flex flex-col justify-between border border-black rounded-[15px] py-0 px-5 text-green-600 shadow-[0_0_5px_rgba(0,0,0,0.25)] bg-green-50 border-green-600">
                     <div className="mt-[50px] font-bold">
-                        <h3 className="text-2xl italic">{intSituacaoNormal}</h3>
+                        <h3 className="text-2xl italic">{}</h3>
                         <p className="text_situacao_normal">Situação Normal</p>
                     </div>
                     <div className="flex items-end justify-end m-0">
@@ -67,7 +96,7 @@ export function ConselhoIntermediario() {
                 </div>
                 <div className="flex flex-col justify-between border border-black rounded-[15px] py-0 px-5 text-yellow-600 shadow-[0_0_5px_rgba(0,0,0,0.25)] bg-yellow-50 border border-yellow-600">
                     <div className="mt-[50px] font-bold">
-                        <h3 className="text-2xl italic">{intRestritos}</h3>
+                        <h3 className="text-2xl italic">{}</h3>
                         <p className="text_restritos">Total Observações</p>
                     </div>
                     <div className="flex items-end justify-end m-0">
@@ -76,7 +105,7 @@ export function ConselhoIntermediario() {
                 </div>
                 <div className="flex flex-col justify-between border border-black rounded-[15px] py-0 px-5 text-red-600 shadow-[0_0_5px_rgba(0,0,0,0.25)] bg-red-50 border border-red-600">
                     <div className="mt-[50px] font-bold">
-                        <h3 className="text-2xl italic">{intRetidos}</h3>
+                        <h3 className="text-2xl italic">{}</h3>
                         <p className="text_retidos">Alunos Restritos</p>
                     </div>
                     <div className="flex items-end justify-end m-0">
@@ -91,7 +120,7 @@ export function ConselhoIntermediario() {
                             Avaliar Toda Turma
                         </button>
                         
-                        <button className="limpar_selecao p-[10px] w-[350px] rounded-[15px] border border-black shadow-[0_0_3px_black] cursor-pointer  trasition-all duration-200 active:scale-95">
+                        <button onClick={handleLimparSelecao} className="limpar_selecao p-[10px] w-[350px] rounded-[15px] border border-black shadow-[0_0_3px_black] cursor-pointer  trasition-all duration-200 active:scale-95">
                             Limpar Seleção
                         </button>
 
@@ -110,11 +139,12 @@ export function ConselhoIntermediario() {
             <div className="flex flex-col">
                 <div className="flex justify-between my-0 mx-[10px] text-xl ">
                     <div className="flex gap-2">
-                        <input type="checkbox" id="checkbox_selecionar_tudo" className="w-5 h-5 cursor-pointer" />
+                        <input type="checkbox" id="checkbox_selecionar_tudo" className="w-5 h-5 cursor-pointer" 
+                        onChange={handleSelecionarTudo} checked={alunos.length > 0 && alunosSelecionados.length === alunos.length}/>
                         <p>Selecionar Tudo</p>
                     </div>
                     <div className="quatidade_alunos_selecionados">
-                        <p>Alunos Selecionados: 0</p>
+                        <p>Alunos Selecionados: {alunosSelecionados.length}</p>
                     </div>
                 </div>
                 <div className="overflow-y-auto
@@ -126,28 +156,56 @@ export function ConselhoIntermediario() {
                                 [&::-webkit-scrollbar-thumb]:rounded-full
                                 [&::-webkit-scrollbar-thumb:hover]:bg-[#555]
                                 ">
-                    <div className="p-5 w-[98.5%] border border-black rounded-[10px] box-border m-[10px] max-h-[40vh] overflow-y-auto overflow overflow-x-hidden pr-[5px]  ">
+                {!idTurma && (
+                    <p className="text-center text-gray-500 py-4">
+                        Selecione uma turma na sidebar para começar.
+                    </p>
+                )}
+
+                {/* Carregando */}
+                {carregando && (
+                <p className="text-center text-gray-500 py-4">Carregando alunos...</p>
+                )}
+                
+                    <div  className="p-5 w-[98.5%] border border-black rounded-[10px] box-border m-[10px] max-h-[40vh] overflow-y-auto overflow overflow-x-hidden pr-[5px]  ">
+                        {!carregando && alunos.map((aluno) => (
+                        <div key={aluno.idtblAluno}>  
                             <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-2">
-                                    <input type="checkbox" id="checkbox_aluno" className='w-5 h-5 cursor-pointer'/>
-                                    <p className="text-xl">Jorge Marques de Salves</p>
-                                    <button className='text-gray-500 text-xs mt-[5px] hover:underline'>
-                                        <div className="flex items-center my-0 mx-1 gap-1">
-                                            <img src={notificationIcon} alt="" className="w-6 h-6 border border-yellow-600 rounded-full p-[1px]"/>
-                                            <div className='flex'>
-                                                <p className="text-m underline">Ver Observações</p>
-                                                <p className="text-m underline">3</p>
-                                            </div>
-                                        </div>
-                                    </button>
+                            <div className="flex items-center gap-2">
+                                <input 
+                                type="checkbox" 
+                                className='w-5 h-5 cursor-pointer'
+                                checked={alunosSelecionados.includes(aluno.idtblAluno)}
+                                onChange={() => handleToogleAluno(aluno.idtblAluno)}
+                                />
+                                <p className="text-xl">{aluno.nome}</p>
+                                <button className='text-gray-500 text-xs mt-[5px] hover:underline'>
+                                <div className="flex items-center my-0 mx-1 gap-1">
+                                    <img src={notificationIcon} alt="" className="w-6 h-6 border border-yellow-600 rounded-full p-[1px]"/>
+                                    <div className='flex'>
+                                    <p className="text-m underline">Ver Observações</p>
+                                    <p className="text-m underline">3</p>
+                                    </div>
                                 </div>
-                                <div className="div_btn_restrito">
-                                    <button className="bg-gray-400 shadow-[inset_0_0_10px_rgba(0,0,0,0.5)] w-[150px] p-1 text-xl rounded-[20px] mr-4  trasition-all duration-200 active:scale-95">Restrito</button>
-                                </div>
+                                </button>
                             </div>
-                            <hr className='my-[10px] mx-0' />
-                            
-                    </div>
+                            <div className="div_btn_restrito">
+                                <button className="bg-gray-400 shadow-[inset_0_0_10px_rgba(0,0,0,0.5)] w-[150px] p-1 text-xl rounded-[20px] mr-4 active:scale-95">
+                                Restrito
+                                </button>
+                            </div>
+                            </div>
+                            <hr className='my-[10px] mx-0' />  {/* ← agora está DENTRO do pai */}
+                        </div>
+                        ))}
+              </div>
+                {/* Turma sem alunos */}
+                {!carregando && idTurma && alunos.length === 0 && (
+                <p className="text-center text-gray-500 py-4">
+                    Nenhum aluno encontrado nessa turma.
+                </p>
+                )}
+
                 </div>
                 
             </div>

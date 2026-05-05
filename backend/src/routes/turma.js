@@ -28,4 +28,29 @@ router.get('/turmas-filtro', async (req, res) => {
   }
 });
 
+// ==========================================
+// ROTA: Para aparecer os alunos (GET)
+// Acessada via: GET /api/turmas-filtro
+// ==========================================
+router.get('/alunos/:idTurma', async (req, res) => {
+    const {idTurma} = req.params;
+
+    try {
+      const result = await db.query(`
+        SELECT
+          a."idtblAluno",
+          a."matricula",
+          a."nome"
+        FROM "tblAluno" a
+        WHERE a."Turma_idTurma" = $1
+        ORDER BY a."nome" ASC
+        `, [idTurma]);
+
+      res.json({ sucesso: true, alunos: result.rows });
+
+    } catch(erro){
+      res.status(500).json({ sucesso: false, mensagem: 'Erro ao buscar alunos.'});
+    }
+})
+
 module.exports = router;
