@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import './perfil.css';
 import { VscAccount } from "react-icons/vsc";
 import { VscGitStashPop } from "react-icons/vsc";
 
