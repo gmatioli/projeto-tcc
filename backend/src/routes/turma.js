@@ -3,6 +3,77 @@ const router = express.Router();
 const db = require('../config/db');
 
 // ==========================================
+// LISTAR TURMAS
+// GET -> /api/turmas
+// ==========================================
+router.get('/turmas', async (req, res) => {
+
+  try {
+
+    const result = await db.query(`
+      SELECT
+        T."idTurma",
+        T."codigo",
+        C."tipo"
+      FROM "Turma" T
+      INNER JOIN "Cursos" C
+        ON T."Cursos_idCurso" = C."idCurso"
+      ORDER BY T."codigo" ASC
+    `);
+
+    res.json(result.rows);
+
+  } catch (erro) {
+
+    console.log('ERRO TURMAS:', erro);
+
+    res.status(500).json({
+      sucesso: false,
+      mensagem: 'Erro ao buscar turmas'
+    });
+  }
+});
+
+// ==========================================
+// LISTAR ALUNOS DA TURMA
+// GET -> /api/alunos?turma=DEV 3N
+// ==========================================
+router.get('/alunos', async (req, res) => {
+
+  try {
+
+    // ALTERAÇÃO:
+    // recebe código da turma
+    const { turma } = req.query;
+
+    const result = await db.query(`
+      SELECT
+       
+        A."nome"
+      FROM "tblAluno" A
+      INNER JOIN "Turma" T
+        ON A."Turma_idTurma" = T."idTurma"
+      WHERE T."codigo" = $1
+      ORDER BY A."nome" ASC
+    `, [turma]);
+
+    res.json(result.rows);
+
+  } catch (erro) {
+
+    console.log('ERRO ALUNOS:', erro);
+
+    res.status(500).json({
+      sucesso: false,
+      mensagem: 'Erro ao buscar alunos'
+    });
+  }
+});
+
+
+
+
+// ==========================================
 // ROTA: FILTRO DE TURMAS PARA SIDEBAR (GET)
 // Acessada via: GET /api/turmas-filtro
 // ==========================================
@@ -38,7 +109,7 @@ router.get('/alunos/:idTurma', async (req, res) => {
     try {
       const result = await db.query(`
         SELECT
-          a."idtblAluno",
+         
           a."matricula",
           a."nome"
         FROM "tblAluno" a
