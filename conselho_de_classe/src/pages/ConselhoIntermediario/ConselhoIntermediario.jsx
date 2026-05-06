@@ -10,8 +10,8 @@ import notificationIcon from '../../assets/conselho-intermediario/notification-i
 import ModalAvaliacaoAlunos from '../../components/modalAvaliacaoConselhoIntermediario/ModalAvaliacaoAlunos';
 import ModalAvaliacaoTurma from '../../components/modalAvaliacaoConselhoIntermediario/ModalAvaliacaoTurma';
 import { useEffect } from 'react';
+import { Turma } from '../AtribuirTurma/Turma';
 
-const intTotalAlunos = 20
 const intSituacaoNormal = 16
 const intRestritos = 4
 const intRetidos = 0
@@ -26,6 +26,12 @@ const cardIcon = "flex items-end justify-end m-[0_15px_15px_0]";
 export function ConselhoIntermediario() {
     const [searchParams] = useSearchParams();
     const idTurma = searchParams.get('turma');
+    const nomeTurma = searchParams.get('nomeTurma');
+
+    const modo = searchParams.get('modo'); 
+    const botoesDesabilitados = modo !== 'iniciar';
+
+
 
     const [alunos, setAlunos] = useState([]);
     const [alunosSelecionados, setAlunosSelecionados] = useState([]);
@@ -81,7 +87,8 @@ export function ConselhoIntermediario() {
             Conselhos
           </button>
           {' / '}
-          <span className="font-medium text-gray-700">Conselho Intermediário</span>
+          <span className="font-lg text-gray-700">Conselho Intermediário / {`${nomeTurma}`}</span>
+
         </span>
       </nav>
         <div className="flex flex-col min-w-[72vw] my-5 gap-5">
@@ -89,7 +96,7 @@ export function ConselhoIntermediario() {
                         {/* ... (Cards superiores mantidos iguais) ... */}
                         <div className={`${cardInfo} bg-[#FEFEFE] border border-black`}>
                             <div className={`${cardText}`}>
-                                <h3 className={`${cardNum} text-2xl`}>{intTotalAlunos}</h3>
+                                <h3 className={`${cardNum} text-2xl`}>{alunos.length}</h3>
                                 <p className="text_total_alunos">Total de Alunos</p>
                             </div>
                             <div className={`${cardIcon}`}>
@@ -127,16 +134,19 @@ export function ConselhoIntermediario() {
                 <div className="card_avaliacoes">
                     <div className="flex flex-col gap-5 p-5 min-h-[220px]">
                         {/* Botão que abre o modal da turma inteira */}
-                        <button onClick={handleOpenModalTurma} className="avaliar_toda_turma bg-[#FEFEFE] p-[10px] w-[350px] rounded-[15px] border border-black shadow-[0_0_3px_black] cursor-pointer trasition-all duration-200 active:scale-95">
+                        <button onClick={handleOpenModalTurma} disabled={botoesDesabilitados}  className={`avaliar_toda_turma  p-[10px] w-[350px] rounded-[15px] border border-black shadow-[0_0_3px_black] transition-all duration-200 
+                            ${botoesDesabilitados ? 'opacity-50 cursor-not-allowed bg-gray-100' : 'bg-[#FEFEFE] cursor-pointer active:scale-95'}`}>
                             Avaliar Toda Turma
                         </button>
                         
-                        <button onClick={handleLimparSelecao} className="limpar_selecao bg-[#FEFEFE] p-[10px] w-[350px] rounded-[15px] border border-black shadow-[0_0_3px_black] cursor-pointer  trasition-all duration-200 active:scale-95">
+                        <button onClick={handleLimparSelecao}  disabled={botoesDesabilitados}  className={`limpar_selecao p-[10px] w-[350px] rounded-[15px] border border-black shadow-[0_0_3px_black] transition-all duration-200 
+                            ${botoesDesabilitados ? 'opacity-50 cursor-not-allowed bg-gray-100' : 'bg-[#FEFEFE] cursor-pointer active:scale-95'}`}>
                             Limpar Seleção
                         </button>
 
                         {/* Botão que abre o modal dos alunos selecionados */}
-                        <button onClick={handleOpenModalAlunos} className="p-[10px] w-[350px] rounded-[15px] border border-black shadow-[0_0_3px_black] bg-red-600 text-white cursor-pointer  trasition-all duration-200 active:scale-95">
+                        <button onClick={handleOpenModalAlunos}  disabled={botoesDesabilitados}  className={`p-[10px] w-[350px] rounded-[15px] border border-black shadow-[0_0_3px_black] transition-all duration-200 
+                            ${botoesDesabilitados ? 'opacity-50 cursor-not-allowed bg-gray-100' : 'bg-red-600 text-white cursor-pointer active:scale-95'}`}>
                             Avaliar Selecionados
                         </button>
                     </div>
@@ -150,7 +160,7 @@ export function ConselhoIntermediario() {
             <div className="flex flex-col mx-2 mr-6">
                 <div className="flex justify-between my-0 mx-[10px] text-xl ">
                     <div className="flex gap-2">
-                        <input type="checkbox" id="checkbox_selecionar_tudo" className="w-5 h-5 cursor-pointer" 
+                        <input disabled={botoesDesabilitados} type="checkbox" id="checkbox_selecionar_tudo" className="w-5 h-5 cursor-pointer" 
                         onChange={handleSelecionarTudo} checked={alunos.length > 0 && alunosSelecionados.length === alunos.length}/>
                         <p>Selecionar Tudo</p>
                     </div>
@@ -184,6 +194,7 @@ export function ConselhoIntermediario() {
                             <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
                                 <input 
+                                disabled={botoesDesabilitados}
                                 type="checkbox" 
                                 className='w-5 h-5 cursor-pointer'
                                 checked={alunosSelecionados.includes(aluno.idtblAluno)}

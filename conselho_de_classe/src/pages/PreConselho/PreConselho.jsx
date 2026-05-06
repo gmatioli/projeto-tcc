@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-
+import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useEffect } from 'react';
 import totalAlunosIcon from '../../assets/pre-conselho/total-alunos-icon.svg'
 import situacaoNormalIcon from '../../assets/pre-conselho/situacao-normal-icon.svg'
 import restritosIcon from '../../assets/pre-conselho/restritos-icon.svg'
@@ -21,6 +22,17 @@ const cardText = "mt-10 ml-4 text-lg font-bold";
 const cardIcon = "flex items-end justify-end m-[0_15px_15px_0]";
 
 export function PreConselho() {
+    const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
+    const idTurma = searchParams.get('turma');
+    const nomeTurma = searchParams.get('nomeTurma');
+
+    const modo = searchParams.get('modo'); 
+    const botoesDesabilitados = modo !== 'iniciar';
+
+    const [alunos, setAlunos] = useState([]);
+    const [alunosSelecionados, setAlunosSelecionados] = useState([]);
+    const [carregando, setCarregando] = useState(false);
 
     // Estado que controla se o modal está aberto ou não
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -28,6 +40,34 @@ export function PreConselho() {
   // Funções para manipular o estado
     const handleOpenModal = () => setIsModalOpen(true);
     const handleCloseModal = () => setIsModalOpen(false);
+
+    useEffect(() => {
+        if(!idTurma) return;
+
+        setCarregando(true);
+        fetch(`http://localhost:3001/api/alunos/${idTurma}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.sucesso) setAlunos(data.alunos);
+            })
+            .finally(() => setCarregando(false));
+    }, [idTurma]);
+
+    const handleToogleAluno = (id) => {
+        setAlunosSelecionados(prev => 
+            prev.includes(id) ? prev.filter(a => a !== id) : [...prev, id]
+        );
+    };
+
+    const handleSelecionarTudo = (e) => {
+        if (e.target.checked) {
+        setAlunosSelecionados(alunos.map(a => a.idtblAluno));
+        } else {
+        setAlunosSelecionados([]);
+        }
+    };
+
+    const handleLimparSelecao = () => setAlunosSelecionados([]);
 
   return (
       <section>
@@ -40,7 +80,7 @@ export function PreConselho() {
             Conselhos
           </button>
           {' / '}
-          <span className="font-medium text-gray-700">Pré-Conselho</span>
+          <span className="font-medium text-gray-700">Pré-Conselho / {`${nomeTurma}`}</span>
         </span>
       </nav>
         <div className="flex flex-col min-w-[72vw] my-5 ">
@@ -48,7 +88,7 @@ export function PreConselho() {
                 {/* ... (Cards superiores mantidos iguais) ... */}
                 <div className={`${cardInfo} bg-[#FEFEFE] border border-black`}>
                     <div className={`${cardText}`}>
-                        <h3 className={`${cardNum} text-2xl`}>{intTotalAlunos}</h3>
+                        <h3 className={`${cardNum} text-2xl`}>{alunos.length}</h3>
                         <p className="text_total_alunos">Total de Alunos</p>
                     </div>
                     <div className={`${cardIcon}`}>
@@ -84,10 +124,12 @@ export function PreConselho() {
                 </div>
                 <div className="card_avaliacoes">
             <div className="flex flex-col gap-5 p-5 min-h-[220px]">
-                <button className="limpar_selecao bg-[#FEFEFE] p-[10px] w-[350px] mt-[40px] rounded-[15px] border border-black shadow-[0_0_3px_black] cursor-pointer trasition-all duration-200 active:scale-95">
+                <button onClick={handleLimparSelecao}  disabled={botoesDesabilitados}  className={`limpar_selecao p-[10px] w-[350px] rounded-[15px] border border-black shadow-[0_0_3px_black] transition-all duration-200 
+                    ${botoesDesabilitados ? 'opacity-50 cursor-not-allowed bg-gray-100' : 'bg-[#FEFEFE] cursor-pointer active:scale-95'}`}>
                     Limpar Seleção
                 </button>
-                <button onClick={handleOpenModal} className="p-[10px] w-[350px] rounded-[15px] border border-black shadow-[0_0_3px_black] bg-red-600 text-white cursor-pointer trasition-all duration-200 active:scale-95">
+                <button onClick={handleOpenModal} disabled={botoesDesabilitados} className={`p-[10px] w-[350px] rounded-[15px] border border-black shadow-[0_0_3px_black] transition-all duration-200 
+                    ${botoesDesabilitados ? 'opacity-50 cursor-not-allowed bg-gray-100' : 'bg-red-600 text-white cursor-pointer active:scale-95'}`}>
                     Avaliar Selecionados
                 </button>
             </div>
@@ -100,7 +142,7 @@ export function PreConselho() {
             <div className="flex flex-col mx-2 mr-6 ">
                 <div className="flex justify-between my-0 mx-[10px] text-xl ">
                     <div className="flex gap-2">
-                        <input type="checkbox" id="checkbox_selecionar_tudo" className="w-5 h-5 cursor-pointer" />
+                        <input disabled={botoesDesabilitados} type="checkbox" id="checkbox_selecionar_tudo" className="w-5 h-5 cursor-pointer" />
                         <p>Selecionar Tudo</p>
                     </div>
                     <div className="quatidade_alunos_selecionados">
@@ -116,24 +158,39 @@ export function PreConselho() {
                                 [&::-webkit-scrollbar-thumb]:rounded-full
                                 [&::-webkit-scrollbar-thumb:hover]:bg-[#555]
                                 ">
+
+                    {carregando && (
+                        <p className="text-center text-gray-500 py-4">Carregando alunos...</p>
+                    )}    
+
                     <div className="p-5 w-[98.5%] bg-[#FEFEFE] border border-black rounded-[10px] box-border m-[10px] h-[50vh] overflow-y-auto overflow overflow-x-hidden pr-[5px] shadow-[0_0_2px_black]">
-                            <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-2">
-                                    <input type="checkbox" id="checkbox_aluno" className='w-5 h-5 cursor-pointer'/>
-                                    <p className="text-xl">Jorge Marques de Salves</p>
-                                    <div className="flex items-center my-0 mx-1 gap-1">
-                                        <img src={notificationIcon} alt="" className="w-6 h-6 border border-yellow-600 rounded-full p-[1px]"/>
-                                        <div className='flex'>
-                                            <p className="text-m underline">Ver Observações</p>
-                                            <p className="text-m underline">({intObservacoes})</p>
+                            
+                            {!carregando && alunos.map((aluno) => (
+                            <div key={aluno.idtblAluno}>
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-2">
+                                        <input type="checkbox" id="checkbox_aluno" className='w-5 h-5 cursor-pointer'
+                                        checked={alunosSelecionados.includes(aluno.idtblAluno)}
+                                        onChange={() => handleToogleAluno(aluno.idtblAluno)}
+                                        disabled={botoesDesabilitados}
+                                        />
+                                        <p className="text-xl">{aluno.nome}</p>
+                                        <div className="flex items-center my-0 mx-1 gap-1">
+                                            <img src={notificationIcon} alt="" className="w-6 h-6 border border-yellow-600 rounded-full p-[1px]"/>
+                                            <div className='flex'>
+                                                <p className="text-m underline">Ver Observações</p>
+                                                <p className="text-m underline">({intObservacoes})</p>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                                <div className="div_btn_restrito">
-                                    <button className="bg-gray-400 shadow-[inset_0_0_10px_rgba(0,0,0,0.5)] w-[150px] p-1 text-xl rounded-[20px] mr-4">Restrito</button>
-                                </div>
+                                    <div className="div_btn_restrito">
+                                        <button className="bg-gray-400 shadow-[inset_0_0_10px_rgba(0,0,0,0.5)] w-[150px] p-1 text-xl rounded-[20px] mr-4">Restrito</button>
+                                    </div>
                             </div>
-                            <hr className='my-[10px] mx-0' />            
+                                <hr className='my-[10px] mx-0' />     
+                            </div>
+                            ))}
+                                   
                     </div>                  
                 </div>
                 
