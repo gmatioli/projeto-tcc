@@ -14,7 +14,7 @@ const ModalJustificativa = ({ isOpen, onClose }) => {
           
           <form className="flex flex-col gap-12 mx-20 ">
             
-          <label className="mt-8 text-3xl">{`Aluno(a): ${aluno}`}</label>
+          <label className="mt-8 text-2xl">{`Aluno(a): ${aluno}`}</label>
           <textarea className="w-full h-[400px] border border-black rounded-[20px] text-3xl p-4" id="text_area"></textarea>
             
   
