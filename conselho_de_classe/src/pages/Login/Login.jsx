@@ -32,7 +32,13 @@ function Login() {
             email: usuario, 
             nivelAcesso: dados.nivelAcesso 
           }));
+          
+          if (dados.nivelAcesso === 'admin') {
           navigate('/dashboard');
+          } else {
+            navigate('/docente/home');
+          }
+          
 
         } else {
           setErroLogin(dados.mensagem);

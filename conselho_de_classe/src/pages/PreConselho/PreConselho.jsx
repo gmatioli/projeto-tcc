@@ -133,9 +133,8 @@ export function PreConselho() {
                                     <button className="bg-gray-400 shadow-[inset_0_0_10px_rgba(0,0,0,0.5)] w-[150px] p-1 text-xl rounded-[20px] mr-4">Restrito</button>
                                 </div>
                             </div>
-                            <hr className='my-[10px] mx-0' />
-                            
-                    </div>
+                            <hr className='my-[10px] mx-0' />            
+                    </div>                  
                 </div>
                 
             </div>

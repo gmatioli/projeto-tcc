@@ -1,6 +1,7 @@
 import React from 'react';
 // IMPORTANTE: Adicionei o Outlet aqui no import do react-router-dom!
-import { BrowserRouter, Routes, Route, Outlet } from 'react-router-dom'; 
+// importei o navigate
+import { BrowserRouter, Routes, Route, Outlet, Navigate } from 'react-router-dom'; 
 import './App.css';
 
 // 1. Importe a sua tela de Login
@@ -9,6 +10,9 @@ import Login from './pages/Login/Login.jsx';
 // 2. Importe os seus componentes visuais
 import { Header } from './components/header/Header.jsx';
 import { Sidebar } from './components/sidebar/Sidebar.jsx';
+import { SidebarDocente } from './components/sidebar/SidebarDocente.jsx';
+
+// nivel acesso admin
 import { ConselhoIntermediario } from './pages/ConselhoIntermediario/ConselhoIntermediario.jsx';
 import { PreConselho } from './pages/PreConselho/PreConselho.jsx' ;
 import { Configuracoes } from './pages/Configuracoes/Configuracoes.jsx';
@@ -25,13 +29,38 @@ import { GerarAta } from './pages/Relatorios/GerarAta.jsx';
 import { GerarRelatorio } from './pages/Relatorios/GerarRelatorio.jsx';
 import { GerarTermoCiencia } from './pages/Relatorios/GerarTermoCiencia.jsx';
 
+// nivel acesso docente
+import { HomepageDocente }           from './pages/Docente/HomepageDocente.jsx';
+import { TurmasDocente }             from './pages/Docente/TurmasDocente.jsx';
+import { InstrumentoAcompanhamento } from './pages/Docente/InstrumentoAcompanhamento.jsx';
+
+// função que retorna o nível de acesso no login, ou null se não estiver logado
+function getNivelAcesso() {
+  const logado = localStorage.getItem('usuarioLogado');
+  if (!logado) return null;
+  return JSON.parse(logado).nivelAcesso; // 'admin' ou 'docente'
+}
+
+// Redireciona para '/' se não estiver logado
+function RequireAuth({ children }) {
+  const nivel = getNivelAcesso();
+  //  if (!nivel) return <Navigate to="/" replace />;
+  return children;
+}
+
 // --- CRIANDO O MOLDE DO PAINEL ---  
 function LayoutDoSistema() {
+
+  const nivel = getNivelAcesso();
+
   return (
     <div className="app-wrapper flex-column h-screen w-full">
       <Header /> {/* Fica no topo */}
       <div className="main-container flex grow overflow-hidden">
-        <Sidebar /> {/* Fica na lateral */}
+
+        {/* ← AQUI está o teste: renderiza a sidebar correta */}
+        {nivel === 'admin' ? <Sidebar /> : <SidebarDocente />}
+        
         <main className="content-area grow overflow-y-auto p-[20px] bg-neutral-100">
           {/* A MÁGICA: O Outlet é o espaço onde as páginas vão aparecer! */}
           <Outlet /> 
@@ -51,18 +80,30 @@ function App() {
         <Route path="/" element={<Login />} />
         
         {/* Bloco de Rotas que USAM o Molde (Header e Sidebar) */}
-        <Route element={<LayoutDoSistema />}>
+        <Route element={
+          <RequireAuth>
+            <LayoutDoSistema />
+          </RequireAuth>
+          }>
+          
+          <Route path="/perfil" element={<Perfil />} />
+
+          {/* rotas admin */}
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/conselhointermediario" element={<ConselhoIntermediario />} />
           <Route path="/preconselho" element={<PreConselho />} />
           <Route path="/configuracoes" element={<Configuracoes />} />
-          <Route path="/perfil" element={<Perfil />} />
           <Route path="/conselhofinal" element={<ConselhoFinal/>}/>
 
           {/* rotas do relatorio */}
           <Route path="/relatorios/ata" element={<GerarAta />} />
           <Route path="/relatorios/relatorio" element={<GerarRelatorio />} />
           <Route path="/relatorios/termo" element={<GerarTermoCiencia />} />
+
+          {/* ── Rotas DOCENTE ── */}
+          <Route path="/docente/home"                          element={<HomepageDocente />} />
+          <Route path="/docente/turmas"                        element={<TurmasDocente />} />
+          <Route path="/docente/instrumento-acompanhamento"    element={<InstrumentoAcompanhamento />} />
         </Route>
 
         <Route path="/cadastrarusuario" element={<Cadastro />} /> 
