@@ -53,7 +53,7 @@ const ConselhoFinal = () => {
 
   // Variável para evitar repetição nas células de tabela padronizadas
   const tableThClasses = "border border-[#ddd] p-[12px_15px] text-left font-bold bg-white sticky top-0 z-10";
-  const tableTdClasses = "border border-[#ddd] p-[12px_15px] text-left";
+  const tableTdClasses = "border border-[#ddd] p-[12px_15px] text-left text-lg";
   const btnClasses = "border border-black shadow-[3px_3px_5px_gray]"
 
   const [isModalJustificativaOpen, setIsModalJustificativaOpen] = useState(false);
@@ -186,8 +186,8 @@ const ConselhoFinal = () => {
                 </td>
                 <td className={`${tableTdClasses} text-center `}>
                   {aluno.temJustificativa ? (
-                    <button onClick={handleOpenModalJustificativa} className=" text-orange-600 px-2 py-1 rounded text-xs underline font-bold ">
-                      Ver Justificativa
+                    <button onClick={handleOpenModalJustificativa} className=" text-orange-600 px-2 py-1 rounded text-lg underline font-bold ">
+                      Ver contestação
                     </button>
                   ) : '-'}
                 </td>

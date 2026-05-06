@@ -15,6 +15,11 @@ const intRestritos = 4
 const intRetidos = 0
 const intObservacoes = 3
 
+const cardInfo = "flex flex-col justify-between border rounded-[15px] h-[26vh] w-[12vw] shadow-[2px_2px_5px_rgba(0,0,0,0.5)]";
+const cardNum = "text-3xl italic";
+const cardText = "mt-10 ml-4 text-lg font-bold";
+const cardIcon = "flex items-end justify-end m-[0_15px_15px_0]";
+
 export function PreConselho() {
 
     // Estado que controla se o modal está aberto ou não
@@ -38,58 +43,61 @@ export function PreConselho() {
           <span className="font-medium text-gray-700">Pré-Conselho</span>
         </span>
       </nav>
-        <div className="flex flex-col min-w-[72vw] m-5 gap-[150px]">
+        <div className="flex flex-col min-w-[72vw] my-5 ">
             <div className="flex justify-around">
-                <div className="flex flex-col justify-between border border-black rounded-[15px] py-0 px-5 shadow-[0_0_5px_rgba(0,0,0,0.25)] bg-gray-150 border border-[#CCC]">
-                    <div className="mt-[50px] font-bold">
-                        <h3 className="text-2xl italic">{intTotalAlunos}</h3>
+                {/* ... (Cards superiores mantidos iguais) ... */}
+                <div className={`${cardInfo} bg-[#FEFEFE] border border-black`}>
+                    <div className={`${cardText}`}>
+                        <h3 className={`${cardNum} text-2xl`}>{intTotalAlunos}</h3>
                         <p className="text_total_alunos">Total de Alunos</p>
                     </div>
-                    <div className="flex items-end justify-end m-0">
+                    <div className={`${cardIcon}`}>
                         <img src={totalAlunosIcon} alt="" className="w-10"/>
                     </div>
                 </div>
-                <div className="flex flex-col justify-between border border-black rounded-[15px] py-0 px-5 text-green-600 shadow-[0_0_5px_rgba(0,0,0,0.25)] bg-green-50 border-green-600">
-                    <div className="mt-[50px] font-bold">
-                        <h3 className="text-2xl italic">{intSituacaoNormal}</h3>
-                        <p className="text_situacao_normal">Total de Alunos</p>
+                <div className={`${cardInfo} bg-green-50 border-green-600`}>
+                    <div className={`${cardText} text-green-600`}>
+                        <h3 className={`${cardNum}`}>{intSituacaoNormal}</h3>
+                        <p className="text_situacao_normal">Situação Normal</p>
                     </div>
-                    <div className="flex items-end justify-end m-0">
+                    <div className={`${cardIcon}`}>
                         <img src={situacaoNormalIcon} alt=""className="w-10" />
                     </div>
                 </div>
-                <div className="flex flex-col justify-between border border-black rounded-[15px] py-0 px-5 text-yellow-600 shadow-[0_0_5px_rgba(0,0,0,0.25)] bg-yellow-50 border border-yellow-600">
-                    <div className="mt-[50px] font-bold">
-                        <h3 className="text-2xl italic">{intRestritos}</h3>
-                        <p className="text_restritos">Total de Alunos</p>
+                <div className={`${cardInfo} bg-yellow-50 border border-yellow-600`}>
+                    <div className={`${cardText} text-yellow-600`}>
+                        <h3 className={`${cardNum}`}>{intRestritos}</h3>
+                        <p className="text_restritos">Total Observações</p>
                     </div>
-                    <div className="flex items-end justify-end m-0">
+                    <div className={`${cardIcon}`}>
                         <img src={restritosIcon} alt="" className="w-10"/>
                     </div>
                 </div>
-                <div className="flex flex-col justify-between border border-black rounded-[15px] py-0 px-5 text-red-600 shadow-[0_0_5px_rgba(0,0,0,0.25)] bg-red-50 border border-red-600">
-                    <div className="mt-[50px] font-bold">
-                        <h3 className="text-2xl italic">{intRetidos}</h3>
-                        <p className="text_retidos">Total de Alunos</p>
+                <div className={`${cardInfo} bg-red-50 border border-red-600`}>
+                    <div className={`${cardText} text-red-600`}>
+                        <h3 className={`${cardNum}`}>{intRetidos}</h3>
+                        <p className="text_retidos">Alunos Restritos</p>
                     </div>
-                    <div className="flex items-end justify-end m-0">
+                    <div className={`${cardIcon}`}>
                         <img src={retidosIcon} alt="" className="w-10"/>
                     </div>
                 </div>
                 <div className="card_avaliacoes">
-                    <div className="flex flex-col gap-5 p-5 min-h-[220px]">
-                        <button className="limpar_selecao p-[10px] w-[350px] mt-[40px] rounded-[15px] border border-black shadow-[0_0_3px_black] cursor-pointer trasition-all duration-200 active:scale-95">
-                            Limpar Seleção
-                        </button>
-                        <button onClick={handleOpenModal} className="p-[10px] w-[350px] rounded-[15px] border border-black shadow-[0_0_3px_black] bg-red-600 text-white cursor-pointer trasition-all duration-200 active:scale-95">
-                            Avaliar Selecionados
-                        </button>
-                    </div>
-                    {/* Renderiza o Modal passando o estado e a função de fechar */}
-                    <ModalAvaliacao isOpen={isModalOpen} onClose={handleCloseModal} />
+            <div className="flex flex-col gap-5 p-5 min-h-[220px]">
+                <button className="limpar_selecao bg-[#FEFEFE] p-[10px] w-[350px] mt-[40px] rounded-[15px] border border-black shadow-[0_0_3px_black] cursor-pointer trasition-all duration-200 active:scale-95">
+                    Limpar Seleção
+                </button>
+                <button onClick={handleOpenModal} className="p-[10px] w-[350px] rounded-[15px] border border-black shadow-[0_0_3px_black] bg-red-600 text-white cursor-pointer trasition-all duration-200 active:scale-95">
+                    Avaliar Selecionados
+                </button>
+            </div>
+                {/* Renderiza o Modal passando o estado e a função de fechar */}
+                <ModalAvaliacao isOpen={isModalOpen} onClose={handleCloseModal} />
                 </div>
             </div>
-            <div className="flex flex-col">
+        </div>
+        
+            <div className="flex flex-col mx-2 mr-6 ">
                 <div className="flex justify-between my-0 mx-[10px] text-xl ">
                     <div className="flex gap-2">
                         <input type="checkbox" id="checkbox_selecionar_tudo" className="w-5 h-5 cursor-pointer" />
@@ -108,7 +116,7 @@ export function PreConselho() {
                                 [&::-webkit-scrollbar-thumb]:rounded-full
                                 [&::-webkit-scrollbar-thumb:hover]:bg-[#555]
                                 ">
-                    <div className="p-5 w-[98.5%] border border-black rounded-[10px] box-border m-[10px] max-h-[40vh] overflow-y-auto overflow overflow-x-hidden pr-[5px]  ">
+                    <div className="p-5 w-[98.5%] bg-[#FEFEFE] border border-black rounded-[10px] box-border m-[10px] h-[50vh] overflow-y-auto overflow overflow-x-hidden pr-[5px] shadow-[0_0_2px_black]">
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-2">
                                     <input type="checkbox" id="checkbox_aluno" className='w-5 h-5 cursor-pointer'/>
@@ -131,7 +139,6 @@ export function PreConselho() {
                 </div>
                 
             </div>
-        </div>
       </section>
       
   );
