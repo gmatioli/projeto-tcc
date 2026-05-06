@@ -82,7 +82,7 @@ const ConselhoFinal = () => {
       <section className="flex gap-[15px] items-start w-full mb-6">
         
         {/* Tabela de Turmas (Esquerda - flex 1.3) */}
-        <div className="flex-[1.3] max-h-[180px] overflow-y-auto">
+        <div className="flex-1 max-h-[180px] overflow-y-auto">
           <table className="w-full border-collapse bg-white text-sm">
             <thead>
               <tr>

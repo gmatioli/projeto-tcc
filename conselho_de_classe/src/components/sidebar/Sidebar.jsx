@@ -300,11 +300,11 @@ export function Sidebar() {
     <section className="h-[calc(100vh-8vh)]">
       <div className="bg-[var(--sidebar_bg)] w-[20vw] h-full flex flex-col border-r border-[#ccc] overflow-hidden">
 
-      <div className="flex-1 overflow-y-auto pt-6 px-4 pb-4 custom-scrollbar">
+      <div className="flex-1 overflow-y-auto pt-6 px-4 pb-4 custom-scrollbar ">
 
           <button
             onClick={() => handleClick('/dashboard', 'dashboard')}
-            className={`flex items-center justify-between w-full h-[10vh] px-10 mx-auto mt-0 bg-[var(--button_bg)] rounded-[10px] font-bold border border-black text-[26px] shadow-[0px_3px_3px_rgb(117,117,117)] cursor-pointer transition-all ${
+            className={`flex items-center justify-center gap-4 w-full h-[10vh] px-10 mx-auto mt-0 bg-[var(--button_bg)] rounded-[10px] font-bold border border-black text-[26px] shadow-[0px_3px_3px_rgb(117,117,117)] cursor-pointer transition-all ${
               botaoSelecionado === 'dashboard' ? 'bg-[#df3535] text-white' : ''
             }`}>
             <img src={dashboardIcon} className={`w-6 h-6 ${botaoSelecionado === 'dashboard' ? 'brightness-0 invert' : 'brightness-0'}`} alt="Dashboard" />
@@ -317,7 +317,7 @@ export function Sidebar() {
           {/* CONSELHOS */}
           <button
             onClick={toggleMenuConselho}
-            className={`flex items-center justify-between w-full h-[10vh] px-10  mx-auto mt-4 bg-[var(--button_bg)] rounded-[10px] font-bold border border-black text-[26px] shadow-[0px_3px_3px_rgb(117,117,117)] cursor-pointer transition-all ${
+            className={`flex items-center justify-center gap-4 w-full h-[10vh] px-10  mx-auto mt-4 bg-[var(--button_bg)] rounded-[10px] font-bold border border-black text-[26px] shadow-[0px_3px_3px_rgb(117,117,117)] cursor-pointer transition-all ${
               botaoSelecionado === 'conselhos' || menuConselhoAberto ? 'bg-[#df3535] text-white' : ''
             }`}>
             <img src={councilIcon} className={`w-7 h-7 ${botaoSelecionado === 'conselhos' || menuConselhoAberto ? 'brightness-0 invert' : 'brightness-0'}`} alt="Conselhos" />
@@ -336,7 +336,7 @@ export function Sidebar() {
             <div className="flex flex-col w-full mx-auto mt-[10px] gap-2">
               <button
                 onClick={() => toggleAba('intermediario')}
-                className={`w-full py-3 px-4 rounded-[8px] border border-gray-500  text-xl font-medium transition-all text-center whitespace-nowrap ${
+                className={`w-full py-3 px-2 rounded-[8px] border border-gray-500  text-xl font-medium transition-all text-center whitespace-nowrap ${
                   abaAberta === 'intermediario' ? 'bg-[#df3535] text-white border border-gray-500  shadow-md' : 'bg-[#d9d9d9] border-[#ccc] hover:bg-gray-300'
                 }`}>
                 Conselho Intermediário
@@ -366,7 +366,7 @@ export function Sidebar() {
           {/* RELATÓRIOS */}
           <button
             onClick={toggleMenuRelatorio}
-            className={`flex items-center justify-between w-full h-[10vh] px-10  mx-auto mt-4 bg-[var(--button_bg)] rounded-[10px] border border-black font-bold text-[26px] shadow-[0px_3px_3px_rgb(117,117,117)] cursor-pointer transition-all ${
+            className={`flex items-center justify-center gap-4 w-full h-[10vh] px-10  mx-auto mt-4 bg-[var(--button_bg)] rounded-[10px] border border-black font-bold text-[26px] shadow-[0px_3px_3px_rgb(117,117,117)] cursor-pointer transition-all ${
               botaoSelecionado === 'relatorios' || menuRelatorioAberto ? 'bg-[#df3535] text-white' : ''
             }`}>
             <img src={reportIcon} className={`w-7 h-7 ${botaoSelecionado === 'relatorios' || menuRelatorioAberto ? 'brightness-0 invert' : 'brightness-0'}`} alt="Relatórios" />
