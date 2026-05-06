@@ -78,6 +78,10 @@ export function Sidebar() {
     const [cursoSelecionado, setCursoSelecionado] = useState("");
     const [turmaSelecionada, setTurmaSelecionada] = useState("");
     
+    // Variável que dize se form incompleto
+    const formIncompleto = !turmaSelecionada || !cursoSelecionado || !tipoSelecionado
+
+
     // Busca os dados do banco assim que o menu abre
     useEffect(() => {
       fetch('http://localhost:3001/api/turmas-filtro')
@@ -109,12 +113,21 @@ export function Sidebar() {
       setTurmaSelecionada("");
     };
 
+
+    const handlePesquisar = () => {
+      const turmaObj = turmasDisponiveis.find(t => t.idTurma.toString() === turmaSelecionada.toString());
+      const nomeDaTurma = turmaObj ? turmaObj.turma : '';
+      navigate(`${rotaDestino}?turma=${turmaSelecionada}&nomeTurma=${encodeURIComponent(nomeDaTurma)}&modo=pesquisa`);
+      setAbaAberta(null); 
+      setMenuConselhoAberto(false); 
+    };
+
     const handleIniciarConselho = () => {
-      if (!turmaSelecionada) {
-        alert("Por favor, selecione uma Turma para iniciar o conselho!");
-        return;
-      }
-      navigate(`${rotaDestino}?turma=${turmaSelecionada}`);
+      const turmaObj = turmasDisponiveis.find(t => t.idTurma.toString() === turmaSelecionada.toString());
+      const nomeDaTurma = turmaObj ? turmaObj.turma : '';
+      navigate(`${rotaDestino}?turma=${turmaSelecionada}&nomeTurma=${encodeURIComponent(nomeDaTurma)}&modo=iniciar`);
+      setAbaAberta(null); 
+      setMenuConselhoAberto(false); 
     };
 
     const handleLimparFiltro = () => {
@@ -175,12 +188,19 @@ export function Sidebar() {
         </button>
 
         <button
-          onClick={() => navigate(rotaDestino)}
-          className="flex-1 p-[10px] bg-[#ea4335] text-white rounded-[5px] text-lg  font-semibold hover:brightness-90 transition-all">
+          onClick={handlePesquisar}
+          disabled={formIncompleto}
+          className={`flex-1 p-[10px] rounded-[5px] text-lg  font-semibold transition-all
+             ${formIncompleto ? 'opacity-50 cursor-not-allowed bg-gray-400 text-gray-200 ' : ' bg-[#ea4335] text-white cursor-pointer hover:brightness-90' }
+
+            `}>
           Pesquisar 
         </button>
       </div>
-      <button onClick={handleIniciarConselho} className="flex-1 p-[10px] bg-[#ea4335] text-white rounded-[5px] text-lg font-semibold hover:brightness-90 transition-all">
+      <button onClick={handleIniciarConselho} disabled={formIncompleto} className={`flex-1 p-[10px] rounded-[5px] text-lg  font-semibold transition-all
+             ${formIncompleto ? 'opacity-50 cursor-not-allowed bg-gray-400 text-gray-200 ' : ' bg-[#ea4335] text-white cursor-pointer hover:brightness-90' }
+
+            `}>
         Iniciar Conselho
       </button>
     </div>
@@ -228,14 +248,26 @@ export function Sidebar() {
         // setTurmaSelecionada("");
       };
 
-      const handleIniciarConselho = () => {
-      if (!cursoSelecionado) {
-        alert("Por favor, selecione um Curso para iniciar o conselho!");
+     
+    const handlePesquisar = () => {
+      if (!turmaSelecionada) {
+        alert("Por favor, selecione uma Turma para iniciar o conselho!");
         return;
       }
-      // Redireciona enviando o nome do curso na URL
-      navigate(`${rotaDestino}?curso=${encodeURIComponent(cursoSelecionado)}`);
+
+      navigate(`${rotaDestino}?turma=${turmaSelecionada}&modo=pesquisa`);
+
     };
+
+
+    const handleIniciarConselho = () => {
+      if (!turmaSelecionada) {
+        alert("Por favor, selecione uma Turma para iniciar o conselho!");
+        return;
+      }
+      navigate(`${rotaDestino}?turma=${turmaSelecionada}&modo=iniciar`);
+    };
+
 
       const handleLimparFiltro = () => {
         setAreaSelecionada("");
@@ -280,7 +312,7 @@ export function Sidebar() {
           </button>
 
           <button
-            onClick={() => navigate(rotaDestino)}
+            onClick={handlePesquisar}
             className="flex-1 p-[10px] bg-[#ea4335] text-white rounded-[5px]  text-lg font-semibold hover:brightness-90 transition-all">
             Pesquisar 
           </button>
