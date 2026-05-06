@@ -59,7 +59,6 @@ function LayoutDoSistema() {
       <div className="main-container flex grow overflow-hidden">
 
         {/* ← AQUI está o teste: renderiza a sidebar correta */}
-        {<Sidebar /> }
         {/*nivel === 'admin' ? <Sidebar /> : <SidebarDocente />*/}
         
         <main className="content-area grow overflow-y-auto p-[20px] bg-neutral-100">
