@@ -80,7 +80,7 @@ export function Header() {
                   }}
                 >
                   {/* Ícone de Usuário */}
-                <img src="./img/user.png" alt="" className="w-[22px] h-[22px] object-contain mr-2"/>
+                <img src="/img/user.png" alt="" className="w-[22px] h-[22px] object-contain mr-2"/>
                   Config. Perfil
                 </button>
 
@@ -92,7 +92,7 @@ export function Header() {
                   className="flex items-center g-[15px] py-3 px-5 bg-transparent border-none w-full text-left text-base text-[#111] cursor-pointer transition-colors duration-200 border-t border-neutral-800" 
                   onClick={handleLogout}
                 >
-                  <img src="./img/sair.png" alt="" className="w-[22px] h-[22px] object-contain mr-2"/>
+                  <img src="/img/sair.png" alt="" className="w-[22px] h-[22px] object-contain mr-2"/>
 
                   Sair
                 </button>

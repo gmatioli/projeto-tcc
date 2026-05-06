@@ -55,8 +55,12 @@ router.post('/login', async (req, res) => {
     const usuarioEncontrado = result.rows[0];
     const senhaCorreta = await bcrypt.compare(senha, usuarioEncontrado.senha);
 
+    // adicionei o campo "nivelAcesso" no json
     if (senhaCorreta) {
-      res.json({ sucesso: true, mensagem: 'Login efetuado com sucesso!' });
+      res.json({ 
+        sucesso: true, 
+        mensagem: 'Login efetuado com sucesso!',
+        nivelAcesso: usuarioEncontrado.nivelAcesso });
     } else {
       res.status(401).json({ sucesso: false, mensagem: 'Email ou senha incorretos.' });
     }

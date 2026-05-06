@@ -206,7 +206,7 @@ export function SidebarDocente() {
               className={`w-5 h-5 ${botaoSelecionado === 'config' ? 'brightness-0 invert' : ''}`}
               alt="Configurações"
             />
-            <p>Configurações</p>
+            <p>Config. Perfil</p>
           </button>
         </div>
  
