@@ -1,5 +1,7 @@
 const express = require('express');
 const cors = require('cors');
+const instrumentoRouter = require('./routes/instrumentoAcompanhamento');
+
 
 const app = express();
 
@@ -16,6 +18,7 @@ app.use('/', require('./routes/planilha'));
 app.use('/', require('./routes/conselho'));
 app.use('/', require('./routes/relatorio'));
 app.use('/', require('./routes/termo'));
+app.use('/instrumento-acompanhamento', instrumentoRouter);
 
 
 // ==========================================
