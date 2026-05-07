@@ -133,6 +133,20 @@ export function ConselhoIntermediario() {
 
                 <div className="card_avaliacoes">
                     <div className="flex flex-col gap-5 p-5 min-h-[220px]">
+                          {/* Botão: Iniciar/Finalizar Conselho
+                        <button 
+                            onClick={handleToggleConselho}
+                            disabled={carregandoConselho}
+                            className={`p-[10px] w-[350px] rounded-[15px] border border-black shadow-[0_0_3px_black] transition-all duration-200 font-bold text-lg
+                                ${carregandoConselho 
+                                    ? 'opacity-50 cursor-not-allowed bg-gray-400 text-white' 
+                                    : conselhoAtivo 
+                                        ? 'bg-orange-600 text-white cursor-pointer active:scale-95 hover:bg-orange-700' 
+                                        : 'bg-green-600 text-white cursor-pointer active:scale-95 hover:bg-green-700'
+                                }`}>
+                            {carregandoConselho ? '⏳ Carregando...' : botaoTexto}
+                        </button> */}
+
                         {/* Botão que abre o modal da turma inteira */}
                         <button onClick={handleOpenModalTurma} disabled={botoesDesabilitados}  className={`avaliar_toda_turma  p-[10px] w-[350px] rounded-[15px] border border-black shadow-[0_0_3px_black] transition-all duration-200 
                             ${botoesDesabilitados ? 'opacity-50 cursor-not-allowed bg-gray-100' : 'bg-[#FEFEFE] cursor-pointer active:scale-95'}`}>

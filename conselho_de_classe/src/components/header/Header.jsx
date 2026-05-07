@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { HomepageDocente } from '../../pages/Docente/HomepageDocente.jsx';
 
 export function Header() {
   const navigate = useNavigate(); 
@@ -50,7 +51,7 @@ export function Header() {
   return (
       <header className='h-[8vh] bg-[var(--header_bg)] flex justify-between items-center'>
         <div className="ml-7">
-          <img src="/img/logo-senai.png" alt="Logo da instituição SENAI" className='w-35 h-9' />
+          <img onClick={() => navigate('/docente/home')}  src="/img/logo-senai.png" alt="Logo da instituição SENAI" className='w-35 h-9 cursor-pointer' />
         </div>
         <div className="flex g-2 mr-7">
           <div className="flex flex-col justify-center ">
