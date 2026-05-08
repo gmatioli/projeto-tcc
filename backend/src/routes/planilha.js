@@ -29,7 +29,7 @@ router.post('/upload-planilha', upload.single('arquivo'), (req, res) => {
       try {
 
         // 1. Limpa a tabela de staging
-        await db.query('TRUNCATE TABLE "tblAluno_copy1"');
+        await db`TRUNCATE TABLE "tblAluno_copy1"`;
 
         // 2. Insere dados brutos no staging
         for (const linha of resultados) {
@@ -41,96 +41,88 @@ router.post('/upload-planilha', upload.single('arquivo'), (req, res) => {
 
           if (!valorMatricula) continue;
 
-          await db.query(
-            `INSERT INTO "tblAluno_copy1"
-             ("matricula","nome","tipoCurso","areaCurso","curso","turma",
-              "AE/AD","praticaProfissional","horasPratica","empresaContrato")
-             VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)`,
-            [
-              valorMatricula,
-              linha['Nome'],
-              linha['Tipo de Curso'],
-              linha['Área do Curso'],
-              linha['Curso'],
-              linha['Turma'],
-              linha['AE/AD'],
-              linha['Prát. Prof. na Empresa com o emprego da guia de aprendizagem?'],
-              linha['Prát. Prof. a ser desenvolvida exclusivamente na empresa (Horas)'] || 0,
-              linha['Empresa do contrato de aprendizagem']
-            ]
-          );
+          await db`
+            INSERT INTO "tblAluno_copy1"
+              ("matricula","nome","tipoCurso","areaCurso","curso","turma",
+               "AE/AD","praticaProfissional","horasPratica","empresaContrato")
+            VALUES (
+              ${valorMatricula},
+              ${linha['Nome']},
+              ${linha['Tipo de Curso']},
+              ${linha['Área do Curso']},
+              ${linha['Curso']},
+              ${linha['Turma']},
+              ${linha['AE/AD']},
+              ${linha['Prát. Prof. na Empresa com o emprego da guia de aprendizagem?']},
+              ${linha['Prát. Prof. a ser desenvolvida exclusivamente na empresa (Horas)'] || 0},
+              ${linha['Empresa do contrato de aprendizagem']}
+            )
+          `;
         }
 
         // 3. ETL — distribui para as tabelas oficiais
-        const dadosBrutos = await db.query('SELECT * FROM "tblAluno_copy1"');
+        const dadosBrutos = await db`SELECT * FROM "tblAluno_copy1"`;
 
-        for (const aluno of dadosBrutos.rows) {
+        for (const aluno of dadosBrutos) {
 
           // A. Verifica/Cria o CURSO
           let idCurso;
-          const cursoExiste = await db.query(
-            `SELECT "idCurso" FROM "Cursos" WHERE "nomeCurso" = $1`,
-            [aluno.curso]
-          );
-          if (cursoExiste.rows.length > 0) {
-            idCurso = cursoExiste.rows[0].idCurso;
+          const cursoExiste = await db`
+            SELECT "idCurso" FROM "Cursos" WHERE "nomeCurso" = ${aluno.curso}
+          `;
+          if (cursoExiste.length > 0) {
+            idCurso = cursoExiste[0].idCurso;
           } else {
             console.log('Dados do aluno no ETL:', aluno);
-           const novoCurso = await db.query(
-            `INSERT INTO "Cursos" ("nomeCurso","tipo","area")
-            VALUES ($1,$2,$3) RETURNING "idCurso"`,
-            [aluno.curso, aluno.tipoCurso, aluno.areaCurso]
-            );
-
-            
-            idCurso = novoCurso.rows[0].idCurso;
+            const novoCurso = await db`
+              INSERT INTO "Cursos" ("nomeCurso","tipo","area")
+              VALUES (${aluno.curso}, ${aluno.tipoCurso}, ${aluno.areaCurso})
+              RETURNING "idCurso"
+            `;
+            idCurso = novoCurso[0].idCurso;
           }
 
           // B. Verifica/Cria a TURMA
           let idTurma;
-          const turmaExiste = await db.query(
-            `SELECT "idTurma" FROM "Turma" WHERE "codigo" = $1`,
-            [aluno.turma]
-          );
-          if (turmaExiste.rows.length > 0) {
-            idTurma = turmaExiste.rows[0].idTurma;
+          const turmaExiste = await db`
+            SELECT "idTurma" FROM "Turma" WHERE "codigo" = ${aluno.turma}
+          `;
+          if (turmaExiste.length > 0) {
+            idTurma = turmaExiste[0].idTurma;
           } else {
-            const novaTurma = await db.query(
-              `INSERT INTO "Turma" ("codigo","semestreAtual","Cursos_idCurso")
-               VALUES ($1,$2,$3) RETURNING "idTurma"`,
-              [aluno.turma, null, idCurso]
-            );
-            idTurma = novaTurma.rows[0].idTurma;
+            const novaTurma = await db`
+              INSERT INTO "Turma" ("codigo","semestreAtual","Cursos_idCurso")
+              VALUES (${aluno.turma}, ${null}, ${idCurso})
+              RETURNING "idTurma"
+            `;
+            idTurma = novaTurma[0].idTurma;
           }
 
           // C. Verifica/Cria a EMPRESA
           let idEmpresa;
-          const empresaExiste = await db.query(
-            `SELECT "idEmpresa" FROM "Empresa" WHERE "empresaContrato" = $1`,
-            [aluno.empresaContrato]
-          );
-          if (empresaExiste.rows.length > 0) {
-            idEmpresa = empresaExiste.rows[0].idEmpresa;
+          const empresaExiste = await db`
+            SELECT "idEmpresa" FROM "Empresa" WHERE "empresaContrato" = ${aluno.empresaContrato}
+          `;
+          if (empresaExiste.length > 0) {
+            idEmpresa = empresaExiste[0].idEmpresa;
           } else {
-            const novaEmpresa = await db.query(
-              `INSERT INTO "Empresa" ("AE/AD","praticaProfissional","horasPratica","empresaContrato")
-               VALUES ($1,$2,$3,$4) RETURNING "idEmpresa"`,
-            [aluno['AE/AD'], aluno.praticaProfissional, aluno.horasPratica, aluno.empresaContrato]
-            );
-            idEmpresa = novaEmpresa.rows[0].idEmpresa;
+            const novaEmpresa = await db`
+              INSERT INTO "Empresa" ("AE/AD","praticaProfissional","horasPratica","empresaContrato")
+              VALUES (${aluno['AE/AD']}, ${aluno.praticaProfissional}, ${aluno.horasPratica}, ${aluno.empresaContrato})
+              RETURNING "idEmpresa"
+            `;
+            idEmpresa = novaEmpresa[0].idEmpresa;
           }
 
           // D. Verifica/Cria o ALUNO
-          const alunoExiste = await db.query(
-            `SELECT "idtblAluno" FROM "tblAluno" WHERE "matricula" = $1`,
-            [aluno.matricula]
-          );
-          if (alunoExiste.rows.length === 0) {
-            await db.query(
-              `INSERT INTO "tblAluno" ("matricula","nome","Empresa_idEmpresa","Turma_idTurma")
-               VALUES ($1,$2,$3,$4)`,
-              [aluno.matricula, aluno.nome, idEmpresa, idTurma]
-            );
+          const alunoExiste = await db`
+            SELECT "idtblAluno" FROM "tblAluno" WHERE "matricula" = ${aluno.matricula}
+          `;
+          if (alunoExiste.length === 0) {
+            await db`
+              INSERT INTO "tblAluno" ("matricula","nome","Empresa_idEmpresa","Turma_idTurma")
+              VALUES (${aluno.matricula}, ${aluno.nome}, ${idEmpresa}, ${idTurma})
+            `;
           }
         }
 

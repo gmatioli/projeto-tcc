@@ -8,11 +8,11 @@ const db = require('../config/db');
 // ==========================================
 router.get('/usuarios', async (req, res) => {
   try {
-    const result = await db.query(
-      `SELECT "idUsuario", "nomeUsuario" FROM "Usuario" ORDER BY "nomeUsuario" ASC`
-    );
+    const result = await db`
+      SELECT "idUsuario", "nomeUsuario" FROM "Usuario" ORDER BY "nomeUsuario" ASC
+    `;
 
-    res.json({ sucesso: true, usuarios: result.rows });
+    res.json({ sucesso: true, usuarios: result });
 
   } catch (erro) {
     console.error('Erro ao buscar usuários:', erro);
@@ -30,10 +30,9 @@ router.put('/usuarios/senha', async (req, res) => {
     const salt = await bcrypt.genSalt(10);
     const senhaCriptografada = await bcrypt.hash(novaSenha, salt);
 
-    await db.query(
-      `UPDATE "Usuario" SET "senha" = $1 WHERE "idUsuario" = $2`,
-      [senhaCriptografada, idUsuario]
-    );
+    await db`
+      UPDATE "Usuario" SET "senha" = ${senhaCriptografada} WHERE "idUsuario" = ${idUsuario}
+    `;
 
     res.json({ sucesso: true, mensagem: 'Senha atualizada com sucesso!' });
 
@@ -50,15 +49,14 @@ router.get('/perfil/:email', async (req, res) => {
   const emailLogado = req.params.email;
 
   try {
-    const result = await db.query(
-      `SELECT "nomeUsuario", "emailInstitucional", "nivelAcesso"
-       FROM "Usuario"
-       WHERE "emailInstitucional" = $1`,
-      [emailLogado]
-    );
+    const result = await db`
+      SELECT "nomeUsuario", "emailInstitucional", "nivelAcesso"
+      FROM "Usuario"
+      WHERE "emailInstitucional" = ${emailLogado}
+    `;
 
-    if (result.rows.length > 0) {
-      res.json({ sucesso: true, usuario: result.rows[0] });
+    if (result.length > 0) {
+      res.json({ sucesso: true, usuario: result[0] });
     } else {
       res.status(404).json({ sucesso: false, mensagem: 'Usuário não encontrado.' });
     }

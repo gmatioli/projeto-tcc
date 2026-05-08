@@ -11,6 +11,7 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
+    "@neondatabase/serverless": "^1.1.0",
     "bcrypt": "^6.0.0",
     "cors": "^2.8.6",
     "csv-parser": "^3.2.0",
@@ -18,7 +19,6 @@
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "multer": "^2.1.1",
-    "pg": "^8.20.0",
     "pizzip": "^3.2.0",
     "react-router-dom": "^7.14.1"
   },
