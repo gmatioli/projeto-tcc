@@ -44,7 +44,7 @@ function getNivelAcesso() {
 // Redireciona para '/' se não estiver logado
 function RequireAuth({ children }) {
   const nivel = getNivelAcesso();
-  if (!nivel) return <Navigate to="/" replace />;
+  // if (!nivel) return <Navigate to="/" replace />;
   return children;
 }
 
