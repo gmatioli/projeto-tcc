@@ -131,7 +131,8 @@ function FormConselhoFinal({ rotaDestino, onFechar }) {
   const [dadosCompletos, setDadosCompletos] = useState([]);
   const [areaSelecionada, setAreaSelecionada] = useState("");
   const [cursoSelecionado, setCursoSelecionado] = useState("");
-  const [turmaSelecionada, setTurmaSelecionada] = useState("");
+
+  const formIncompleto = !areaSelecionada || !cursoSelecionado;
 
   useEffect(() => {
     fetch('http://localhost:3001/api/turmas-filtro')
@@ -145,41 +146,29 @@ function FormConselhoFinal({ rotaDestino, onFechar }) {
   const areaCurso = [...new Set(dadosCompletos.map(item => item.area))];
   const cursosFiltrados = dadosCompletos.filter(item => item.area === areaSelecionada);
   const cursosDisponiveis = [...new Set(cursosFiltrados.map(item => item.curso))];
-  const turmasDisponiveis = dadosCompletos.filter(item => item.curso === cursoSelecionado && item.area === areaSelecionada);
 
   const handleMudarArea = (e) => {
     setAreaSelecionada(e.target.value);
     setCursoSelecionado("");
-    setTurmaSelecionada("");
   };
 
   const handleMudarCurso = (e) => {
     setCursoSelecionado(e.target.value);
-    setTurmaSelecionada("");
   };
 
   const handlePesquisar = () => {
-    if (!turmaSelecionada) {
-      alert("Por favor, selecione uma Turma!");
-      return;
-    }
-    navigate(`${rotaDestino}?turma=${turmaSelecionada}&modo=pesquisa`);
+    navigate(`${rotaDestino}?area=${encodeURIComponent(areaSelecionada)}&curso=${encodeURIComponent(cursoSelecionado)}&modo=pesquisa`);
     onFechar();
   };
 
   const handleIniciarConselho = () => {
-    if (!turmaSelecionada) {
-      alert("Por favor, selecione uma Turma para iniciar o conselho!");
-      return;
-    }
-    navigate(`${rotaDestino}?turma=${turmaSelecionada}&modo=iniciar`);
+    navigate(`${rotaDestino}?area=${encodeURIComponent(areaSelecionada)}&curso=${encodeURIComponent(cursoSelecionado)}&modo=iniciar`);
     onFechar();
   };
 
   const handleLimparFiltro = () => {
     setAreaSelecionada("");
     setCursoSelecionado("");
-    setTurmaSelecionada("");
   };
 
   return (
@@ -211,37 +200,24 @@ function FormConselhoFinal({ rotaDestino, onFechar }) {
         </select>
       </div>
 
-      <div className="flex flex-col text-left gap-[5px]">
-        <label className="text-xl font-medium text-[#333]">Turma:</label>
-        <select className="p-[8px] rounded-[5px] border border-[#ccc] bg-white text-lg outline-none focus:border-[#df3535]"
-          value={turmaSelecionada}
-          onChange={(e) => setTurmaSelecionada(e.target.value)}
-          disabled={!cursoSelecionado}
-        >
-          <option value="" disabled hidden>Selecione</option>
-          {turmasDisponiveis.map(item => (
-            <option key={item.idTurma} value={item.idTurma}>{item.turma}</option>
-          ))}
-        </select>
-      </div>
-
       <div className="flex gap-[10px] mt-[5px]">
         <button onClick={handleLimparFiltro} className="flex-1 p-[10px] bg-[#ea4335] text-white rounded-[5px] text-lg font-semibold hover:brightness-90 transition-all">
           Limpar ⟲
         </button>
-        <button
-          onClick={handlePesquisar}
-          className="flex-1 p-[10px] bg-[#ea4335] text-white rounded-[5px] text-lg font-semibold hover:brightness-90 transition-all">
+        <button onClick={handlePesquisar} disabled={formIncompleto}
+          className={`flex-1 p-[10px] rounded-[5px] text-lg font-semibold transition-all
+            ${formIncompleto ? 'opacity-50 cursor-not-allowed bg-gray-400 text-gray-200' : 'bg-[#ea4335] text-white cursor-pointer hover:brightness-90'}`}>
           Pesquisar
         </button>
       </div>
-      <button onClick={handleIniciarConselho} className="flex-1 p-[10px] bg-[#ea4335] text-white rounded-[5px] text-lg font-semibold hover:brightness-90 transition-all">
+      <button onClick={handleIniciarConselho} disabled={formIncompleto}
+        className={`flex-1 p-[10px] rounded-[5px] text-lg font-semibold transition-all
+          ${formIncompleto ? 'opacity-50 cursor-not-allowed bg-gray-400 text-gray-200' : 'bg-[#ea4335] text-white cursor-pointer hover:brightness-90'}`}>
         Iniciar Conselho
       </button>
     </div>
   );
 }
-
 export function Sidebar() {
   const navigate = useNavigate();
   const location = useLocation();
