@@ -22,11 +22,11 @@ router.post('/cadastro', async (req, res) => {
     const salt = await bcrypt.genSalt(10);
     const senhaCriptografada = await bcrypt.hash(senha, salt);
 
-    await db.query(
-      `INSERT INTO "Usuario" ("nomeUsuario", "emailInstitucional", "senha", "nivelAcesso")
-       VALUES ($1, $2, $3, $4)`,
-      [nome, email, senhaCriptografada, tipoAcesso]
-    );
+    await db`
+      INSERT INTO "Usuario" ("nomeUsuario", "emailInstitucional", "senha", "nivelAcesso")
+      VALUES (${nome}, ${email}, ${senhaCriptografada}, ${tipoAcesso})
+    `;
+
 
     res.status(201).json({ sucesso: true, mensagem: 'Usuário cadastrado com sucesso!' });
 
@@ -43,16 +43,15 @@ router.post('/login', async (req, res) => {
   const { email, senha } = req.body;
 
   try {
-    const result = await db.query(
-      `SELECT * FROM "Usuario" WHERE "emailInstitucional" = $1`,
-      [email]
-    );
+     const result = await db`
+      SELECT * FROM "Usuario" WHERE "emailInstitucional" = ${email}
+    `;
 
-    if (result.rows.length === 0) {
+    if (result.length === 0) {
       return res.status(401).json({ sucesso: false, mensagem: 'Email ou senha incorretos.' });
     }
 
-    const usuarioEncontrado = result.rows[0];
+    const usuarioEncontrado = result[0];
     const senhaCorreta = await bcrypt.compare(senha, usuarioEncontrado.senha);
 
     // adicionei o campo "nivelAcesso" no json
@@ -60,11 +59,11 @@ router.post('/login', async (req, res) => {
       res.json({ 
         sucesso: true, 
         mensagem: 'Login efetuado com sucesso!',
-        nivelAcesso: usuarioEncontrado.nivelAcesso });
+        nivelAcesso: usuarioEncontrado.nivelAcesso 
+      });
     } else {
       res.status(401).json({ sucesso: false, mensagem: 'Email ou senha incorretos.' });
     }
-
   } catch (erro) {
     console.error('Erro no login:', erro);
     res.status(500).json({ erro: 'Erro interno no servidor' });

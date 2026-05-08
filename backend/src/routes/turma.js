@@ -10,7 +10,7 @@ router.get('/turmas', async (req, res) => {
 
   try {
 
-    const result = await db.query(`
+    const result = await db`
       SELECT
         T."idTurma",
         T."codigo",
@@ -19,14 +19,12 @@ router.get('/turmas', async (req, res) => {
       INNER JOIN "Cursos" C
         ON T."Cursos_idCurso" = C."idCurso"
       ORDER BY T."codigo" ASC
-    `);
+    `;
 
-    res.json(result.rows);
+    res.json(result);
 
   } catch (erro) {
-
     console.log('ERRO TURMAS:', erro);
-
     res.status(500).json({
       sucesso: false,
       mensagem: 'Erro ao buscar turmas'
@@ -41,23 +39,22 @@ router.get('/turmas', async (req, res) => {
 router.get('/alunos', async (req, res) => {
 
   try {
-
     // ALTERAÇÃO:
     // recebe código da turma
     const { turma } = req.query;
 
-    const result = await db.query(`
+    const result = await db`
       SELECT
        
         A."nome"
       FROM "tblAluno" A
       INNER JOIN "Turma" T
         ON A."Turma_idTurma" = T."idTurma"
-      WHERE T."codigo" = $1
+      WHERE T."codigo" = ${turma}
       ORDER BY A."nome" ASC
-    `, [turma]);
+    `;
 
-    res.json(result.rows);
+    res.json(result);
 
   } catch (erro) {
 
@@ -70,16 +67,13 @@ router.get('/alunos', async (req, res) => {
   }
 });
 
-
-
-
 // ==========================================
 // ROTA: FILTRO DE TURMAS PARA SIDEBAR (GET)
 // Acessada via: GET /api/turmas-filtro
 // ==========================================
 router.get('/turmas-filtro', async (req, res) => {
   try {
-    const result = await db.query(`
+    const result = await db`
       SELECT
         T."idTurma",
         T."codigo"    AS turma,
@@ -89,7 +83,7 @@ router.get('/turmas-filtro', async (req, res) => {
       FROM "Turma" T
       INNER JOIN "Cursos" C ON T."Cursos_idCurso" = C."idCurso"
       ORDER BY C."tipo" ASC, C."nomeCurso" ASC, T."codigo" ASC
-    `);
+    `;
 
     res.json({ sucesso: true, dados: result.rows });
 
@@ -104,24 +98,23 @@ router.get('/turmas-filtro', async (req, res) => {
 // Acessada via: GET /api/turmas-filtro
 // ==========================================
 router.get('/alunos/:idTurma', async (req, res) => {
-    const {idTurma} = req.params;
+  const {idTurma} = req.params;
 
     try {
-      const result = await db.query(`
-        SELECT
-         
-          a."matricula",
-          a."nome"
-        FROM "tblAluno" a
-        WHERE a."Turma_idTurma" = $1
-        ORDER BY a."nome" ASC
-        `, [idTurma]);
+    const result = await db`
+      SELECT
+        a."matricula",
+        a."nome"
+      FROM "tblAluno" a
+      WHERE a."Turma_idTurma" = ${idTurma}
+      ORDER BY a."nome" ASC
+    `;
 
-      res.json({ sucesso: true, alunos: result.rows });
+      res.json({ sucesso: true, alunos: result });
 
     } catch(erro){
       res.status(500).json({ sucesso: false, mensagem: 'Erro ao buscar alunos.'});
     }
-})
+});
 
 module.exports = router;

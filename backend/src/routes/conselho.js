@@ -19,25 +19,23 @@ router.post('/iniciar', async (req, res) => {
     }
 
     // 1. Criar registro em Conselho
-    const resultConselho = await db.query(
-      `INSERT INTO "Conselho" 
-        ("tipoConselho", "dataInicio", "status", "Usuario_idUsuario") 
-      VALUES 
-        ($1, NOW(), $2, $3) 
-      RETURNING "idConselho"`,
-      [tipoConselho, 'Em Progresso', idUsuario]
-    );
+    const resultConselho = await db`
+      INSERT INTO "Conselho"
+        ("tipoConselho", "dataInicio", "status", "Usuario_idUsuario")
+      VALUES
+        (${tipoConselho}, NOW(), ${'Em Progresso'}, ${idUsuario})
+      RETURNING "idConselho"
+    `;
 
-    const conselhoId = resultConselho.rows[0].idConselho;
+    const conselhoId = resultConselho[0].idConselho;
 
     // 2. Inserir relação Conselho_Turma
-    await db.query(
-      `INSERT INTO "Conselho_Turma" 
-        ("Conselho_idConselho", "Turma_idTurma", "dataAdicao") 
-      VALUES 
-        ($1, $2, NOW())`,
-      [conselhoId, idTurma]
-    );
+    await db`
+      INSERT INTO "Conselho_Turma"
+        ("Conselho_idConselho", "Turma_idTurma", "dataAdicao")
+      VALUES
+        (${conselhoId}, ${idTurma}, NOW())
+    `;
 
     return res.json({
       sucesso: true,
@@ -70,15 +68,14 @@ router.post('/finalizar', async (req, res) => {
     }
 
     // Atualizar status do conselho
-    const result = await db.query(
-      `UPDATE "Conselho" 
-       SET "status" = $1, "dataFinalizacao" = NOW() 
-       WHERE "idConselho" = $2 
-       RETURNING *`,
-      ['Finalizado', conselhoId]
-    );
+    const result = await db`
+      UPDATE "Conselho"
+      SET "status" = ${'Finalizado'}, "dataFinalizacao" = NOW()
+      WHERE "idConselho" = ${conselhoId}
+      RETURNING *
+    `;
 
-    if (result.rows.length === 0) {
+    if (result.length === 0) {
       return res.status(404).json({
         sucesso: false,
         mensagem: 'Conselho não encontrado'
@@ -88,7 +85,7 @@ router.post('/finalizar', async (req, res) => {
     return res.json({
       sucesso: true,
       mensagem: 'Conselho finalizado com sucesso',
-      conselho: result.rows[0]
+      conselho: result[0]
     });
 
   } catch (erro) {
@@ -109,10 +106,9 @@ router.get('/:conselhoId', async (req, res) => {
     const { conselhoId } = req.params;
 
     // Buscar conselho
-    const resultConselho = await db.query(
-      `SELECT * FROM "Conselho" WHERE "idConselho" = $1`,
-      [conselhoId]
-    );
+    const resultConselho = await db`
+      SELECT * FROM "Conselho" WHERE "idConselho" = ${conselhoId}
+    `;
 
     if (resultConselho.rows.length === 0) {
       return res.status(404).json({
@@ -121,36 +117,30 @@ router.get('/:conselhoId', async (req, res) => {
       });
     }
 
-    // Buscar turmas associadas
-    const resultTurmas = await db.query(
-      `SELECT t.* FROM "Turma" t
-       INNER JOIN "Conselho_Turma" ct ON t."idTurma" = ct."Turma_idTurma"
-       WHERE ct."Conselho_idConselho" = $1`,
-      [conselhoId]
-    );
+    const resultTurmas = await db`
+      SELECT t.* FROM "Turma" t
+      INNER JOIN "Conselho_Turma" ct ON t."idTurma" = ct."Turma_idTurma"
+      WHERE ct."Conselho_idConselho" = ${conselhoId}
+    `;
 
-    // Buscar avaliações de turma
-    const resultAvaliacoesTurma = await db.query(
-      `SELECT * FROM "Avaliacao_Turma" WHERE "Conselho_idConselho" = $1`,
-      [conselhoId]
-    );
+    const resultAvaliacoesTurma = await db`
+      SELECT * FROM "Avaliacao_Turma" WHERE "Conselho_idConselho" = ${conselhoId}
+    `;
 
-    // Buscar avaliações de alunos
-    const resultAvaliacoesAlunos = await db.query(
-      `SELECT aa.*, a."nome" 
-       FROM "Avaliacao_Aluno" aa
-       INNER JOIN "tblAluno" a ON aa."tblAluno_idtblAluno" = a."idtblAluno"
-       WHERE aa."Conselho_idConselho" = $1`,
-      [conselhoId]
-    );
+    const resultAvaliacoesAlunos = await db`
+      SELECT aa.*, a."nome"
+      FROM "Avaliacao_Aluno" aa
+      INNER JOIN "tblAluno" a ON aa."tblAluno_idtblAluno" = a."idtblAluno"
+      WHERE aa."Conselho_idConselho" = ${conselhoId}
+    `;
 
     return res.json({
       sucesso: true,
       conselho: {
-        ...resultConselho.rows[0],
-        turmas: resultTurmas.rows,
-        avaliacoesTurma: resultAvaliacoesTurma.rows,
-        avaliacoesAlunos: resultAvaliacoesAlunos.rows
+          ...resultConselho[0],
+        turmas: resultTurmas,
+        avaliacoesTurma: resultAvaliacoesTurma,
+        avaliacoesAlunos: resultAvaliacoesAlunos
       }
     });
 
@@ -187,43 +177,41 @@ router.post('/avaliacao-turma', async (req, res) => {
     }
 
     // Verificar se já existe avaliação de turma para este conselho
-    const existente = await db.query(
-      `SELECT "idAvaliacao_Turma" FROM "Avaliacao_Turma" 
-       WHERE "Conselho_idConselho" = $1`,
-      [conselhoId]
-    );
+    const existente = await db`
+      SELECT "idAvaliacao_Turma" FROM "Avaliacao_Turma"
+      WHERE "Conselho_idConselho" = ${conselhoId}
+    `;
+
 
     let result;
-    if (existente.rows.length > 0) {
-      // UPDATE
-      result = await db.query(
-        `UPDATE "Avaliacao_Turma" 
-         SET "organizacao" = $1, "comportamental" = $2, "assiduidade" = $3,
-             "disponibilidade_Aprendizado" = $4, "observacao" = $5,
-             "alcancou_Objetivos" = $6
-         WHERE "Conselho_idConselho" = $7
-         RETURNING *`,
-        [organizacao, comportamental, assiduidade, disponibilidade_Aprendizado, 
-         observacao, alcancou_Objetivos, conselhoId]
-      );
+    if (existente.length > 0) {
+      result = await db`
+        UPDATE "Avaliacao_Turma"
+        SET "organizacao" = ${organizacao}, "comportamental" = ${comportamental},
+            "assiduidade" = ${assiduidade},
+            "disponibilidade_Aprendizado" = ${disponibilidade_Aprendizado},
+            "observacao" = ${observacao},
+            "alcancou_Objetivos" = ${alcancou_Objetivos}
+        WHERE "Conselho_idConselho" = ${conselhoId}
+        RETURNING *
+      `;
     } else {
       // INSERT
-      result = await db.query(
-        `INSERT INTO "Avaliacao_Turma" 
+     result = await db`
+        INSERT INTO "Avaliacao_Turma"
           ("Conselho_idConselho", "organizacao", "comportamental", "assiduidade",
            "disponibilidade_Aprendizado", "observacao", "alcancou_Objetivos") 
-         VALUES 
-          ($1, $2, $3, $4, $5, $6, $7) 
-         RETURNING *`,
-        [conselhoId, organizacao, comportamental, assiduidade, 
-         disponibilidade_Aprendizado, observacao, alcancou_Objetivos]
-      );
+         VALUES
+          (${conselhoId}, ${organizacao}, ${comportamental}, ${assiduidade},
+           ${disponibilidade_Aprendizado}, ${observacao}, ${alcancou_Objetivos})
+        RETURNING *
+      `;
     }
 
     return res.json({
       sucesso: true,
       mensagem: 'Avaliação de turma salva com sucesso',
-      avaliacao: result.rows[0]
+      avaliacao: result[0]
     });
 
   } catch (erro) {
@@ -261,44 +249,41 @@ router.post('/avaliacao-aluno', async (req, res) => {
     }
 
     // Verificar se já existe avaliação deste aluno neste conselho
-    const existente = await db.query(
-      `SELECT "idAvaliacao_Aluno" FROM "Avaliacao_Aluno" 
-       WHERE "Conselho_idConselho" = $1 AND "tblAluno_idtblAluno" = $2`,
-      [conselhoId, idAluno]
-    );
+    const existente = await db`
+      SELECT "idAvaliacao_Aluno" FROM "Avaliacao_Aluno"
+      WHERE "Conselho_idConselho" = ${conselhoId} AND "tblAluno_idtblAluno" = ${idAluno}
+    `;
 
     let result;
-    if (existente.rows.length > 0) {
-      // UPDATE
-      result = await db.query(
-        `UPDATE "Avaliacao_Aluno" 
-         SET "naturezaOcorrencia" = $1, "restricao" = $2, "acaoProposta" = $3,
-             "justificativa" = $4, "informacoesComplementares" = $5,
-             "situacaoFinal" = $6
-         WHERE "Conselho_idConselho" = $7 AND "tblAluno_idtblAluno" = $8
-         RETURNING *`,
-        [naturezaOcorrencia, restricao, acaoProposta, justificativa,
-         informacoesComplementares, situacaoFinal, conselhoId, idAluno]
-      );
+    if (existente.length > 0) {
+      result = await db`
+        UPDATE "Avaliacao_Aluno"
+        SET "naturezaOcorrencia" = ${naturezaOcorrencia}, "restricao" = ${restricao},
+            "acaoProposta" = ${acaoProposta}, "justificativa" = ${justificativa},
+            "informacoesComplementares" = ${informacoesComplementares},
+            "situacaoFinal" = ${situacaoFinal}
+        WHERE "Conselho_idConselho" = ${conselhoId} AND "tblAluno_idtblAluno" = ${idAluno}
+        RETURNING *
+      `;
     } else {
       // INSERT
-      result = await db.query(
-        `INSERT INTO "Avaliacao_Aluno" 
+     result = await db`
+        INSERT INTO "Avaliacao_Aluno"
           ("Conselho_idConselho", "naturezaOcorrencia", "restricao", "acaoProposta",
            "justificativa", "informacoesComplementares", "situacaoFinal", 
            "Usuario_idUsuario", "tblAluno_idtblAluno") 
-         VALUES 
-          ($1, $2, $3, $4, $5, $6, $7, $8, $9) 
-         RETURNING *`,
-        [conselhoId, naturezaOcorrencia, restricao, acaoProposta, justificativa,
-         informacoesComplementares, situacaoFinal, idUsuario, idAluno]
-      );
+          VALUES
+          (${conselhoId}, ${naturezaOcorrencia}, ${restricao}, ${acaoProposta},
+           ${justificativa}, ${informacoesComplementares}, ${situacaoFinal},
+           ${idUsuario}, ${idAluno})
+        RETURNING *
+      `;
     }
 
     return res.json({
       sucesso: true,
       mensagem: 'Avaliação de aluno salva com sucesso',
-      avaliacao: result.rows[0]
+      avaliacao: result[0]
     });
 
   } catch (erro) {
