@@ -1,49 +1,65 @@
 const express = require('express');
 const router = express.Router();
-const path = require('path');
-const fs = require('fs');
-const PizZip = require('pizzip');
-const Docxtemplater = require('docxtemplater');
+
+const db = require('../config/db');
 
 // ==========================================
-// ROTA: GERAR DOCUMENTO DOCX (POST)
+// BUSCAR DATAS
 // ==========================================
-router.post('/gerar-doc', (req, res) => {
+router.get('/datas', async (req, res) => {
   try {
-    const { conselho, semestre, ano, data } = req.body;
+    console.log(' Buscando datas...');
 
-    if (!conselho || !semestre || !ano || !data) {
-      return res.status(400).json({ sucesso: false, mensagem: 'Preencha todos os campos.' });
-    }
+    const result = await db`
+      SELECT 
+        "idConselho",
+        TO_CHAR("dataRealizacao", 'DD/MM/YYYY') AS "dataFormatada"
+      FROM "Conselho"
+      ORDER BY "dataRealizacao" DESC
+      LIMIT 10
+    `;
 
-    // Caminho do template
-    const templatePath = path.join(__dirname, '../../docs/template.docx');
-    const content = fs.readFileSync(templatePath, 'binary');
-
-    const zip = new PizZip(content);
-    const doc = new Docxtemplater(zip, {
-      paragraphLoop: true,
-      linebreaks: true
-    });
-
-    // Substitui os campos do template
-    doc.setData({
-      tipo_conselho: conselho,
-      semestre: semestre,
-      ano: ano,
-      data_conselho: data
-    });
-
-    doc.render();
-
-    const buffer = doc.getZip().generate({ type: 'nodebuffer' });
-
-    res.setHeader('Content-Disposition', 'attachment; filename=ata.docx');
-    res.send(buffer);
+    console.log(`Datas OK: ${result.length} registros`);
+    res.json(result);
 
   } catch (erro) {
-    console.error('Erro ao gerar documento:', erro);
-    res.status(500).json({ sucesso: false, mensagem: 'Erro ao gerar o documento.' });
+    console.error(' ERRO ao buscar datas:', erro.message);
+    console.error('Stack:', erro.stack);
+    res.status(500).json({ 
+      mensagem: 'Erro ao buscar datas',
+      detalhe: erro.message 
+    });
+  }
+});
+
+// ==========================================
+// BUSCAR TURMAS
+// ==========================================
+router.get('/turmas', async (req, res) => {
+  try {
+    console.log(' Buscando turmas...');
+
+    const result = await db`
+      SELECT 
+        T."idTurma",
+        T."codigo",
+        C."tipo"
+      FROM "Turma" T
+      LEFT JOIN "Cursos" C ON T."Cursos_idCurso" = C."idCurso"
+      ORDER BY T."codigo" ASC
+      LIMIT 20
+    `;
+
+    console.log(` Turmas OK: ${result.length} registros`);
+    res.json(result);
+
+  } catch (erro) {
+    console.error(' ERRO ao buscar turmas:', erro.message);
+    console.error('Stack completo:', erro.stack);
+    res.status(500).json({ 
+      mensagem: 'Erro ao buscar turmas',
+      detalhe: erro.message 
+    });
   }
 });
 

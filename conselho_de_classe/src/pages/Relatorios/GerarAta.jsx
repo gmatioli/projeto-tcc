@@ -114,7 +114,6 @@ export function GerarAta() {
             className="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-red-400 focus:border-transparent transition"
           >
             <option value="">Selecione...</option>
-            <option value="intermediario">Conselho Intermediário</option>
             <option value="final">Conselho Final</option>
           </select>
         </div>
@@ -174,14 +173,12 @@ export function GerarAta() {
         <div className="flex justify-center gap-6">
           <button
             onClick={handleLimpar}
-            className="px-10 py-3 rounded-full border border-gray-400 text-gray-700 bg-white hover:bg-gray-100 transition font-medium text-sm"
-          >
+            className="px-10 py-3 rounded-full border border-gray-400 text-gray-700 bg-white hover:bg-gray-100 transition font-medium text-sm">
             Limpar
           </button>
           <button
             onClick={gerarAta}
-            className="px-10 py-3 rounded-full bg-red-600 text-white hover:bg-red-700 transition font-medium text-sm shadow"
-          >
+            className="px-10 py-3 rounded-full bg-red-600 text-white hover:bg-red-700 transition font-medium text-sm shadow">
             Gerar
           </button>
         </div>
