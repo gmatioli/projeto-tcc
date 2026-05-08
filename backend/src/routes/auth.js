@@ -27,7 +27,6 @@ router.post('/cadastro', async (req, res) => {
       VALUES (${nome}, ${email}, ${senhaCriptografada}, ${tipoAcesso})
     `;
 
-
     res.status(201).json({ sucesso: true, mensagem: 'Usuário cadastrado com sucesso!' });
 
   } catch (erro) {
@@ -43,7 +42,7 @@ router.post('/login', async (req, res) => {
   const { email, senha } = req.body;
 
   try {
-     const result = await db`
+    const result = await db`
       SELECT * FROM "Usuario" WHERE "emailInstitucional" = ${email}
     `;
 
@@ -54,12 +53,11 @@ router.post('/login', async (req, res) => {
     const usuarioEncontrado = result[0];
     const senhaCorreta = await bcrypt.compare(senha, usuarioEncontrado.senha);
 
-    // adicionei o campo "nivelAcesso" no json
     if (senhaCorreta) {
-      res.json({ 
-        sucesso: true, 
+      res.json({
+        sucesso: true,
         mensagem: 'Login efetuado com sucesso!',
-        nivelAcesso: usuarioEncontrado.nivelAcesso 
+        nivelAcesso: usuarioEncontrado.nivelAcesso
       });
     } else {
       res.status(401).json({ sucesso: false, mensagem: 'Email ou senha incorretos.' });

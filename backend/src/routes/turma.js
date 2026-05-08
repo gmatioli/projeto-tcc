@@ -7,9 +7,7 @@ const db = require('../config/db');
 // GET -> /api/turmas
 // ==========================================
 router.get('/turmas', async (req, res) => {
-
   try {
-
     const result = await db`
       SELECT
         T."idTurma",
@@ -37,15 +35,11 @@ router.get('/turmas', async (req, res) => {
 // GET -> /api/alunos?turma=DEV 3N
 // ==========================================
 router.get('/alunos', async (req, res) => {
-
   try {
-    // ALTERAÇÃO:
-    // recebe código da turma
     const { turma } = req.query;
 
     const result = await db`
       SELECT
-       
         A."nome"
       FROM "tblAluno" A
       INNER JOIN "Turma" T
@@ -57,9 +51,7 @@ router.get('/alunos', async (req, res) => {
     res.json(result);
 
   } catch (erro) {
-
     console.log('ERRO ALUNOS:', erro);
-
     res.status(500).json({
       sucesso: false,
       mensagem: 'Erro ao buscar alunos'
@@ -85,7 +77,7 @@ router.get('/turmas-filtro', async (req, res) => {
       ORDER BY C."tipo" ASC, C."nomeCurso" ASC, T."codigo" ASC
     `;
 
-    res.json({ sucesso: true, dados: result.rows });
+    res.json({ sucesso: true, dados: result });
 
   } catch (erro) {
     console.error('Erro ao buscar filtros de turma:', erro);
@@ -95,12 +87,12 @@ router.get('/turmas-filtro', async (req, res) => {
 
 // ==========================================
 // ROTA: Para aparecer os alunos (GET)
-// Acessada via: GET /api/turmas-filtro
+// Acessada via: GET /api/alunos/:idTurma
 // ==========================================
 router.get('/alunos/:idTurma', async (req, res) => {
-  const {idTurma} = req.params;
+  const { idTurma } = req.params;
 
-    try {
+  try {
     const result = await db`
       SELECT
         a."matricula",
@@ -110,11 +102,11 @@ router.get('/alunos/:idTurma', async (req, res) => {
       ORDER BY a."nome" ASC
     `;
 
-      res.json({ sucesso: true, alunos: result });
+    res.json({ sucesso: true, alunos: result });
 
-    } catch(erro){
-      res.status(500).json({ sucesso: false, mensagem: 'Erro ao buscar alunos.'});
-    }
+  } catch (erro) {
+    res.status(500).json({ sucesso: false, mensagem: 'Erro ao buscar alunos.' });
+  }
 });
 
 module.exports = router;

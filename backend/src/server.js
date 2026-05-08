@@ -24,7 +24,6 @@ app.use('/', require('./routes/termo'));
 const db = require('./config/db');
 
 app.listen(3001, async () => {
-
   console.log('Servidor rodando na porta 3001');
   try {
     await db`SELECT 1`;
@@ -32,5 +31,4 @@ app.listen(3001, async () => {
   } catch (erro) {
     console.error('Falha ao conectar ao banco de dados:', erro.message);
   }
-
 });

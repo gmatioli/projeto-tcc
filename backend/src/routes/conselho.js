@@ -10,7 +10,6 @@ router.post('/iniciar', async (req, res) => {
   try {
     const { tipoConselho, idTurma, idUsuario } = req.body;
 
-    // Validação
     if (!tipoConselho || !idTurma || !idUsuario) {
       return res.status(400).json({
         sucesso: false,
@@ -67,7 +66,6 @@ router.post('/finalizar', async (req, res) => {
       });
     }
 
-    // Atualizar status do conselho
     const result = await db`
       UPDATE "Conselho"
       SET "status" = ${'Finalizado'}, "dataFinalizacao" = NOW()
@@ -105,12 +103,11 @@ router.get('/:conselhoId', async (req, res) => {
   try {
     const { conselhoId } = req.params;
 
-    // Buscar conselho
     const resultConselho = await db`
       SELECT * FROM "Conselho" WHERE "idConselho" = ${conselhoId}
     `;
 
-    if (resultConselho.rows.length === 0) {
+    if (resultConselho.length === 0) {
       return res.status(404).json({
         sucesso: false,
         mensagem: 'Conselho não encontrado'
@@ -137,7 +134,7 @@ router.get('/:conselhoId', async (req, res) => {
     return res.json({
       sucesso: true,
       conselho: {
-          ...resultConselho[0],
+        ...resultConselho[0],
         turmas: resultTurmas,
         avaliacoesTurma: resultAvaliacoesTurma,
         avaliacoesAlunos: resultAvaliacoesAlunos
@@ -176,12 +173,10 @@ router.post('/avaliacao-turma', async (req, res) => {
       });
     }
 
-    // Verificar se já existe avaliação de turma para este conselho
     const existente = await db`
       SELECT "idAvaliacao_Turma" FROM "Avaliacao_Turma"
       WHERE "Conselho_idConselho" = ${conselhoId}
     `;
-
 
     let result;
     if (existente.length > 0) {
@@ -196,12 +191,11 @@ router.post('/avaliacao-turma', async (req, res) => {
         RETURNING *
       `;
     } else {
-      // INSERT
-     result = await db`
+      result = await db`
         INSERT INTO "Avaliacao_Turma"
           ("Conselho_idConselho", "organizacao", "comportamental", "assiduidade",
-           "disponibilidade_Aprendizado", "observacao", "alcancou_Objetivos") 
-         VALUES
+           "disponibilidade_Aprendizado", "observacao", "alcancou_Objetivos")
+        VALUES
           (${conselhoId}, ${organizacao}, ${comportamental}, ${assiduidade},
            ${disponibilidade_Aprendizado}, ${observacao}, ${alcancou_Objetivos})
         RETURNING *
@@ -248,7 +242,6 @@ router.post('/avaliacao-aluno', async (req, res) => {
       });
     }
 
-    // Verificar se já existe avaliação deste aluno neste conselho
     const existente = await db`
       SELECT "idAvaliacao_Aluno" FROM "Avaliacao_Aluno"
       WHERE "Conselho_idConselho" = ${conselhoId} AND "tblAluno_idtblAluno" = ${idAluno}
@@ -266,13 +259,12 @@ router.post('/avaliacao-aluno', async (req, res) => {
         RETURNING *
       `;
     } else {
-      // INSERT
-     result = await db`
+      result = await db`
         INSERT INTO "Avaliacao_Aluno"
           ("Conselho_idConselho", "naturezaOcorrencia", "restricao", "acaoProposta",
-           "justificativa", "informacoesComplementares", "situacaoFinal", 
-           "Usuario_idUsuario", "tblAluno_idtblAluno") 
-          VALUES
+           "justificativa", "informacoesComplementares", "situacaoFinal",
+           "Usuario_idUsuario", "tblAluno_idtblAluno")
+        VALUES
           (${conselhoId}, ${naturezaOcorrencia}, ${restricao}, ${acaoProposta},
            ${justificativa}, ${informacoesComplementares}, ${situacaoFinal},
            ${idUsuario}, ${idAluno})

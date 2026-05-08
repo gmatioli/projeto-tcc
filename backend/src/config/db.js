@@ -1,4 +1,3 @@
-// backend/src/config/db.js
 const { neon } = require('@neondatabase/serverless');
 require('dotenv').config();
 

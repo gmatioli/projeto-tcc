@@ -41,7 +41,7 @@ router.post('/upload-planilha', upload.single('arquivo'), (req, res) => {
 
           if (!valorMatricula) continue;
 
-        await db`
+          await db`
             INSERT INTO "tblAluno_copy1"
               ("matricula","nome","tipoCurso","areaCurso","curso","turma",
                "AE/AD","praticaProfissional","horasPratica","empresaContrato")
@@ -57,7 +57,7 @@ router.post('/upload-planilha', upload.single('arquivo'), (req, res) => {
               ${linha['Prát. Prof. a ser desenvolvida exclusivamente na empresa (Horas)'] || 0},
               ${linha['Empresa do contrato de aprendizagem']}
             )
-          `;       
+          `;
         }
 
         // 3. ETL — distribui para as tabelas oficiais
@@ -70,7 +70,6 @@ router.post('/upload-planilha', upload.single('arquivo'), (req, res) => {
           const cursoExiste = await db`
             SELECT "idCurso" FROM "Cursos" WHERE "nomeCurso" = ${aluno.curso}
           `;
-
           if (cursoExiste.length > 0) {
             idCurso = cursoExiste[0].idCurso;
           } else {
@@ -85,7 +84,7 @@ router.post('/upload-planilha', upload.single('arquivo'), (req, res) => {
 
           // B. Verifica/Cria a TURMA
           let idTurma;
-           const turmaExiste = await db`
+          const turmaExiste = await db`
             SELECT "idTurma" FROM "Turma" WHERE "codigo" = ${aluno.turma}
           `;
           if (turmaExiste.length > 0) {

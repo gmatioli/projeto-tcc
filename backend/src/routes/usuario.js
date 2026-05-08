@@ -8,10 +8,9 @@ const db = require('../config/db');
 // ==========================================
 router.get('/usuarios', async (req, res) => {
   try {
-     const result = await db`
+    const result = await db`
       SELECT "idUsuario", "nomeUsuario" FROM "Usuario" ORDER BY "nomeUsuario" ASC
     `;
-
 
     res.json({ sucesso: true, usuarios: result });
 
@@ -55,8 +54,6 @@ router.get('/perfil/:email', async (req, res) => {
       FROM "Usuario"
       WHERE "emailInstitucional" = ${emailLogado}
     `;
-
-
 
     if (result.length > 0) {
       res.json({ sucesso: true, usuario: result[0] });
