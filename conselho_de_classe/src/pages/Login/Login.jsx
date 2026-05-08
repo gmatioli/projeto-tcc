@@ -28,9 +28,11 @@ function Login() {
 
         // Verifica se o Node.js respondeu com { sucesso: true }
         if (dados.sucesso) {
-          localStorage.setItem('usuarioLogado', JSON.stringify({ 
-            email: usuario, 
-            nivelAcesso: dados.nivelAcesso 
+          localStorage.setItem('usuarioLogado', JSON.stringify({
+            idUsuario: dados.idUsuario,
+            nomeUsuario: dados.nomeUsuario,
+            email: usuario,
+            nivelAcesso: dados.nivelAcesso
           }));
           
           if (dados.nivelAcesso === 'admin') {
