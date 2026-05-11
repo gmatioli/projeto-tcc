@@ -12,7 +12,7 @@ import ModalAvaliacaoTurma from '../../components/modalAvaliacaoConselhoIntermed
 
 const API = 'http://localhost:3001/api/conselho';
 
-const cardInfo = "flex flex-col justify-between border rounded-[15px] h-[26vh] w-[12vw] shadow-[2px_2px_5px_rgba(0,0,0,0.5)]";
+const cardInfo = "flex flex-col justify-between  border rounded-[15px] h-auto w-[12vw] shadow-[2px_2px_5px_rgba(0,0,0,0.5)]";
 const cardNum = "text-3xl italic";
 const cardText = "mt-10 ml-4 text-lg font-bold";
 const cardIcon = "flex items-end justify-end m-[0_15px_15px_0]";
@@ -98,29 +98,34 @@ export function ConselhoIntermediario() {
     // =====================================================================
     // Usado após iniciar conselho, após salvar avaliações ou após trocar de turma.
     const recarregarConselho = useCallback(async (cid, tid) => {
-        if (!cid || !tid) return;
+      if (!cid || !tid) return null;
       try {
-            const [respT, respC] = await Promise.all([
-                fetch(`${API}/${cid}/avaliacao-turma/${tid}`).then(r => r.json()),
-                fetch(`${API}/${cid}`).then(r => r.json())
-            ]);
-            // respT.avaliacao virá null se a turma ainda não foi avaliada
-            setAvaliacaoTurma(respT?.avaliacao || null);
+          const [respT, respA] = await Promise.all([
+              fetch(`${API}/${cid}/avaliacao-turma/${tid}`).then(r => r.json()),
+              fetch(`${API}/${cid}/turma/${tid}/avaliacoes-alunos`).then(r => r.json()),
+          ]);
 
-            // Monta um mapa { idAluno: avaliacao } para consulta rápida
+          const avaliacao = respT?.avaliacao || null;
+          setAvaliacaoTurma(avaliacao);
+
           const mapa = {};
-            (respC?.conselho?.avaliacoesAlunos || []).forEach(a => {
+          (respA?.avaliacoes || []).forEach(a => {
               mapa[a.tblAluno_idtblAluno] = a;
           });
           setAlunosAvaliados(mapa);
+
+          return avaliacao; // pro handleIniciarConselho decidir se abre modal
       } catch (e) {
           console.error('Erro ao recarregar conselho:', e);
+          return null;
       }
     }, []);
 
       // 1) Carrega alunos da turma sempre que a turma muda
     useEffect(() => {
         if(!idTurma) return;
+        setAlunosAvaliados({});
+        setAlunosSelecionados([]);
 
         setCarregando(true);
         fetch(`http://localhost:3001/api/alunos/${idTurma}`)
@@ -140,6 +145,9 @@ export function ConselhoIntermediario() {
           body: JSON.stringify({ idTurma, conselhoId })
         })
           .then(() => recarregarConselho(conselhoId, idTurma))
+          .then(avaliacao => {
+            if (!avaliacao) setIsModalTurmaOpen(true);  
+          })
           .catch(err => console.error('Erro ao adicionar turma ao conselho:', err));
         setAlunosSelecionados([]);
 
@@ -167,7 +175,12 @@ export function ConselhoIntermediario() {
             if (!dados.sucesso) throw new Error(dados.mensagem);
             setConselhoId(dados.conselhoId);
             localStorage.setItem('conselhoIntermediarioAtivo', String(dados.conselhoId));
-            await recarregarConselho(dados.conselhoId, idTurma);
+            const avaliacao = await recarregarConselho(dados.conselhoId, idTurma);
+
+            if (!avaliacao) {
+              setIsModalTurmaOpen(true); // auto-abre se ainda não tem avaliação da turma
+            }
+
         } catch (e) {
             console.error(e);
             alert('Erro ao iniciar conselho.');
@@ -258,7 +271,7 @@ export function ConselhoIntermediario() {
         </span>
       </nav>
         <div className="flex flex-col min-w-[72vw] my-5 gap-5">
-        <div className="flex justify-around top-0">
+        <div className="flex min-h-[5vh]  justify-around align-center ">
           <div className={`${cardInfo} bg-[#FEFEFE] border border-black`}>
             <div className={`${cardText}`}>
               <h3 className={`${cardNum} text-2xl`}>{alunos.length}</h3>
@@ -297,7 +310,7 @@ export function ConselhoIntermediario() {
           </div>
 
           <div className="card_avaliacoes">
-            <div className="flex flex-col gap-5 pr-3 min-h-[220px]">
+            <div className="flex flex-col gap-3 mr-5 min-h-[220px]">
                 <button
                   onClick={conselhoAtivo ? handleFinalizarConselho : handleIniciarConselho}
                   disabled={botaoPrincipalDesabilitado}
@@ -305,20 +318,23 @@ export function ConselhoIntermediario() {
                   ${botaoPrincipalDesabilitado
                       ? 'opacity-50 cursor-not-allowed bg-gray-400 text-white'
                       : conselhoAtivo
-                          ? 'bg-orange-600 text-white cursor-pointer active:scale-95 hover:bg-orange-700'
+                          ? 'bg-red-900 text-white cursor-pointer active:scale-95 hover:bg-red-700'
                           : 'bg-green-600 text-white cursor-pointer active:scale-95 hover:bg-green-700'}`}>
                   {carregandoConselho
                       ? 'Carregando...'
                       : conselhoAtivo ? 'Finalizar Conselho' : 'Iniciar Conselho'}
               </button>
 
-             <button
-                onClick={handleOpenModalTurma}
-                disabled={!conselhoAtivo}
-                className={`avaliar_toda_turma p-[10px] w-[350px] rounded-[15px] border border-black shadow-[0_0_3px_black] transition-all duration-200
-                ${!conselhoAtivo ? 'opacity-50 cursor-not-allowed bg-gray-100' : 'bg-[#FEFEFE] cursor-pointer active:scale-95'}`}>
-                {avaliacaoTurma ? 'Editar Avaliação da Turma' : 'Avaliar Toda Turma'}
-            </button>
+                <button
+                  onClick={handleOpenModalTurma}
+                  disabled={!conselhoAtivo || turmaJaAvaliada}
+                  title={turmaJaAvaliada ? 'Avaliação da turma já foi registrada' : ''}
+                  className={`avaliar_toda_turma p-[10px] w-[350px] rounded-[15px] border border-black shadow-[0_0_3px_black] transition-all duration-200
+                  ${(!conselhoAtivo || turmaJaAvaliada)
+                      ? 'opacity-50 cursor-not-allowed bg-gray-100'
+                      : 'bg-[#FEFEFE] cursor-pointer active:scale-95'}`}>
+                  {turmaJaAvaliada ? 'Avaliação da Turma Salva' : 'Avaliar Toda Turma'}
+              </button>
 
               <button
                 onClick={handleLimparSelecao}
