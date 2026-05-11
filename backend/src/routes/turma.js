@@ -95,6 +95,7 @@ router.get('/alunos/:idTurma', async (req, res) => {
   try {
     const result = await db`
       SELECT
+        a."idtblAluno",     
         a."matricula",
         a."nome"
       FROM "tblAluno" a

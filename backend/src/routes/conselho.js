@@ -88,12 +88,15 @@ router.post('/finalizar', async (req, res) => {
 
     }
 
-    return res.status(500).json({ sucesso: false, mensagem: 'Erro ao finalizar conselho' });
-
+    return res.json({
+      sucesso: true,
+      mensagem: 'Conselho finalizado com sucesso',
+      conselho: result[0]
+    });
 
   } catch (erro) {
     console.error('ERRO FINALIZAR CONSELHO:', erro);
-    return res.status(404).json({ sucesso: false, mensagem: 'Conselho não encontrado' });
+    return res.status(500).json({ sucesso: false, mensagem: 'Erro ao finalizar conselho' });
 
   }
 });
@@ -169,6 +172,7 @@ router.get('/:conselhoId/avaliacao-turma/:idTurma', async (req, res) => {
       sucesso: true,
       avaliacao: result[0] || null
     });
+
   } catch (erro) {
     console.error('ERRO BUSCAR AVALIACAO TURMA:', erro);
     return res.status(500).json({ sucesso: false, mensagem: 'Erro ao buscar avaliação de turma' });
@@ -235,7 +239,11 @@ router.post('/avaliacao-turma', async (req, res) => {
       `;
     }
 
-    return res.status(500).json({ sucesso: false, mensagem: 'Erro ao salvar avaliação de turma' });
+    return res.json({
+      sucesso: true,
+      mensagem: existente.length > 0 ? 'Avaliação da turma atualizada' : 'Avaliação da turma criada',
+      avaliacao: result[0]
+    });
 
 
   } catch (erro) {
@@ -280,9 +288,11 @@ router.post('/avaliacao-aluno', async (req, res) => {
       result = await db`
         UPDATE "Avaliacao_Aluno"
         SET "naturezaOcorrencia" = ${naturezaOcorrencia},
-              "restricao" = ${restricao},
-              "acaoProposta" = ${acaoProposta},
-              "justificativa" = ${justificativa},
+            "restricao" = ${restricao},
+            "acaoProposta" = ${acaoProposta},
+            "justificativa" = ${justificativa},
+            "informacoesComplementares" = ${informacoesComplementares},
+            "situacaoFinal" = ${situacaoFinal}
         WHERE "Conselho_idConselho" = ${conselhoId} AND "tblAluno_idtblAluno" = ${idAluno}
         RETURNING *
       `;
@@ -300,8 +310,11 @@ router.post('/avaliacao-aluno', async (req, res) => {
       `;
     }
 
-    return res.status(500).json({ sucesso: false, mensagem: 'Erro ao salvar avaliação de aluno' });
-
+    return res.json({
+      sucesso: true,
+      mensagem: existente.length > 0 ? 'Avaliação do aluno atualizada' : 'Avaliação do aluno criada',
+      avaliacao: result[0]
+    });
 
   } catch (erro) {
     console.error('ERRO SALVAR AVALIAÇÃO ALUNO:', erro);
