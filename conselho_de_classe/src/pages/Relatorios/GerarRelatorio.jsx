@@ -157,7 +157,7 @@ export function GerarRelatorio() {
 
       a.href = url;
 
-      a.download = 'relatorio.docx';
+      a.download = `Plano_Acao_${turma || 'relatorio'}.docx`;
 
       document.body.appendChild(a);
 
