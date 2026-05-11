@@ -99,7 +99,7 @@ export function ConselhoIntermediario() {
     // Usado após iniciar conselho, após salvar avaliações ou após trocar de turma.
     const recarregarConselho = useCallback(async (cid, tid) => {
         if (!cid || !tid) return;
-        try {
+      try {
             const [respT, respC] = await Promise.all([
                 fetch(`${API}/${cid}/avaliacao-turma/${tid}`).then(r => r.json()),
                 fetch(`${API}/${cid}`).then(r => r.json())
@@ -108,14 +108,14 @@ export function ConselhoIntermediario() {
             setAvaliacaoTurma(respT?.avaliacao || null);
 
             // Monta um mapa { idAluno: avaliacao } para consulta rápida
-            const mapa = {};
+          const mapa = {};
             (respC?.conselho?.avaliacoesAlunos || []).forEach(a => {
-                mapa[a.tblAluno_idtblAluno] = a;
-            });
-            setAlunosAvaliados(mapa);
-        } catch (e) {
-            console.error('Erro ao recarregar conselho:', e);
-        }
+              mapa[a.tblAluno_idtblAluno] = a;
+          });
+          setAlunosAvaliados(mapa);
+      } catch (e) {
+          console.error('Erro ao recarregar conselho:', e);
+      }
     }, []);
 
       // 1) Carrega alunos da turma sempre que a turma muda
@@ -187,7 +187,10 @@ export function ConselhoIntermediario() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ conselhoId })
             });
+            
             const dados = await resp.json();
+
+
             if (!dados.sucesso) throw new Error(dados.mensagem);
             localStorage.removeItem('conselhoIntermediarioAtivo');
             setConselhoId(null);
@@ -255,7 +258,7 @@ export function ConselhoIntermediario() {
         </span>
       </nav>
         <div className="flex flex-col min-w-[72vw] my-5 gap-5">
-        <div className="flex justify-around">
+        <div className="flex justify-around top-0">
           <div className={`${cardInfo} bg-[#FEFEFE] border border-black`}>
             <div className={`${cardText}`}>
               <h3 className={`${cardNum} text-2xl`}>{alunos.length}</h3>
@@ -294,7 +297,7 @@ export function ConselhoIntermediario() {
           </div>
 
           <div className="card_avaliacoes">
-            <div className="flex flex-col gap-5 p-5 min-h-[220px]">
+            <div className="flex flex-col gap-5 pr-3 min-h-[220px]">
                 <button
                   onClick={conselhoAtivo ? handleFinalizarConselho : handleIniciarConselho}
                   disabled={botaoPrincipalDesabilitado}
@@ -309,13 +312,13 @@ export function ConselhoIntermediario() {
                       : conselhoAtivo ? 'Finalizar Conselho' : 'Iniciar Conselho'}
               </button>
 
-              <button
+             <button
                 onClick={handleOpenModalTurma}
                 disabled={!conselhoAtivo}
                 className={`avaliar_toda_turma p-[10px] w-[350px] rounded-[15px] border border-black shadow-[0_0_3px_black] transition-all duration-200
                 ${!conselhoAtivo ? 'opacity-50 cursor-not-allowed bg-gray-100' : 'bg-[#FEFEFE] cursor-pointer active:scale-95'}`}>
                 {avaliacaoTurma ? 'Editar Avaliação da Turma' : 'Avaliar Toda Turma'}
-              </button>
+            </button>
 
               <button
                 onClick={handleLimparSelecao}
@@ -420,7 +423,7 @@ export function ConselhoIntermediario() {
                       </div>
                       <div className="div_btn_restrito">
                         {restrito && (
-                          <button className="bg-red-500 text-white shadow-[inset_0_0_10px_rgba(0,0,0,0.5)] w-[150px] p-1 text-xl rounded-[20px] mr-4 active:scale-95">
+                          <button className="bg-gray-400 shadow-[inset_0_0_10px_rgba(0,0,0,0.5)] w-[150px] p-1 text-xl rounded-[20px] mr-4 active:scale-95">
                             Restrito
                           </button>
                         )}

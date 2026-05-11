@@ -53,6 +53,9 @@ export function Header() {
         <div className="ml-7">
           <img onClick={() => navigate('/docente/home')}  src="/img/logo-senai.png" alt="Logo da instituição SENAI" className='w-35 h-9 cursor-pointer' />
         </div>
+        <div className="justify-center">
+            <h1 className='font-[var(--font_inter)] font-bold text-4xl'>Conselhos de Classes</h1>
+        </div>
         <div className="flex g-2 mr-7">
           <div className="flex flex-col justify-center ">
             <h3 className='font-[var(--font_inter)] text-xl'>{dadosUsuario.nome}</h3>
