@@ -57,6 +57,8 @@ router.post('/login', async (req, res) => {
       res.json({
         sucesso: true,
         mensagem: 'Login efetuado com sucesso!',
+        idUsuario: usuarioEncontrado.idUsuario,
+        nomeUsuario: usuarioEncontrado.nomeUsuario,
         nivelAcesso: usuarioEncontrado.nivelAcesso
       });
     } else {

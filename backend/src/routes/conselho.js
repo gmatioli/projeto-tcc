@@ -5,49 +5,61 @@ const db = require('../config/db');
 // ==========================================
 // POST: INICIAR CONSELHO
 // POST -> /api/conselho/iniciar
+// body: { tipoConselho, idTurma, idUsuario, conselhoId? }
+//   - sem conselhoId  -> cria um novo Conselho e vincula a turma
+//   - com conselhoId  -> apenas vincula a turma ao conselho existente
 // ==========================================
 router.post('/iniciar', async (req, res) => {
   try {
-    const { tipoConselho, idTurma, idUsuario } = req.body;
+    const { tipoConselho, idTurma, idUsuario, conselhoId } = req.body;
 
-    if (!tipoConselho || !idTurma || !idUsuario) {
+    if (!idTurma ) {
       return res.status(400).json({
         sucesso: false,
-        mensagem: 'Dados obrigatórios faltando'
+        mensagem: 'Id Turma é obrigatório'
       });
     }
 
-    // 1. Criar registro em Conselho
-    const resultConselho = await db`
-      INSERT INTO "Conselho"
-        ("tipoConselho", "dataInicio", "status", "Usuario_idUsuario")
-      VALUES
-        (${tipoConselho}, NOW(), ${'Em Progresso'}, ${idUsuario})
-      RETURNING "idConselho"
-    `;
+    let conselhoIdFinal = conselhoId;
 
-    const conselhoId = resultConselho[0].idConselho;
+    if (!conselhoIdFinal) {
+      if (!tipoConselho || !idUsuario) {
+        return res.status(400).json({
+          sucesso: false,
+          mensagem: 'tipoConselho e idUsuario são obrigatórios para criar um novo conselho'
+        });
+    }
 
     // 2. Inserir relação Conselho_Turma
+    const novoConselho = await db`
+        INSERT INTO "Conselho"
+          ("tipoConselho", "dataRealizacao", "status", "Usuario_idUsuario")
+        VALUES
+          (${tipoConselho}, NOW(), ${'Iniciado'}, ${idUsuario})
+        RETURNING "idConselho"
+      `;
+
+      conselhoIdFinal = novoConselho[0].idConselho;
+    }
+
     await db`
-      INSERT INTO "Conselho_Turma"
-        ("Conselho_idConselho", "Turma_idTurma", "dataAdicao")
+      INSERT INTO "Turma_has_Conselho"
+        ("Conselho_idConselho", "Turma_idTurma")
       VALUES
-        (${conselhoId}, ${idTurma}, NOW())
+       (${conselhoIdFinal}, ${idTurma})
+      ON CONFLICT ("Turma_idTurma", "Conselho_idConselho") DO NOTHING
     `;
 
     return res.json({
       sucesso: true,
-      conselhoId: conselhoId,
-      mensagem: 'Conselho iniciado com sucesso'
+      conselhoId: conselhoIdFinal,
+      mensagem: conselhoId ? 'Turma adicionada ao conselho' : 'Conselho iniciado com sucesso'
     });
 
   } catch (erro) {
     console.error('ERRO INICIAR CONSELHO:', erro);
-    return res.status(500).json({
-      sucesso: false,
-      mensagem: 'Erro ao iniciar conselho'
-    });
+    return res.status(500).json({ sucesso: false, mensagem: 'Erro ao iniciar conselho' });
+
   }
 });
 
@@ -60,24 +72,20 @@ router.post('/finalizar', async (req, res) => {
     const { conselhoId } = req.body;
 
     if (!conselhoId) {
-      return res.status(400).json({
-        sucesso: false,
-        mensagem: 'ID do conselho é obrigatório'
-      });
+      return res.status(400).json({ sucesso: false, mensagem: 'ID do conselho é obrigatório' });
+
     }
 
     const result = await db`
       UPDATE "Conselho"
-      SET "status" = ${'Finalizado'}, "dataFinalizacao" = NOW()
+      SET "status" = ${'Finalizado'}
       WHERE "idConselho" = ${conselhoId}
       RETURNING *
     `;
 
     if (result.length === 0) {
-      return res.status(404).json({
-        sucesso: false,
-        mensagem: 'Conselho não encontrado'
-      });
+      return res.status(404).json({ sucesso: false, mensagem: 'Conselho não encontrado' });
+
     }
 
     return res.json({
@@ -88,10 +96,8 @@ router.post('/finalizar', async (req, res) => {
 
   } catch (erro) {
     console.error('ERRO FINALIZAR CONSELHO:', erro);
-    return res.status(500).json({
-      sucesso: false,
-      mensagem: 'Erro ao finalizar conselho'
-    });
+    return res.status(500).json({ sucesso: false, mensagem: 'Erro ao finalizar conselho' });
+
   }
 });
 
@@ -116,8 +122,8 @@ router.get('/:conselhoId', async (req, res) => {
 
     const resultTurmas = await db`
       SELECT t.* FROM "Turma" t
-      INNER JOIN "Conselho_Turma" ct ON t."idTurma" = ct."Turma_idTurma"
-      WHERE ct."Conselho_idConselho" = ${conselhoId}
+      INNER JOIN "Turma_has_Conselho" thc ON t."idTurma" = thc."Turma_idTurma"
+      WHERE thc."Conselho_idConselho" = ${conselhoId}
     `;
 
     const resultAvaliacoesTurma = await db`
@@ -143,70 +149,102 @@ router.get('/:conselhoId', async (req, res) => {
 
   } catch (erro) {
     console.error('ERRO BUSCAR CONSELHO:', erro);
-    return res.status(500).json({
-      sucesso: false,
-      mensagem: 'Erro ao buscar conselho'
+    return res.status(500).json({ sucesso: false, mensagem: 'Erro ao buscar conselho' });
+
+  }
+});
+
+
+// ==========================================
+// GET: AVALIACAO DE UMA TURMA EM UM CONSELHO
+// GET -> /api/conselho/:conselhoId/avaliacao-turma/:idTurma
+// ==========================================
+router.get('/:conselhoId/avaliacao-turma/:idTurma', async (req, res) => {
+  try {
+    const { conselhoId, idTurma } = req.params;
+
+    const result = await db`
+      SELECT * FROM "Avaliacao_Turma"
+      WHERE "Conselho_idConselho" = ${conselhoId} AND "Turma_idTurma" = ${idTurma}
+    `;
+
+    return res.json({
+      sucesso: true,
+      avaliacao: result[0] || null
     });
+
+  } catch (erro) {
+    console.error('ERRO BUSCAR AVALIACAO TURMA:', erro);
+    return res.status(500).json({ sucesso: false, mensagem: 'Erro ao buscar avaliação de turma' });
   }
 });
 
 // ==========================================
 // POST: SALVAR AVALIAÇÃO DE TURMA
 // POST -> /api/conselho/avaliacao-turma
+// body: { conselhoId, idTurma, organizacao, comportamental, assiduidade,
+//         disponibilidade_Aprendizado, observacao, acaoProposta, alcancou_Objetivos }
 // ==========================================
 router.post('/avaliacao-turma', async (req, res) => {
   try {
     const {
       conselhoId,
+      idTurma,
       organizacao,
       comportamental,
       assiduidade,
       disponibilidade_Aprendizado,
       observacao,
-      alcancou_Objetivos
+      alcancou_Objetivos, 
+      acaoProposta
     } = req.body;
 
-    if (!conselhoId) {
+    if (!conselhoId || !idTurma) {
       return res.status(400).json({
         sucesso: false,
-        mensagem: 'ID do conselho é obrigatório'
+        mensagem: 'conselhoId e idTurma são obrigatórios'
       });
     }
 
     const existente = await db`
       SELECT "idAvaliacao_Turma" FROM "Avaliacao_Turma"
-      WHERE "Conselho_idConselho" = ${conselhoId}
+      WHERE "Conselho_idConselho" = ${conselhoId} AND "Turma_idTurma" = ${idTurma}
     `;
 
     let result;
     if (existente.length > 0) {
       result = await db`
         UPDATE "Avaliacao_Turma"
-        SET "organizacao" = ${organizacao}, "comportamental" = ${comportamental},
+         SET "organizacao" = ${organizacao},
+            "comportamental" = ${comportamental},
             "assiduidade" = ${assiduidade},
             "disponibilidade_Aprendizado" = ${disponibilidade_Aprendizado},
             "observacao" = ${observacao},
+            "acaoProposta" = ${acaoProposta},
             "alcancou_Objetivos" = ${alcancou_Objetivos}
-        WHERE "Conselho_idConselho" = ${conselhoId}
+        WHERE "Conselho_idConselho" = ${conselhoId} AND "Turma_idTurma" = ${idTurma}
         RETURNING *
       `;
     } else {
       result = await db`
         INSERT INTO "Avaliacao_Turma"
-          ("Conselho_idConselho", "organizacao", "comportamental", "assiduidade",
-           "disponibilidade_Aprendizado", "observacao", "alcancou_Objetivos")
+          ("Conselho_idConselho", "Turma_idTurma", "organizacao", "comportamental",
+           "assiduidade", "disponibilidade_Aprendizado", "observacao",
+           "acaoProposta", "alcancou_Objetivos")
         VALUES
-          (${conselhoId}, ${organizacao}, ${comportamental}, ${assiduidade},
-           ${disponibilidade_Aprendizado}, ${observacao}, ${alcancou_Objetivos})
+           (${conselhoId}, ${idTurma}, ${organizacao}, ${comportamental},
+           ${assiduidade}, ${disponibilidade_Aprendizado}, ${observacao},
+           ${acaoProposta}, ${alcancou_Objetivos})
         RETURNING *
       `;
     }
 
     return res.json({
       sucesso: true,
-      mensagem: 'Avaliação de turma salva com sucesso',
+      mensagem: existente.length > 0 ? 'Avaliação da turma atualizada' : 'Avaliação da turma criada',
       avaliacao: result[0]
     });
+
 
   } catch (erro) {
     console.error('ERRO SALVAR AVALIAÇÃO TURMA:', erro);
@@ -236,10 +274,8 @@ router.post('/avaliacao-aluno', async (req, res) => {
     } = req.body;
 
     if (!conselhoId || !idAluno || !idUsuario) {
-      return res.status(400).json({
-        sucesso: false,
-        mensagem: 'Dados obrigatórios faltando'
-      });
+      return res.status(400).json({ sucesso: false, mensagem: 'Dados obrigatórios faltando' });
+
     }
 
     const existente = await db`
@@ -251,8 +287,10 @@ router.post('/avaliacao-aluno', async (req, res) => {
     if (existente.length > 0) {
       result = await db`
         UPDATE "Avaliacao_Aluno"
-        SET "naturezaOcorrencia" = ${naturezaOcorrencia}, "restricao" = ${restricao},
-            "acaoProposta" = ${acaoProposta}, "justificativa" = ${justificativa},
+        SET "naturezaOcorrencia" = ${naturezaOcorrencia},
+            "restricao" = ${restricao},
+            "acaoProposta" = ${acaoProposta},
+            "justificativa" = ${justificativa},
             "informacoesComplementares" = ${informacoesComplementares},
             "situacaoFinal" = ${situacaoFinal}
         WHERE "Conselho_idConselho" = ${conselhoId} AND "tblAluno_idtblAluno" = ${idAluno}
@@ -274,7 +312,7 @@ router.post('/avaliacao-aluno', async (req, res) => {
 
     return res.json({
       sucesso: true,
-      mensagem: 'Avaliação de aluno salva com sucesso',
+      mensagem: existente.length > 0 ? 'Avaliação do aluno atualizada' : 'Avaliação do aluno criada',
       avaliacao: result[0]
     });
 
@@ -284,6 +322,31 @@ router.post('/avaliacao-aluno', async (req, res) => {
       sucesso: false,
       mensagem: 'Erro ao salvar avaliação de aluno'
     });
+  }
+});
+
+// ==========================================
+// GET: AVALIAÇÕES DE ALUNOS DE UMA TURMA EM UM CONSELHO
+// GET -> /api/conselho/:conselhoId/turma/:idTurma/avaliacoes-alunos
+// Filtra Avaliacao_Aluno por conselho E por turma (via JOIN com tblAluno).
+// Resolve o bug dos cards: só retorna alunos da turma renderizada.
+// ==========================================
+router.get('/:conselhoId/turma/:idTurma/avaliacoes-alunos', async (req, res) => {
+  try {
+    const { conselhoId, idTurma } = req.params;
+
+    const result = await db`
+      SELECT aa.*, a."nome"
+      FROM "Avaliacao_Aluno" aa
+      INNER JOIN "tblAluno" a ON a."idtblAluno" = aa."tblAluno_idtblAluno"
+      WHERE aa."Conselho_idConselho" = ${conselhoId}
+        AND a."Turma_idTurma" = ${idTurma}
+    `;
+
+    return res.json({ sucesso: true, avaliacoes: result });
+  } catch (erro) {
+    console.error('ERRO BUSCAR AVALIACOES ALUNOS POR TURMA:', erro);
+    return res.status(500).json({ sucesso: false, mensagem: 'Erro ao buscar avaliações de alunos' });
   }
 });
 

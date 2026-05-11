@@ -49,14 +49,17 @@ export function Header() {
     }, [navigate]);
 
   return (
-      <header className='h-[8vh] bg-[var(--header_bg)] flex justify-between items-center'>
+      <header className='h-[8vh] bg-red-900 flex justify-between items-center'>
         <div className="ml-7">
-          <img onClick={() => navigate('/docente/home')}  src="/img/logo-senai.png" alt="Logo da instituição SENAI" className='w-35 h-9 cursor-pointer' />
+          <img onClick={() => navigate('/docente/home')}  src="/img/logo-senai.png" alt="Logo da instituição SENAI" className='w-40 h-11 ml-10 cursor-pointer opacity-90' />
         </div>
-        <div className="flex g-2 mr-7">
+        <div className="justify-center">
+            <h1 className='text-white font-bold text-4xl'>Conselhos de Classes</h1>
+        </div>
+        <div className="flex mr-7">
           <div className="flex flex-col justify-center ">
-            <h3 className='font-[var(--font_inter)] text-xl'>{dadosUsuario.nome}</h3>
-            <p className='font-[var(--font_inter)] text-xs text-end'>{dadosUsuario.nivelAcesso}</p>
+            <h3 className='text-gray-100 text-lg font-bold text-center'>{dadosUsuario.nome.toUpperCase()}</h3>
+            <p className='text-xs text-gray-300 text-end'>{dadosUsuario.nivelAcesso}</p>
           </div>
           
           <div className='ml-2 relative'>
@@ -65,12 +68,12 @@ export function Header() {
               src="/img/profile-icon.png" 
               onClick={() => setMenuAberto(!menuAberto)} 
               alt="Icone do perfil" 
-              className='w-10 h-10 rounded-full cursor-pointer'
+              className='w-12 h-12 rounded-full cursor-pointer'
             />
 
             {/* 4. O MENU DROPDOWN (Só aparece se menuAberto for true) */}
             {menuAberto && (
-              <div className="absolute top-[110%] right-0 bg-[#f0f0f0] rounded-lg shadow-[0_4px_12px_rgba(0,0,0,0.15)] w-[200px] py-2.5 z-[1000] flex flex-col">
+              <div className="absolute top-[100%] right-0 bg-[#f0f0f0] rounded-lg shadow-[0_4px_12px_rgba(0,0,0,0.15)] w-[200px] py-2.5 z-[1000] flex flex-col">
                 
                 {/* Botão Configurações de Perfil */}
                 <button 

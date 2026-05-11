@@ -28,9 +28,11 @@ function Login() {
 
         // Verifica se o Node.js respondeu com { sucesso: true }
         if (dados.sucesso) {
-          localStorage.setItem('usuarioLogado', JSON.stringify({ 
-            email: usuario, 
-            nivelAcesso: dados.nivelAcesso 
+          localStorage.setItem('usuarioLogado', JSON.stringify({
+            idUsuario: dados.idUsuario,
+            nomeUsuario: dados.nomeUsuario,
+            email: usuario,
+            nivelAcesso: dados.nivelAcesso
           }));
           
           if (dados.nivelAcesso === 'admin') {
@@ -56,7 +58,7 @@ function Login() {
       <div className="absolute top-5 left-10">
         <img className="mt-5 ml-2" src="/img/LogoLogin.png" alt="Logo da instituição SENAI" />
       </div>
-      <div className="p-10 rounded-lg bg-[#f9f9f9] text-left w-[400px] h-auto">
+      <div className="p-10 rounded-lg bg-[#f9f9f9] text-left w-[400px] h-auto shadow-2xl">
         <h2 className="font-bold text-3xl mb-2.5">Login</h2>
         <h3 className="font-normal text-base mb-5">Bem-vindo(a) ao Sistema de Conselhos!</h3>
         
