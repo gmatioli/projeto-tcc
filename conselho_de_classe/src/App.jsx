@@ -44,7 +44,7 @@ function getNivelAcesso() {
 // Redireciona para '/' se não estiver logado
 function RequireAuth({ children }) {
   const nivel = getNivelAcesso();
-  if (!nivel) return <Navigate to="/" replace />;
+  // if (!nivel) return <Navigate to="/" replace />;
   return children;
 }
 
@@ -59,8 +59,8 @@ function LayoutDoSistema() {
       <div className="main-container flex grow overflow-hidden">
 
         {/* ← AQUI está o teste: renderiza a sidebar correta */}
-        {/* {nivel === 'admin' ? <Sidebar /> : <SidebarDocente />} */}
-        {<Sidebar />}
+        {nivel === 'admin' ? <Sidebar /> : <SidebarDocente /> }
+        {/*<Sidebar />*/}
         
         <main className="content-area grow overflow-y-auto p-[20px] bg-neutral-100">
           {/* A MÁGICA: O Outlet é o espaço onde as páginas vão aparecer! */}

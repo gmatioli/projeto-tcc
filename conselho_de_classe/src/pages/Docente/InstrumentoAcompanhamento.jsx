@@ -47,7 +47,6 @@ export function InstrumentoAcompanhamento() {
     habitosEstudo: false, manterContato: false,
     conciliarHorario: false, atentarFrequencia: false,
     acompanharAtividade: false,
-    outroSugResp: '',
   });
  
   // ── Encaminhar Para ──────────────────────────────────────────────────────
@@ -295,10 +294,7 @@ export function InstrumentoAcompanhamento() {
                   <Chk label="Atentar para a frequência regular às aulas"      checked={sugResp.atentarFrequencia} onChange={() => toggle(setSugResp,'atentarFrequencia')} />
                   <Chk label="Acompanhar atividade e desempenho escolar"       checked={sugResp.acompanharAtividade} onChange={() => toggle(setSugResp,'acompanharAtividade')} />
                 </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-lg text-gray-700">Outro:</span>
-                  <input type="text" value={sugResp.outroSugResp} onChange={e => setSugResp(p=>({...p,outroSugResp:e.target.value}))} className="flex-1 border border-gray-300 rounded px-2 py-1 text-base" />
-                </div>
+                
               </div>
  
               {/* Encaminhar Para */}
