@@ -2,7 +2,6 @@ const express = require('express');
 const cors = require('cors');
 const instrumentoRouter = require('./routes/instrumentoAcompanhamento');
 
-
 const app = express();
 
 app.use(cors());
@@ -17,6 +16,7 @@ app.use('/api', require('./routes/turma'));
 app.use('/', require('./routes/planilha'));
 app.use('/relatorio', require('./routes/relatorio'));
 app.use('/api/conselho', require('./routes/conselho'));
+app.use('/api/dashboard', require('./routes/dashboard')); 
 app.use('/', require('./routes/termo'));
 app.use('/instrumento-acompanhamento', instrumentoRouter);
 
