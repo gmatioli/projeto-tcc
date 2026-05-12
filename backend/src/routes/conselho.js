@@ -482,4 +482,29 @@ router.delete('/avaliacao-aluno', async (req, res) => {
   }
 });
 
+// ==========================================
+// GET: AVALIAÇÕES DE ALUNOS DE UMA TURMA EM UM CONSELHO
+// GET -> /api/conselho/:conselhoId/turma/:idTurma/avaliacoes-alunos
+// Filtra Avaliacao_Aluno por conselho E por turma (via JOIN com tblAluno).
+// Resolve o bug dos cards: só retorna alunos da turma renderizada.
+// ==========================================
+router.get('/:conselhoId/turma/:idTurma/avaliacoes-alunos', async (req, res) => {
+  try {
+    const { conselhoId, idTurma } = req.params;
+
+    const result = await db`
+      SELECT aa.*, a."nome"
+      FROM "Avaliacao_Aluno" aa
+      INNER JOIN "tblAluno" a ON a."idtblAluno" = aa."tblAluno_idtblAluno"
+      WHERE aa."Conselho_idConselho" = ${conselhoId}
+        AND a."Turma_idTurma" = ${idTurma}
+    `;
+
+    return res.json({ sucesso: true, avaliacoes: result });
+  } catch (erro) {
+    console.error('ERRO BUSCAR AVALIACOES ALUNOS POR TURMA:', erro);
+    return res.status(500).json({ sucesso: false, mensagem: 'Erro ao buscar avaliações de alunos' });
+  }
+});
+
 module.exports = router;

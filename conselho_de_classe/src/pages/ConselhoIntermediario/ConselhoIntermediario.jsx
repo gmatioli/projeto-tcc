@@ -1,5 +1,5 @@
 import React, { useState,  useEffect, useCallback  } from 'react';
-import { useSearchParams } from 'react-router-dom'
+import { useSearchParams, useNavigate } from 'react-router-dom'
 
 import totalAlunosIcon from '../../assets/conselho-intermediario/total-alunos-icon.svg'
 import situacaoNormalIcon from '../../assets/conselho-intermediario/situacao-normal-icon.svg'
@@ -12,7 +12,7 @@ import ModalAvaliacaoTurma from '../../components/modalAvaliacaoConselhoIntermed
 
 const API = 'http://localhost:3001/api/conselho';
 
-const cardInfo = "flex flex-col justify-between border rounded-[15px] h-[26vh] w-[12vw] shadow-[2px_2px_5px_rgba(0,0,0,0.5)]";
+const cardInfo = "flex flex-col justify-between  border rounded-[15px] h-auto w-[12vw] shadow-[2px_2px_5px_rgba(0,0,0,0.5)]";
 const cardNum = "text-3xl italic";
 const cardText = "mt-10 ml-4 text-lg font-bold";
 const cardIcon = "flex items-end justify-end m-[0_15px_15px_0]";
@@ -23,60 +23,98 @@ const semestreCliente = () => {
 };
 
 export function ConselhoIntermediario() {
+    const navigate = useNavigate();
+
+    // Pegamos apenas a turma e o nome da turma da URL.
     const [searchParams] = useSearchParams();
     const idTurma = searchParams.get('turma');
     const nomeTurma = searchParams.get('nomeTurma');
     const modo = searchParams.get('modo');
 
+    // Usuário logado vindo do localStorage (para registrar quem iniciou)
     const usuario = JSON.parse(localStorage.getItem('usuarioLogado') || '{}');
     const idUsuario = usuario.idUsuario;
 
     const [conselhoId, setConselhoId] = useState(null);
 
-    const [alunos, setAlunos] = useState([]);
-    const [alunosSelecionados, setAlunosSelecionados] = useState([]);
-    const [carregando, setCarregando] = useState(false);
-    const [carregandoConselho, setCarregandoConselho]   = useState(false);
-    const [avaliacaoTurma, setAvaliacaoTurma]           = useState(null); 
-    const [alunosAvaliados, setAlunosAvaliados]         = useState({});   
+    const [alunos, setAlunos] = useState([]);                          // lista de alunos da turma atual
+    const [alunosSelecionados, setAlunosSelecionados] = useState([]);  // IDs marcados nos checkboxes
+    const [carregando, setCarregando] = useState(false);               // loading da lista de alunos
+    const [carregandoConselho, setCarregandoConselho] = useState(false); // loading dos botões iniciar/finalizar
+    const [avaliacaoTurma, setAvaliacaoTurma] = useState(null);        // avaliação da turma (null se ainda não foi feita)
+    const [alunosAvaliados, setAlunosAvaliados] = useState({});        // mapa { idAluno: avaliacao }
+
 
     // Estados independentes para controlar cada modal
     const [isModalTurmaOpen, setIsModalTurmaOpen] = useState(false);
     const [isModalAlunosOpen, setIsModalAlunosOpen] = useState(false);
 
+     // =====================================================================
+    // FLAGS DERIVADAS  (calculadas a partir dos estados acima)
+    // =====================================================================
+    // Existe um conselho rodando?
     const conselhoAtivo = !!conselhoId;
-    // Botões habilitados quando: estamos no modo iniciar OU já existe conselho em andamento
-    const botoesDesabilitados = !conselhoAtivo && modo !== 'iniciar';
+    // A turma atual já tem avaliação registrada neste conselho?
+    const turmaJaAvaliada = !!avaliacaoTurma;
 
-    // Funções para manipular o Modal da Turma
-    const handleOpenModalTurma = () => setIsModalTurmaOpen(true);
+    // Regras de habilitação (centralizadas aqui pra ficar fácil de manter):
+    //  - botoesDesabilitados: bloqueia tudo enquanto o conselho não for iniciado
+    //  - podeAvaliarAlunos: precisa ter conselho + avaliação da turma + alunos marcados
+    const botoesDesabilitados = !conselhoAtivo;
+    const podeAvaliarAlunos =
+        conselhoAtivo && turmaJaAvaliada && alunosSelecionados.length > 0;
+
+     // O botão principal (Iniciar/Finalizar) só fica bloqueado se está
+    // carregando OU se não tem turma/usuário para iniciar
+    const botaoPrincipalDesabilitado =
+        carregandoConselho || (!conselhoAtivo && (!idTurma || !idUsuario));
+
+
+    // =====================================================================
+    // CONTROLE DOS MODAIS
+    // =====================================================================
+    // Modal da TURMA: só abre se há conselho ativo
+    // (Serve tanto para CRIAR a primeira avaliação quanto para EDITAR a existente)
+    const handleOpenModalTurma = () => {
+        if (!conselhoAtivo) return; // proteção contra cliques indevidos
+        setIsModalTurmaOpen(true);
+    };
     const handleCloseModalTurma = () => setIsModalTurmaOpen(false);
 
-    // Funções para manipular o Modal dos Alunos Selecionados
+    // Modal de ALUNOS: só abre se todas as condições estiverem ok
+    // (conselho ativo + turma avaliada + alunos selecionados)
     const handleOpenModalAlunos = () => {
-        if (alunosSelecionados.length === 0) return;
+        if (!podeAvaliarAlunos) return; // proteção
         setIsModalAlunosOpen(true);
-    }
-
+    };
     const handleCloseModalAlunos = () => setIsModalAlunosOpen(false);
-
+    
+    // =====================================================================
+    // RECARREGAR DADOS DO CONSELHO (avaliação da turma + alunos avaliados)
+    // =====================================================================
+    // Usado após iniciar conselho, após salvar avaliações ou após trocar de turma.
     const recarregarConselho = useCallback(async (cid, tid) => {
-        if (!cid || !tid) return;
-        try {
-        const [respT, respC] = await Promise.all([
-            fetch(`${API}/${cid}/avaliacao-turma/${tid}`).then(r => r.json()),
-            fetch(`${API}/${cid}`).then(r => r.json())
-        ]);
-        setAvaliacaoTurma(respT?.avaliacao || null);
+      if (!cid || !tid) return null;
+      try {
+          const [respT, respA] = await Promise.all([
+              fetch(`${API}/${cid}/avaliacao-turma/${tid}`).then(r => r.json()),
+              fetch(`${API}/${cid}/turma/${tid}/avaliacoes-alunos`).then(r => r.json()),
+          ]);
 
-        const mapa = {};
-        (respC?.conselho?.avaliacoesAlunos || []).forEach(a => {
-            mapa[a.tblAluno_idtblAluno] = a;
-        });
-        setAlunosAvaliados(mapa);
-        } catch (e) {
-        console.error('Erro ao recarregar conselho:', e);
-        }
+          const avaliacao = respT?.avaliacao || null;
+          setAvaliacaoTurma(avaliacao);
+
+          const mapa = {};
+          (respA?.avaliacoes || []).forEach(a => {
+              mapa[a.tblAluno_idtblAluno] = a;
+          });
+          setAlunosAvaliados(mapa);
+
+          return avaliacao; // pro handleIniciarConselho decidir se abre modal
+      } catch (e) {
+          console.error('Erro ao recarregar conselho:', e);
+          return null;
+      }
     }, []);
 
     // Sincroniza conselhoId com a turma da URL (chave de localStorage por turma).
@@ -103,6 +141,8 @@ export function ConselhoIntermediario() {
     // Carrega alunos da turma sempre que a turma muda.
     useEffect(() => {
         if(!idTurma) return;
+        setAlunosAvaliados({});
+        setAlunosSelecionados([]);
 
         setCarregando(true);
         fetch(`http://localhost:3001/api/alunos/${idTurma}`)
@@ -157,19 +197,25 @@ export function ConselhoIntermediario() {
         if (!conselhoId) return;
         if (!confirm('Tem certeza que deseja finalizar o conselho?')) return;
         setCarregandoConselho(true);
+
         try {
             const resp = await fetch(`${API}/finalizar`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ conselhoId })
             });
+            
             const dados = await resp.json();
+
+
             if (!dados.sucesso) throw new Error(dados.mensagem);
             localStorage.removeItem(`conselhoIntermediarioAtivo:${idTurma}`);
             setConselhoId(null);
             setAvaliacaoTurma(null);
             setAlunosAvaliados({});
             alert('Conselho finalizado com sucesso!');
+            navigate('/dashboard')
+
         } catch (e) {
             console.error(e);
             alert('Erro ao finalizar conselho.');
@@ -177,6 +223,10 @@ export function ConselhoIntermediario() {
             setCarregandoConselho(false);
         }
     };
+    
+    // =====================================================================
+    // SELEÇÃO DE ALUNOS (checkboxes da lista)
+    // =====================================================================
 
     const handleToogleAluno = (id) => {
         setAlunosSelecionados(prev => 
@@ -189,6 +239,12 @@ export function ConselhoIntermediario() {
     };
 
     const handleLimparSelecao = () => setAlunosSelecionados([]);
+
+    // =====================================================================
+    // CALLBACKS DE "SALVO" DOS MODAIS
+    // =====================================================================
+    // Quando o modal da turma salva, fecha e recarrega os dados.
+    // Isso fará com que turmaJaAvaliada vire true e libere o botão de alunos.
 
     const onSalvarAvaliacaoTurma = async () => {
         setIsModalTurmaOpen(false);
@@ -214,12 +270,12 @@ export function ConselhoIntermediario() {
             Conselhos
           </button>
           {' / '}
-          <span className="font-lg text-gray-700">Conselho Intermediário / ${nomeTurma}</span>
+          <span className="font-lg text-gray-700">Conselho Intermediário / {nomeTurma}</span>
 
         </span>
       </nav>
         <div className="flex flex-col min-w-[72vw] my-5 gap-5">
-        <div className="flex justify-around">
+        <div className="flex min-h-[5vh]  justify-around align-center ">
           <div className={`${cardInfo} bg-[#FEFEFE] border border-black`}>
             <div className={`${cardText}`}>
               <h3 className={`${cardNum} text-2xl`}>{alunos.length}</h3>
@@ -258,71 +314,82 @@ export function ConselhoIntermediario() {
           </div>
 
           <div className="card_avaliacoes">
-            <div className="flex flex-col gap-5 p-5 min-h-[220px]">
+            <div className="flex flex-col gap-3 mr-5 min-h-[220px]">
                 <button
-                    onClick={conselhoAtivo ? handleFinalizarConselho : handleIniciarConselho}
-                    disabled={carregandoConselho || (!conselhoAtivo && modo !== 'iniciar')}
-                    className={`p-[10px] w-[350px] rounded-[15px] border border-black shadow-[0_0_3px_black] transition-all duration-200 font-bold text-lg
-                    ${carregandoConselho
-                        ? 'opacity-50 cursor-not-allowed bg-gray-400 text-white'
-                        : conselhoAtivo
-                        ? 'bg-orange-600 text-white cursor-pointer active:scale-95 hover:bg-orange-700'
-                        : 'bg-green-600 text-white cursor-pointer active:scale-95 hover:bg-green-700'}`}>
-                    {carregandoConselho
-                    ? 'Carregando...'
-                    : conselhoAtivo ? 'Finalizar Conselho' : 'Iniciar Conselho'}
+                  onClick={conselhoAtivo ? handleFinalizarConselho : handleIniciarConselho}
+                  disabled={botaoPrincipalDesabilitado}
+                  className={`p-[10px] w-[350px] rounded-[15px] border border-black shadow-[0_0_3px_black] transition-all duration-200 font-bold text-lg
+                  ${botaoPrincipalDesabilitado
+                      ? 'opacity-50 cursor-not-allowed bg-gray-400 text-white'
+                      : conselhoAtivo
+                          ? 'bg-red-900 text-white cursor-pointer active:scale-95 hover:bg-red-700'
+                          : 'bg-green-600 text-white cursor-pointer active:scale-95 hover:bg-green-700'}`}>
+                  {carregandoConselho
+                      ? 'Carregando...'
+                      : conselhoAtivo ? 'Finalizar Conselho' : 'Iniciar Conselho'}
+              </button>
+
+                <button
+                  onClick={handleOpenModalTurma}
+                  disabled={!conselhoAtivo || turmaJaAvaliada}
+                  title={turmaJaAvaliada ? 'Avaliação da turma já foi registrada' : ''}
+                  className={`avaliar_toda_turma p-[10px] w-[350px] rounded-[15px] border border-black shadow-[0_0_3px_black] transition-all duration-200
+                  ${(!conselhoAtivo || turmaJaAvaliada)
+                      ? 'opacity-50 cursor-not-allowed bg-gray-100'
+                      : 'bg-[#FEFEFE] cursor-pointer active:scale-95'}`}>
+                  {turmaJaAvaliada ? 'Avaliação da Turma Salva' : 'Avaliar Toda Turma'}
               </button>
 
               <button
-                    onClick={handleOpenModalTurma}
-                    disabled={!conselhoAtivo}
-                    className={`avaliar_toda_turma p-[10px] w-[350px] rounded-[15px] border border-black shadow-[0_0_3px_black] transition-all duration-200
-                    ${!conselhoAtivo ? 'opacity-50 cursor-not-allowed bg-gray-100' : 'bg-[#FEFEFE] cursor-pointer active:scale-95'}`}>
-                    {avaliacaoTurma ? 'Editar Avaliação da Turma' : 'Avaliar Toda Turma'}
+                onClick={handleLimparSelecao}
+                disabled={botoesDesabilitados}
+                className={`limpar_selecao p-[10px] w-[350px] rounded-[15px] border border-black shadow-[0_0_3px_black] transition-all duration-200
+                ${botoesDesabilitados ? 'opacity-50 cursor-not-allowed bg-gray-100' : 'bg-[#FEFEFE] cursor-pointer active:scale-95'}`}>
+                Limpar Seleção
               </button>
 
               <button
-                    onClick={handleLimparSelecao}
-                    disabled={botoesDesabilitados}
-                    className={`limpar_selecao p-[10px] w-[350px] rounded-[15px] border border-black shadow-[0_0_3px_black] transition-all duration-200
-                    ${botoesDesabilitados ? 'opacity-50 cursor-not-allowed bg-gray-100' : 'bg-[#FEFEFE] cursor-pointer active:scale-95'}`}>
-                    Limpar Seleção
-              </button>
+                onClick={handleOpenModalAlunos}
+                disabled={!podeAvaliarAlunos}
+                title={
+                    !conselhoAtivo
+                        ? 'Inicie o conselho para avaliar alunos'
+                        : !turmaJaAvaliada
+                            ? 'Avalie a turma antes de avaliar alunos'
+                            : alunosSelecionados.length === 0
+                                ? 'Selecione ao menos um aluno'
+                                : ''
+                }
+                className={`p-[10px] w-[350px] rounded-[15px] border border-black shadow-[0_0_3px_black] transition-all duration-200
+                ${!podeAvaliarAlunos
+                    ? 'opacity-50 cursor-not-allowed bg-gray-100'
+                    : 'bg-red-600 text-white cursor-pointer active:scale-95'}`}>
+                Avaliar Selecionados
+            </button>
+          </div>
 
-              <button
-                    onClick={handleOpenModalAlunos}
-                    disabled={!conselhoAtivo || !avaliacaoTurma || alunosSelecionados.length === 0}
-                    title={!avaliacaoTurma ? 'Avalie a turma antes de avaliar alunos' : ''}
-                    className={`p-[10px] w-[350px] rounded-[15px] border border-black shadow-[0_0_3px_black] transition-all duration-200
-                    ${(!conselhoAtivo || !avaliacaoTurma || alunosSelecionados.length === 0)
-                        ? 'opacity-50 cursor-not-allowed bg-gray-100'
-                        : 'bg-red-600 text-white cursor-pointer active:scale-95'}`}>
-                    Avaliar Selecionados
-              </button>
-                    </div>
-
-                    <ModalAvaliacaoTurma
-                        isOpen={isModalTurmaOpen}
-                        onClose={handleCloseModalTurma}
-                        conselhoId={conselhoId}
-                        idTurma={idTurma}
-                        nomeTurma={nomeTurma}
-                        avaliacaoExistente={avaliacaoTurma}
-                        onSaved={onSalvarAvaliacaoTurma}
-                    />
-                    <ModalAvaliacaoAlunos
-                        isOpen={isModalAlunosOpen}
-                        onClose={handleCloseModalAlunos}
-                        conselhoId={conselhoId}
-                        idUsuario={idUsuario}
-                        alunosSelecionados={alunosSelecionados.map(id => ({
-                            id,
-                            nome: alunos.find(a => a.idtblAluno === id)?.nome,
-                            avaliacaoExistente: alunosAvaliados[id] || null
-                        }))}
-                        onSaved={onSalvarAvaliacaoAlunos}
-                    />
-                </div>
+          <ModalAvaliacaoTurma
+              isOpen={isModalTurmaOpen}
+              onClose={handleCloseModalTurma}
+              conselhoId={conselhoId}
+              idTurma={idTurma}
+              nomeTurma={nomeTurma}
+              avaliacaoExistente={avaliacaoTurma}
+              onSaved={onSalvarAvaliacaoTurma}
+          />
+          <ModalAvaliacaoAlunos
+              isOpen={isModalAlunosOpen}
+              onClose={handleCloseModalAlunos}
+              conselhoId={conselhoId}
+              idUsuario={idUsuario}
+              alunosSelecionados={alunosSelecionados.map(id => ({
+                  id,
+                  nome: alunos.find(a => a.idtblAluno === id)?.nome,
+                  avaliacaoExistente: alunosAvaliados[id] || null
+              }))}
+              onSaved={onSalvarAvaliacaoAlunos}
+          />
+              </div>
             </div>
             
             <div className="flex flex-col mx-2 mr-6">
@@ -376,7 +443,7 @@ export function ConselhoIntermediario() {
                       </div>
                       <div className="div_btn_restrito">
                         {restrito && (
-                          <button className="bg-red-500 text-white shadow-[inset_0_0_10px_rgba(0,0,0,0.5)] w-[150px] p-1 text-xl rounded-[20px] mr-4 active:scale-95">
+                          <button className="bg-gray-400 shadow-[inset_0_0_10px_rgba(0,0,0,0.5)] w-[150px] p-1 text-xl rounded-[20px] mr-4 active:scale-95">
                             Restrito
                           </button>
                         )}
