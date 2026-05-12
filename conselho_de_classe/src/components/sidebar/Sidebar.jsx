@@ -117,10 +117,7 @@ function FormFiltros({ rotaDestino, onFechar }) {
           Pesquisar
         </button>
       </div>
-      <button onClick={handleIniciarConselho} disabled={formIncompleto} className={`flex-1 p-[10px] rounded-[5px] text-lg font-semibold transition-all
-        ${formIncompleto ? 'opacity-50 cursor-not-allowed bg-gray-400 text-gray-200' : 'bg-[#ea4335] text-white cursor-pointer hover:brightness-90'}`}>
-        Iniciar Conselho
-      </button>
+  
     </div>
   );
 }
