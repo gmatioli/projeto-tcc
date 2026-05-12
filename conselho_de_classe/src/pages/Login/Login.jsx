@@ -35,11 +35,9 @@ function Login() {
             nivelAcesso: dados.nivelAcesso
           }));
           
-          if (dados.nivelAcesso === 'admin') {
-          navigate('/dashboard');
-          } else {
-            navigate('/docente/home');
-          }
+        
+          navigate('/docente/home');
+          
           
 
         } else {

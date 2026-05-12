@@ -2,8 +2,6 @@ import { useEffect, useState } from "react";
 
 const API =  'http://localhost:3001/api/conselho';
 
-
-
 const NATUREZAS = ['Comportamental', 'Aproveitamento Escolar', 'Frequência'];
 
 const initialState = {
@@ -11,7 +9,7 @@ const initialState = {
   naturezaOutro: '',    // texto livre quando "Outro" é marcado
   restricao: '',
   acaoProposta: '',
-  justificativa: '',
+  responsavel: '',
 };
 
 const ModalAvaliacaoAlunos = ({ 
@@ -64,8 +62,8 @@ const ModalAvaliacaoAlunos = ({
       conselhoId,
       naturezaOcorrencia: naturezasFinais,
       restricao: form.restricao,
-      acaoProposta: form.acaoProposta,
-      // justificativa: form.justificativa,
+      acaoPropostaIntermediario: form.acaoProposta,
+      responsavelIntermediario: form.responsavel,
       idUsuario
     };
 
@@ -149,9 +147,16 @@ const ModalAvaliacaoAlunos = ({
 
           <div className="flex flex-col mt-[20px] mb-[15px]">
             <label className="text-2xl">Responsável(*):</label>
-            <select className="p-1 py-4 mt-[5px] rounded-[18px] border border-[#bbb]">
-              <option>Assistente da Qualidade de Vida</option>
-              <option>Outro...</option>
+            <select 
+              value={form.responsavel}
+              onChange={e => setCampo('responsavel', e.target.value)}
+              className="p-1 py-4 mt-[5px] rounded-[18px] border border-[#bbb]">
+              <option value="" disabled hidden >Selecione</option>
+              <option value="aqv_coordenacao_docente">AQV, coordenação e docente</option>
+              <option value="aqv_coordenacao">AQV e coordenação</option>
+              <option value="docente_aqv">Docente e AQV</option>
+              <option value="docente_uc">Docente da U.C</option>
+              <option value="analista_qualidade_vida">Analista e Qualidade de Vida</option>
             </select>
           </div>
 

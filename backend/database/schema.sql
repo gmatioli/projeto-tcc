@@ -109,10 +109,16 @@ CREATE TABLE IF NOT EXISTS "Conselho" (
   "tipoConselho"      "conselho_tipo",
   "dataRealizacao"    TIMESTAMP,
   "status"            "conselho_status" DEFAULT 'Iniciado',
+  "semestre"          SMALLINT,
+  "ano"               SMALLINT,
   "Usuario_idUsuario" INTEGER NOT NULL REFERENCES "Usuario"("idUsuario")
 );
 
+ALTER TABLE "Conselho" ADD COLUMN IF NOT EXISTS "semestre" SMALLINT;
+ALTER TABLE "Conselho" ADD COLUMN IF NOT EXISTS "ano"      SMALLINT;
+
 CREATE INDEX IF NOT EXISTS "idx_Conselho_Usuario" ON "Conselho"("Usuario_idUsuario");
+CREATE INDEX IF NOT EXISTS "idx_Conselho_Ciclo"   ON "Conselho"("tipoConselho", "semestre", "ano");
 
 
 -- Avaliacao_Turma (uma avaliação por par turma+conselho)
@@ -145,14 +151,28 @@ CREATE TABLE IF NOT EXISTS "Avaliacao_Aluno" (
   "naturezaOcorrencia"        TEXT[],
   "restricao"                 TEXT,
   "acaoProposta"              TEXT,
+  "acaoPropostaIntermediario" TEXT,
+  "acaoPropostaPreConselho"   TEXT,
+  "responsavel"               TEXT,
+  "responsavelIntermediario"  TEXT,
+  "responsavelPreConselho"    TEXT,
   "justificativa"             TEXT,
   "informacoesComplementares" VARCHAR(255),
   "situacaoFinal"             "avaliacao_situacao_final",
+  "contestacaoSituacaoFinal"  TEXT,
   "Usuario_idUsuario"         INTEGER NOT NULL REFERENCES "Usuario"("idUsuario"),
   "tblAluno_idtblAluno"       INTEGER NOT NULL REFERENCES "tblAluno"("idtblAluno"),
   CONSTRAINT "uq_Avaliacao_Aluno_AlunoConselho"
     UNIQUE ("tblAluno_idtblAluno", "Conselho_idConselho")
 );
+
+
+ALTER TABLE "Avaliacao_Aluno" ADD COLUMN IF NOT EXISTS "responsavel"               TEXT;
+ALTER TABLE "Avaliacao_Aluno" ADD COLUMN IF NOT EXISTS "acaoPropostaIntermediario" TEXT;
+ALTER TABLE "Avaliacao_Aluno" ADD COLUMN IF NOT EXISTS "acaoPropostaPreConselho"   TEXT;
+ALTER TABLE "Avaliacao_Aluno" ADD COLUMN IF NOT EXISTS "responsavelIntermediario"  TEXT;
+ALTER TABLE "Avaliacao_Aluno" ADD COLUMN IF NOT EXISTS "responsavelPreConselho"    TEXT;
+ALTER TABLE "Avaliacao_Aluno" ADD COLUMN IF NOT EXISTS "contestacaoSituacaoFinal"  TEXT;
 
 CREATE INDEX IF NOT EXISTS "idx_AvaliacaoAluno_Conselho" ON "Avaliacao_Aluno"("Conselho_idConselho");
 CREATE INDEX IF NOT EXISTS "idx_AvaliacaoAluno_Usuario"  ON "Avaliacao_Aluno"("Usuario_idUsuario");
