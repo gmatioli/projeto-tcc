@@ -114,19 +114,6 @@ CREATE TABLE IF NOT EXISTS "Conselho" (
 
 CREATE INDEX IF NOT EXISTS "idx_Conselho_Usuario" ON "Conselho"("Usuario_idUsuario");
 
--- Conselho: ciclo por semestre/ano (1 = jan-jun, 2 = jul-dez).
-ALTER TABLE "Conselho"
-  ADD COLUMN IF NOT EXISTS "semestre" SMALLINT,
-  ADD COLUMN IF NOT EXISTS "ano" SMALLINT;
-
-UPDATE "Conselho"
-   SET "semestre" = CASE WHEN EXTRACT(MONTH FROM "dataRealizacao") <= 6 THEN 1 ELSE 2 END,
-       "ano" = EXTRACT(YEAR FROM "dataRealizacao")::SMALLINT
- WHERE ("semestre" IS NULL OR "ano" IS NULL)
-   AND "dataRealizacao" IS NOT NULL;
-
-CREATE INDEX IF NOT EXISTS "idx_Conselho_SemestreAno" ON "Conselho"("semestre", "ano");
-
 
 -- Avaliacao_Turma (uma avaliação por par turma+conselho)
 CREATE TABLE IF NOT EXISTS "Avaliacao_Turma" (
@@ -170,31 +157,6 @@ CREATE TABLE IF NOT EXISTS "Avaliacao_Aluno" (
 CREATE INDEX IF NOT EXISTS "idx_AvaliacaoAluno_Conselho" ON "Avaliacao_Aluno"("Conselho_idConselho");
 CREATE INDEX IF NOT EXISTS "idx_AvaliacaoAluno_Usuario"  ON "Avaliacao_Aluno"("Usuario_idUsuario");
 CREATE INDEX IF NOT EXISTS "idx_AvaliacaoAluno_tblAluno" ON "Avaliacao_Aluno"("tblAluno_idtblAluno");
-
--- Avaliacao_Aluno: colunas separadas por tipo de conselho + contestação do Final
--- "acaoProposta" original fica como legado; novos inserts vão pras colunas com prefixo.
-ALTER TABLE "Avaliacao_Aluno"
-  ADD COLUMN IF NOT EXISTS "acaoPropostaIntermediario" TEXT,
-  ADD COLUMN IF NOT EXISTS "acaoPropostaPreConselho" TEXT,
-  ADD COLUMN IF NOT EXISTS "responsavelIntermediario" TEXT,
-  ADD COLUMN IF NOT EXISTS "responsavelPreConselho" TEXT,
-  ADD COLUMN IF NOT EXISTS "contestacaoSituacaoFinal" TEXT;
-
-UPDATE "Avaliacao_Aluno" aa
-   SET "acaoPropostaIntermediario" = aa."acaoProposta"
-  FROM "Conselho" c
- WHERE c."idConselho" = aa."Conselho_idConselho"
-   AND c."tipoConselho" = 'Intermediário'
-   AND aa."acaoProposta" IS NOT NULL
-   AND aa."acaoPropostaIntermediario" IS NULL;
-
-UPDATE "Avaliacao_Aluno" aa
-   SET "acaoPropostaPreConselho" = aa."acaoProposta"
-  FROM "Conselho" c
- WHERE c."idConselho" = aa."Conselho_idConselho"
-   AND c."tipoConselho" = 'Pré-Conselho'
-   AND aa."acaoProposta" IS NOT NULL
-   AND aa."acaoPropostaPreConselho" IS NULL;
 
 
 -- Observacao_Docente
