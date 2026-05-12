@@ -10,7 +10,7 @@ const initialState = {
   justificativa: '',
   informacoesComplementares: '',
   acaoProposta: '',
-  responsavel: 'Assistente da Qualidade de Vida',
+  responsavel: '',
 };
 
 const ModalAvaliacao = ({
@@ -24,9 +24,24 @@ const ModalAvaliacao = ({
   const [form, setForm] = useState(initialState);
   const [salvando, setSalvando] = useState(false);
 
+  // Alunos selecionados que JÁ possuem avaliação no Conselho Intermediário
+  // do mesmo ciclo. Usado para mostrar contexto e pré-preencher restrição.
+  const comHistorico = (alunosSelecionados || []).filter(a => a.historicoIntermediario);
+  const historicoUnico = comHistorico.length === 1 ? comHistorico[0].historicoIntermediario : null;
+  
   useEffect(() => {
     if (!isOpen) return;
-    setForm(initialState);
+    // Se exatamente 1 aluno selecionado e tem histórico do intermediário,
+    // pré-preenche a restrição com a vinda do intermediário (read-only).
+    if (historicoUnico) {
+      setForm({
+        ...initialState,
+        restricao: historicoUnico.restricao || ''
+      });
+    } else {
+      setForm(initialState);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen]);
 
   if (!isOpen || alunosSelecionados.length === 0) return null;
@@ -56,7 +71,8 @@ const ModalAvaliacao = ({
       naturezaOcorrencia: naturezasFinais,
       justificativa: form.justificativa,
       informacoesComplementares: form.informacoesComplementares,
-      acaoProposta: form.acaoProposta,
+      acaoPropostaPreConselho: form.acaoProposta,
+      responsavelPreConselho: form.responsavel,
       idUsuario
     };
 
@@ -101,15 +117,42 @@ const ModalAvaliacao = ({
           {alunosSelecionados.map(a => (
             <span
               key={a.id}
-              className="px-2 py-1  text-black-800 rounded-full text-sm border border-gray-800">
-              {a.nome}
+              // className="px-2 py-1  text-black-800 rounded-full text-sm border border-gray-800">
+              // {a.nome}
+              className={`px-2 py-1 rounded-full text-sm border ${a.historicoIntermediario ? 'border-yellow-600 text-yellow-800 bg-yellow-50' : 'border-gray-800 text-black-800'}`}
+              title={a.historicoIntermediario ? 'Restrito no Conselho Intermediário deste ciclo' : ''}>
+              {a.nome}{a.historicoIntermediario ? ' *' : ''}
             </span>
             
           ))}
         </div>
         <hr className="border-none bg-gray-300 h-[1px] mx-20 py-[1px]"/>
         
+{/* QUALQUER COISA COMENTAR */}
+        {comHistorico.length > 0 && (
+          <div className="mx-20 mt-3 p-3 rounded-md border border-yellow-500 bg-yellow-50 text-sm">
+            <p className="font-bold text-yellow-800">
+              Histórico do Conselho Intermediário (mesmo ciclo):
+            </p>
+            {historicoUnico ? (
+              <ul className="mt-1 list-disc list-inside text-yellow-900">
+                {historicoUnico.restricao && (<li><strong>Restrição:</strong> {historicoUnico.restricao}</li>)}
+                {historicoUnico.acaoPropostaIntermediario && (<li><strong>Ação Proposta:</strong> {historicoUnico.acaoPropostaIntermediario}</li>)}
+                {historicoUnico.responsavelIntermediario && (<li><strong>Responsável:</strong> {historicoUnico.responsavelIntermediario}</li>)}
+                {Array.isArray(historicoUnico.naturezaOcorrencia) && historicoUnico.naturezaOcorrencia.length > 0 && (
+                  <li><strong>Natureza:</strong> {historicoUnico.naturezaOcorrencia.join(', ')}</li>
+                )}
+              </ul>
+            ) : (
+              <p className="text-yellow-900 mt-1">
+                {comHistorico.length} aluno(s) com restrição no Intermediário — selecione individualmente para ver os dados.
+              </p>
+            )}
+          </div>
+        )}
+
         <div className="mx-20 overflow-y-auto flex-1">
+       
           <div className="flex flex-col mt-[15px] mb-[10px]"
           >
             <label>Justificativa (Somente Alunos Retidos):</label>
@@ -122,6 +165,14 @@ const ModalAvaliacao = ({
           </div>
 
           <div className="flex flex-col mt-[15px] mb-[10px]">
+            <label>Ação Proposta (Para Apreciação do Conselho Final):</label>
+            <input
+              type="text"
+              value={form.acaoProposta}
+              onChange={e => setCampo('acaoProposta', e.target.value)}
+              className="p-1 mt-2 py-2 rounded-[18px] border border-black pl-4" />
+          </div>
+          <div className="flex flex-col mt-[15px] mb-[10px]">
             <label>Informações Complementares:</label>
             <input
               type="text"
@@ -130,14 +181,7 @@ const ModalAvaliacao = ({
               className="p-1 mt-2 py-2 rounded-[18px] border border-black pl-4" />
           </div>
 
-          <div className="flex flex-col mt-[15px] mb-[10px]">
-            <label>Ação Proposta (Para Apreciação do Conselho Final):</label>
-            <input
-              type="text"
-              value={form.acaoProposta}
-              onChange={e => setCampo('acaoProposta', e.target.value)}
-              className="p-1 mt-2 py-2 rounded-[18px] border border-black pl-4" />
-          </div>
+        
 
           <div className="flex flex-col mt-[15px] mb-[10px]">
             <label>Responsável(*):</label>
@@ -145,8 +189,12 @@ const ModalAvaliacao = ({
               value={form.responsavel}
               onChange={e => setCampo('responsavel', e.target.value)}
               className="p-1 mt-[5px] py-2 rounded-[18px] border border-black">
-              <option>Assistente da Qualidade de Vida</option>
-              <option>Outro...</option>
+              <option value="" disabled hidden >Selecione</option>
+              <option value="aqv_coordenacao_docente">AQV, coordenação e docente</option>
+              <option value="aqv_coordenacao">AQV e coordenação</option>
+              <option value="docente_aqv">Docente e AQV</option>
+              <option value="docente_uc">Docente da U.C</option>
+              <option value="analista_qualidade_vida">Analista e Qualidade de Vida</option>
             </select>
             <label className="text-gray-500">(*) Todos os Docentes se for trabalho Conjunto.</label>
           </div>

@@ -11,6 +11,15 @@ import ModalAvaliacao from '../../components/modalAvaliacaoPreConselho/ModalAval
 
 const API = 'http://localhost:3001/api/conselho';
 
+// Calcula semestre/ano corrente (mês <= 6 => 1º semestre)
+const cicloAtual = () => {
+  const hoje = new Date();
+  return {
+    ano: hoje.getFullYear(),
+    semestre: hoje.getMonth() + 1 <= 6 ? 1 : 2
+  };
+};
+
 const cardInfo = "flex flex-col justify-between border rounded-[15px] h-[26vh] w-[12vw] shadow-[2px_2px_5px_rgba(0,0,0,0.5)]";
 const cardNum = "text-3xl italic";
 const cardText = "mt-10 ml-4 text-lg font-bold";
@@ -30,12 +39,16 @@ export function PreConselho() {
             const v = localStorage.getItem('preConselhoAtivo');
             return v ? Number(v) : null;
         });
-
+    
+    // Ciclo (semestre/ano) corrente — usado para reusar/abrir conselho no mesmo período
+    const ciclo = useState(cicloAtual)[0];
     const [alunos, setAlunos] = useState([]);
     const [alunosSelecionados, setAlunosSelecionados] = useState([]);
     const [carregando, setCarregando] = useState(false);
     const [carregandoConselho, setCarregandoConselho] = useState(false); 
-    const [alunosAvaliados, setAlunosAvaliados] = useState({});        
+    const [alunosAvaliados, setAlunosAvaliados] = useState({}); 
+     // Avaliações vindas do Conselho Intermediário do MESMO ciclo (histórico)
+    const [historicoIntermediario, setHistoricoIntermediario] = useState({});       
 
     // Estado que controla se o modal está aberto ou não
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -85,7 +98,7 @@ export function PreConselho() {
         if(!idTurma) return;
         setAlunosAvaliados({});
         setAlunosSelecionados([]);
-
+        setHistoricoIntermediario({});
         setCarregando(true);
         fetch(`http://localhost:3001/api/alunos/${idTurma}`)
             .then(res => res.json())
@@ -93,7 +106,36 @@ export function PreConselho() {
                 if (data.sucesso) setAlunos(data.alunos);
             })
             .finally(() => setCarregando(false));
-    }, [idTurma]);
+        // Busca histórico do Conselho Intermediário do MESMO ciclo (semestre+ano)
+        // Marca como "Restrito" no Pré-Conselho os alunos que já tiveram restrição no Intermediário.
+        fetch(`${API}/historico-intermediario/turma/${idTurma}?semestre=${ciclo.semestre}&ano=${ciclo.ano}`)
+            .then(res => res.json())
+            .then(data => {
+                if (!data?.sucesso) return;
+                const mapa = {};
+                (data.avaliacoes || []).forEach(a => {
+                    mapa[a.tblAluno_idtblAluno] = a;
+                });
+                setHistoricoIntermediario(mapa);
+            })
+            .catch(err => console.error('Erro ao buscar histórico do intermediário:', err));
+    }, [idTurma, ciclo.semestre, ciclo.ano]);
+
+    // 1b) Ao montar: se não há conselho em localStorage, busca um do ciclo atual.
+    useEffect(() => {
+        if (conselhoId || !idUsuario) return;
+        fetch(`${API}/ativo/${encodeURIComponent('Pré-Conselho')}/${idUsuario}?semestre=${ciclo.semestre}&ano=${ciclo.ano}`)
+            .then(r => r.json())
+            .then(d => {
+                if (d?.sucesso && d.conselho?.idConselho) {
+                    setConselhoId(d.conselho.idConselho);
+                    localStorage.setItem('preConselhoAtivo', String(d.conselho.idConselho));
+                }
+            })
+            .catch(err => console.error('Erro ao buscar pré-conselho ativo do ciclo:', err));
+    }, [conselhoId, idUsuario, ciclo.semestre, ciclo.ano]);
+
+
 
      // 2) Ao trocar de turma, se já existe conselho ativo, vincula a turma a ele
     useEffect(() => {
@@ -124,7 +166,9 @@ export function PreConselho() {
                 body: JSON.stringify({
                 tipoConselho: 'Pré-Conselho',
                 idTurma,
-                idUsuario
+                idUsuario,
+                semestre: ciclo.semestre,
+                ano: ciclo.ano
                 })
             });
             const dados = await resp.json();
@@ -193,7 +237,16 @@ export function PreConselho() {
         await recarregarConselho(conselhoId, idTurma);
     };
 
-    const totalRestritos = Object.keys(alunosAvaliados).length;
+    // const totalRestritos = Object.keys(alunosAvaliados).length;
+
+    // Aluno é considerado "restrito" no Pré-Conselho se já tem avaliação aqui
+    // OU se tinha avaliação no Conselho Intermediário do mesmo ciclo.
+    const idsRestritos = new Set([
+        ...Object.keys(alunosAvaliados),
+        ...Object.keys(historicoIntermediario)
+    ]);
+    const totalRestritos = idsRestritos.size;
+
 
   return (
       <section>
@@ -293,7 +346,8 @@ export function PreConselho() {
                 alunosSelecionados={alunosSelecionados.map(id => ({
                     id,
                     nome: alunos.find(a => a.idtblAluno === id)?.nome,
-                    avaliacaoExistente: alunosAvaliados[id] || null
+                    avaliacaoExistente: alunosAvaliados[id] || null,
+                    historicoIntermediario: historicoIntermediario[id] || null
                 }))}
                 onSaved={onSalvarAvaliacaoAlunos} />
                 </div>
@@ -327,7 +381,10 @@ export function PreConselho() {
                     <div className="p-5 w-[98.5%] bg-[#FEFEFE] border border-black rounded-[10px] box-border m-[10px] h-[50vh] overflow-y-auto overflow overflow-x-hidden pr-[5px] shadow-[0_0_2px_black]">
                             
                            {!carregando && alunos.map((aluno) => {
-                                const restrito = !!alunosAvaliados[aluno.idtblAluno];
+                                // const restrito = !!alunosAvaliados[aluno.idtblAluno];
+                                const restritoAtual       = !!alunosAvaliados[aluno.idtblAluno];
+                                const restritoHistorico   = !!historicoIntermediario[aluno.idtblAluno];
+                                const restrito            = restritoAtual;
                                 return (
                                 <div key={aluno.idtblAluno}>
                                     <div className="flex items-center justify-between">
@@ -350,7 +407,12 @@ export function PreConselho() {
                                     </button>
                                     </div>
                                     <div className="div_btn_restrito">
-                                    {restrito && (
+                                    {restritoHistorico && (
+                                        <button className="bg-gray-400 shadow-[inset_0_0_10px_rgba(0,0,0,0.5)] w-[150px] p-1 text-xl rounded-[20px] mr-4 active:scale-95">
+                                        Restrito (C.I)
+                                        </button>
+                                    )}
+                                    {restritoAtual && (
                                         <button className="bg-gray-400 shadow-[inset_0_0_10px_rgba(0,0,0,0.5)] w-[150px] p-1 text-xl rounded-[20px] mr-4 active:scale-95">
                                         Restrito
                                         </button>

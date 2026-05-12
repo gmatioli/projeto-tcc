@@ -12,6 +12,15 @@ import ModalAvaliacaoTurma from '../../components/modalAvaliacaoConselhoIntermed
 
 const API = 'http://localhost:3001/api/conselho';
 
+// Calcula semestre/ano corrente (mês <= 6 => 1º semestre)
+const cicloAtual = () => {
+  const hoje = new Date();
+  return {
+    ano: hoje.getFullYear(),
+    semestre: hoje.getMonth() + 1 <= 6 ? 1 : 2
+  };
+};
+
 const cardInfo = "flex flex-col justify-between  border rounded-[15px] h-auto w-[12vw] shadow-[2px_2px_5px_rgba(0,0,0,0.5)]";
 const cardNum = "text-3xl italic";
 const cardText = "mt-10 ml-4 text-lg font-bold";
@@ -41,6 +50,8 @@ export function ConselhoIntermediario() {
         return v ? Number(v) : null;
     });
 
+    // Ciclo (semestre/ano) corrente — usado para reusar/abrir conselho no mesmo período
+    const ciclo = useState(cicloAtual)[0];
     const [alunos, setAlunos] = useState([]);                          // lista de alunos da turma atual
     const [alunosSelecionados, setAlunosSelecionados] = useState([]);  // IDs marcados nos checkboxes
     const [carregando, setCarregando] = useState(false);               // loading da lista de alunos
@@ -136,6 +147,21 @@ export function ConselhoIntermediario() {
             .finally(() => setCarregando(false));
     }, [idTurma]);
 
+     // 1b) Ao montar: se não há conselho em localStorage, busca um do ciclo atual.
+    // Permite retomar/editar conselho finalizado do mesmo semestre (ex: aluno esquecido).
+    useEffect(() => {
+        if (conselhoId || !idUsuario) return;
+        fetch(`${API}/ativo/${encodeURIComponent('Intermediário')}/${idUsuario}?semestre=${ciclo.semestre}&ano=${ciclo.ano}`)
+            .then(r => r.json())
+            .then(d => {
+                if (d?.sucesso && d.conselho?.idConselho) {
+                    setConselhoId(d.conselho.idConselho);
+                    localStorage.setItem('conselhoIntermediarioAtivo', String(d.conselho.idConselho));
+                }
+            })
+            .catch(err => console.error('Erro ao buscar conselho ativo do ciclo:', err));
+    }, [conselhoId, idUsuario, ciclo.semestre, ciclo.ano]);
+
     // 2) Ao trocar de turma, se já existe conselho ativo, vincula a turma a ele
     useEffect(() => {
         if (!idTurma || !conselhoId) return;
@@ -168,7 +194,9 @@ export function ConselhoIntermediario() {
                 body: JSON.stringify({
                 tipoConselho: 'Intermediário',
                 idTurma,
-                idUsuario
+                idUsuario,
+                semestre: ciclo.semestre,
+                ano: ciclo.ano
                 })
             });
             const dados = await resp.json();
