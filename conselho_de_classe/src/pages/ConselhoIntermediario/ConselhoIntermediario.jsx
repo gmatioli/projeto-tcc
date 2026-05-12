@@ -16,11 +16,7 @@ const cardInfo = "flex flex-col justify-between  border rounded-[15px] h-auto w-
 const cardNum = "text-3xl italic";
 const cardText = "mt-10 ml-4 text-lg font-bold";
 const cardIcon = "flex items-end justify-end m-[0_15px_15px_0]";
-
-const semestreCliente = () => {
-    const d = new Date();
-    return { semestre: d.getMonth() + 1 <= 6 ? 1 : 2, ano: d.getFullYear() };
-};
+  
 
 export function ConselhoIntermediario() {
     const navigate = useNavigate();
@@ -29,13 +25,21 @@ export function ConselhoIntermediario() {
     const [searchParams] = useSearchParams();
     const idTurma = searchParams.get('turma');
     const nomeTurma = searchParams.get('nomeTurma');
-    const modo = searchParams.get('modo');
 
     // Usuário logado vindo do localStorage (para registrar quem iniciou)
     const usuario = JSON.parse(localStorage.getItem('usuarioLogado') || '{}');
     const idUsuario = usuario.idUsuario;
 
-    const [conselhoId, setConselhoId] = useState(null);
+    // =====================================================================
+    // ESTADOS
+    // =====================================================================
+    // conselhoId é restaurado do localStorage para persistir entre reloads.
+    // Se tiver valor => existe um conselho em andamento.
+    // Se for null   => nenhum conselho iniciado.
+    const [conselhoId, setConselhoId] = useState(() => {
+        const v = localStorage.getItem('conselhoIntermediarioAtivo');
+        return v ? Number(v) : null;
+    });
 
     const [alunos, setAlunos] = useState([]);                          // lista de alunos da turma atual
     const [alunosSelecionados, setAlunosSelecionados] = useState([]);  // IDs marcados nos checkboxes
@@ -117,28 +121,7 @@ export function ConselhoIntermediario() {
       }
     }, []);
 
-    // Sincroniza conselhoId com a turma da URL (chave de localStorage por turma).
-    useEffect(() => {
-        if (!idTurma) { setConselhoId(null); return; }
-        const key = `conselhoIntermediarioAtivo:${idTurma}`;
-        const raw = localStorage.getItem(key);
-        if (!raw) { setConselhoId(null); return; }
-        try {
-            const obj = JSON.parse(raw);
-            const atual = semestreCliente();
-            if (obj.semestre !== atual.semestre || obj.ano !== atual.ano) {
-                localStorage.removeItem(key);
-                setConselhoId(null);
-                return;
-            }
-            setConselhoId(obj.id);
-        } catch {
-            localStorage.removeItem(key);
-            setConselhoId(null);
-        }
-    }, [idTurma]);
-
-    // Carrega alunos da turma sempre que a turma muda.
+      // 1) Carrega alunos da turma sempre que a turma muda
     useEffect(() => {
         if(!idTurma) return;
         setAlunosAvaliados({});
@@ -153,11 +136,22 @@ export function ConselhoIntermediario() {
             .finally(() => setCarregando(false));
     }, [idTurma]);
 
-    // Recarrega avaliações do conselho ativo.
+    // 2) Ao trocar de turma, se já existe conselho ativo, vincula a turma a ele
     useEffect(() => {
-        if (!conselhoId || !idTurma) return;
-        recarregarConselho(conselhoId, idTurma);
-    }, [conselhoId, idTurma, recarregarConselho]);
+        if (!idTurma || !conselhoId) return;
+        fetch(`${API}/iniciar`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ idTurma, conselhoId })
+        })
+          .then(() => recarregarConselho(conselhoId, idTurma))
+          .then(avaliacao => {
+            if (!avaliacao) setIsModalTurmaOpen(true);  
+          })
+          .catch(err => console.error('Erro ao adicionar turma ao conselho:', err));
+        setAlunosSelecionados([]);
+
+    }, [idTurma, conselhoId, recarregarConselho]);
 
 
     // Iniciar / Finalizar conselho
@@ -180,18 +174,20 @@ export function ConselhoIntermediario() {
             const dados = await resp.json();
             if (!dados.sucesso) throw new Error(dados.mensagem);
             setConselhoId(dados.conselhoId);
-            localStorage.setItem(
-                `conselhoIntermediarioAtivo:${idTurma}`,
-                JSON.stringify({ id: dados.conselhoId, semestre: dados.semestre, ano: dados.ano })
-            );
-            await recarregarConselho(dados.conselhoId, idTurma);
+            localStorage.setItem('conselhoIntermediarioAtivo', String(dados.conselhoId));
+            const avaliacao = await recarregarConselho(dados.conselhoId, idTurma);
+
+            if (!avaliacao) {
+              setIsModalTurmaOpen(true); // auto-abre se ainda não tem avaliação da turma
+            }
+
         } catch (e) {
             console.error(e);
             alert('Erro ao iniciar conselho.');
         } finally {
             setCarregandoConselho(false);
         }
-    };
+    };  
 
     const handleFinalizarConselho = async () => {
         if (!conselhoId) return;
@@ -209,7 +205,7 @@ export function ConselhoIntermediario() {
 
 
             if (!dados.sucesso) throw new Error(dados.mensagem);
-            localStorage.removeItem(`conselhoIntermediarioAtivo:${idTurma}`);
+            localStorage.removeItem('conselhoIntermediarioAtivo');
             setConselhoId(null);
             setAvaliacaoTurma(null);
             setAlunosAvaliados({});
