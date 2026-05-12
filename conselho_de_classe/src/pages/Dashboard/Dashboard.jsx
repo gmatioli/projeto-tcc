@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useState, useEffect} from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Chart as ChartJS,
@@ -27,10 +27,6 @@ import situacaoNormalIcon from '../../assets/dashboard/situacao-normal-icon.svg'
 import restritosIcon from '../../assets/dashboard/restritos-icon.svg'
 import retidosIcon from '../../assets/dashboard/retidos-icon.svg'
 
-const intTotalAlunos = 20
-  const intSituacaoNormal = 16
-  const intRestritos = 4
-  const intRetidos = 0
   const intObservacoes = 3
 
   const cardInfo = "flex flex-col justify-between border rounded-[15px] h-[26vh] w-[12vw] shadow-[2px_2px_5px_rgba(0,0,0,0.5)]";
@@ -39,21 +35,44 @@ const intTotalAlunos = 20
   const cardIcon = "flex items-end justify-end m-[0_15px_15px_0]";
 
 export function Dashboard() {
+  const [TotalAlunos, setTotalAlunos] = useState(0)
+  const [TotalTurmas, setTotalTurmas] = useState(0)
+  const [totalSituacaoNormal, setTotalSituacaoNormal] = useState(0);
+  const [totalRestritos, setTotalRestritos] = useState(0);
+
+  useEffect(() => {
+    fetch('http://localhost:3001/api/dashboard/dados')
+        .then(resposta => resposta.json()) 
+        .then(json => {
+            if (json.sucesso) {
+                setTotalAlunos(json.dados.totalAlunos);
+                setTotalTurmas(json.dados.totalTurmas);
+                setTotalSituacaoNormal(json.dados.totalSituacaoNormal);
+                setTotalRestritos(json.dados.totalRestritos);
+
+            } else {
+                console.error("Erro do servidor:", json.mensagem);
+            }
+        })
+        .catch(erro => console.error("Erro de conexão:", erro));
+}, []);
+
+
   const navigate = useNavigate();
 
   // ==========================================
   // CONFIGURAÇÃO DO GRÁFICO 1: ROSCA (MOTIVOS)
   // ==========================================
-  const motivosData = {
-    labels: ['Aproveitamento', 'Comportamental', 'Frequência'],
+  const [motivosData, setMotivosData] = useState({
+    labels: [],
     datasets: [
       {
-        data: [50, 40, 10],
-        backgroundColor: ['#5b21b6', '#ea580c', '#06b6d4'],
+        data: [],
+        backgroundColor: ['#5b21b6', '#ea580c', '#06b6d4'], // Suas cores originais
         borderWidth: 0,
       },
     ],
-  };
+  });
 
   const motivosOptions = {
     responsive: true,
@@ -70,51 +89,87 @@ export function Dashboard() {
       },
     },
   };
+  
+  useEffect(() => {
+    fetch('http://localhost:3001/api/dashboard/dados')
+      .then(res => res.json())
+      .then(json => {
+        if (json.sucesso && json.dados.dadosGraficoRosca) {
+          const labelsBanco = json.dados.dadosGraficoRosca.map(item => item.natureza);
+          
+          const valoresBanco = json.dados.dadosGraficoRosca.map(item => parseInt(item.quantidade));
+  
+          setMotivosData({
+            labels: labelsBanco,
+            datasets: [
+              {
+                data: valoresBanco,
+                backgroundColor: ['#5b21b6', '#ea580c', '#06b6d4'],
+                borderWidth: 0,
+              },
+            ],
+          });
+        }
+      })
+      .catch(err => console.error("Erro ao carregar gráfico:", err));
+  }, []);
 
   // ==========================================
   // CONFIGURAÇÃO DO GRÁFICO 2: BARRAS HORIZONTAIS
   // ==========================================
-  const rankingData = {
-    labels: ['CPTMDS-04', 'TDS-02', 'MECA-04', 'SCANIAMECA-03', 'ELET-04', 'ENELELET-02', 'AUTO-01'],
-    datasets: [
-      {
-        data: [13, 19, 9, 17, 3, 12, 8],
-        backgroundColor: (context) => {
-          const value = context.raw; // Pegando o valor atual no React
-          if (value > 15) return '#7c3aed'; // Crítico
-          if (value >= 10) return '#f97316'; // Alto
-          if (value >= 7) return '#2dd4bf'; // Médio
-          return '#4ade80';                 // Normal
-        },
-        barThickness: 16,
-        borderRadius: 3,
-      },
-    ],
-  };
+  const [rankingData, setRankingData] = useState({
+    labels: [],
+    datasets: [{ data: [], backgroundColor: [] }]
+  });
 
+  // Opções para o gráfico ficar deitado e bonito
   const rankingOptions = {
-    indexAxis: 'y', // Inverte para barra horizontal
+    indexAxis: 'y', // Isso faz as barras ficarem horizontais!
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
-      legend: { display: false },
-    },
-    scales: {
-      x: {
-        max: 20,
-        grid: {
-          drawBorder: false,
-          color: '#e5e7eb',
-          borderDash: [5, 5],
-        },
-        ticks: { font: { size: 11, family: 'Inter, ui-sans-serif, system-ui' } },
-      },
-      y: {
-        grid: { display: false },
-        ticks: { font: { size: 11, family: 'Inter, ui-sans-serif, system-ui' } },
-      },
-    },
+      legend: { display: false } // Escondemos a legenda padrão do topo
+    }
   };
+
+  useEffect(() => {
+    fetch('http://localhost:3001/api/dashboard/dados')
+      .then((res) => res.json())
+      .then((json) => {
+        if (json.sucesso) {
+          // ... o seu código do gráfico de pizza continua aqui ...
+
+          // 3. Alimentando o gráfico de Ranking
+          if (json.dados.rankingTurmas) {
+            const turmasBanco = json.dados.rankingTurmas.map(item => item.turma);
+            const quantidadesBanco = json.dados.rankingTurmas.map(item => parseInt(item.quantidade_restritos));
+
+            const coresDinamicas = json.dados.rankingTurmas.map(item => {
+              const qtdRestritos = parseInt(item.quantidade_restritos) || 0;
+              const totalAlunos = parseInt(item.total_alunos) || 1; 
+              
+              const porcentagem = (qtdRestritos / totalAlunos) * 100;
+
+              if (porcentagem > 50) return '#8b5cf6'; 
+              if (porcentagem >= 25) return '#f97316'; 
+              if (porcentagem >= 10) return '#2dd4bf'; 
+              return '#4ade80';                        
+          });
+
+            setRankingData({
+              labels: turmasBanco,
+              datasets: [{
+                label: 'Alunos com restrição',
+                data: quantidadesBanco,
+                backgroundColor: coresDinamicas,
+                borderRadius: 4, // Deixa a ponta da barra levemente arredondada
+              }]
+            });
+          }
+        }
+      })
+      .catch((err) => console.error("Erro:", err));
+  }, []);
   
   return (
     <section className="flex flex-col pb-10">
@@ -135,7 +190,7 @@ export function Dashboard() {
           <div className="flex justify-between gap-4">
             <div className={`${cardInfo} bg-gray-150 border border-black`}>
               <div className={`${cardText}`}>
-                <h3 className={`${cardNum} text-2xl`}>{intTotalAlunos}</h3>
+                <h3 className={`${cardNum} text-2xl`}>{TotalAlunos}</h3>
                 <p className="text_total_alunos">Total de Alunos</p>
               </div>
               <div className={`${cardIcon}`}>
@@ -144,7 +199,7 @@ export function Dashboard() {
             </div>
             <div className={`${cardInfo} bg-gray-150 border border-[#888]`}>
               <div className={`${cardText}`}>
-                <h3 className={`${cardNum}`}>{intTotalAlunos}</h3>
+                <h3 className={`${cardNum}`}>{TotalTurmas}</h3>
                 <p className="text_total_alunos">Turmas Ativas</p>
               </div>
               <div className={`${cardIcon}`}>
@@ -153,7 +208,7 @@ export function Dashboard() {
             </div>
             <div className={`${cardInfo} bg-green-50 border-green-600`}>
               <div className={`${cardText} text-green-600`}>
-                <h3 className={`${cardNum}`}>{intSituacaoNormal}</h3>
+                <h3 className={`${cardNum}`}>{totalSituacaoNormal}</h3>
                 <p className="text_situacao_normal">Situação Normal</p>
               </div>
               <div className={`${cardIcon}`}>
@@ -162,8 +217,8 @@ export function Dashboard() {
             </div>
             <div className={`${cardInfo} bg-yellow-50 border border-yellow-600`}>
               <div className={`${cardText} text-yellow-600`}>
-                <h3 className={`${cardNum}`}>{intRestritos}</h3>
-                <p className="text_restritos">Total Observações</p>
+                <h3 className={`${cardNum}`}>{intObservacoes}</h3>
+                <p className="text_restritos">Total Observações (Quando estiver no banco de dados)</p>
               </div>
               <div className={`${cardIcon}`}>
                 <img src={restritosIcon} alt="" className="w-10" />
@@ -171,7 +226,7 @@ export function Dashboard() {
             </div>
             <div className={`${cardInfo} bg-red-50 border border-red-600`}>
               <div className={`${cardText} text-red-600`}>
-                <h3 className={`${cardNum}`}>{intRetidos}</h3>
+                <h3 className={`${cardNum}`}>{totalRestritos}</h3>
                 <p className="text_retidos">Alunos Restritos</p>
               </div>
               <div className={`${cardIcon}`}>
@@ -186,7 +241,11 @@ export function Dashboard() {
           
           {/* 1. Gráfico de Rosca (Aproveitamento) */}
           <div className="bg-white border border-black rounded-xl p-6 shadow-[0_0_2px_black] w-2/5 flex flex-col justify-center items-center min-h-[300px]">
+          {motivosData?.labels?.length > 0 ? ( // <-- ADICIONAMOS AS INTERROGAÇÕES AQUI
             <Doughnut data={motivosData} options={motivosOptions} />
+          ) : (
+            <p className="text-gray-500">Carregando dados do gráfico...</p>
+          )}
           </div>
 
           {/* 2. Gráfico de Barras (Ranking Turmas) */}
@@ -209,10 +268,10 @@ export function Dashboard() {
 
             {/* Legenda Customizada */}
             <div className="flex flex-wrap justify-center gap-4 text-[11px] text-gray-600 mt-6 font-medium">
-              <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-[3px] bg-[#7c3aed]"></div> {'>'}15% Crítico</div>
-              <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-[3px] bg-[#f97316]"></div> 10-14% Alto</div>
-              <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-[3px] bg-[#2dd4bf]"></div> 7-9% Médio</div>
-              <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-[3px] bg-[#4ade80]"></div> {'<'}7% Normal</div>
+              <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-[3px] bg-[#7c3aed]"></div> {'>'}50% Crítico</div>
+              <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-[3px] bg-[#f97316]"></div> 25%-49% Alto</div>
+              <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-[3px] bg-[#2dd4bf]"></div> 10%-24% Médio</div>
+              <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-[3px] bg-[#4ade80]"></div> {'<'}9% Normal</div>
             </div>
 
           </div>
