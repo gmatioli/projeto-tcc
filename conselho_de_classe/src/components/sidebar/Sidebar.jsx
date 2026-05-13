@@ -146,6 +146,7 @@ function FormConselhoFinal({ rotaDestino, onFechar }) {
     setCursoSelecionado(e.target.value);
   };
 
+
   const handlePesquisar = () => {
     navigate(`${rotaDestino}?area=${encodeURIComponent(areaSelecionada)}&curso=${encodeURIComponent(cursoSelecionado)}&modo=pesquisa`);
     onFechar();
@@ -195,11 +196,7 @@ function FormConselhoFinal({ rotaDestino, onFechar }) {
           Pesquisar
         </button>
       </div>
-      <button onClick={handleIniciarConselho} disabled={formIncompleto}
-        className={`flex-1 p-[10px] rounded-[5px] text-lg font-semibold transition-all
-          ${formIncompleto ? 'opacity-50 cursor-not-allowed bg-gray-400 text-gray-200' : 'bg-[var(--button-selected)] text-white cursor-pointer hover:brightness-90'}`}>
-        Iniciar Conselho
-      </button>
+      
     </div>
   );
 }

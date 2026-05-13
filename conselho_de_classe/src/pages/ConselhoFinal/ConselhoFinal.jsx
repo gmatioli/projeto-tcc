@@ -192,7 +192,7 @@ const ConselhoFinal = () => {
         </div>
         
         {/* Botões de Ação (Extrema Direita) */}
-        <div className="flex flex-col justify-center gap-[15px] w-[150px] shrink-0 h-[180px] ">
+        <div className="flex flex-col justify-center gap-[15px] w-[150px] shrink-0 h-[110px] ">
           <button 
             onClick={handleAvaliarTurma}
             disabled={!turmaSelecionada || carregando}
@@ -211,7 +211,7 @@ const ConselhoFinal = () => {
       </section>
 
       {/* SEÇÃO INFERIOR: ALUNOS GERAL - RENDERIZADO CONDICIONALMENTE */}
-      {mostrarTabelaAlunos && (
+      {mostrarTabelaAlunos && ( 
       <section className='h-[64vh] overflow-y-auto'>
         <table className="w-full border-collapse bg-white text-sm">
           <thead>
