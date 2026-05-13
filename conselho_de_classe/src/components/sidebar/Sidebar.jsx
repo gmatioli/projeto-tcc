@@ -63,10 +63,10 @@ function FormFiltros({ rotaDestino, onFechar }) {
   };
 
   return (
-    <div className="flex flex-col gap-[12px] border-l-[2px] border-[#df3535] pl-[15px] ml-[5px] mb-[10px]">
+    <div className="flex flex-col gap-[12px] border-l-[2px] border-[var(--button-selected)] pl-[15px] ml-[5px] mb-[10px]">
       <div className="flex flex-col text-left gap-[5px]">
         <label className="text-xl font-medium text-[#333]">Tipo de Curso:</label>
-        <select className="p-[8px] rounded-[5px] border border-[#ccc] bg-white text-lg outline-none focus:border-[#df3535]"
+        <select className="p-[8px] rounded-[5px] border border-[#ccc] bg-white text-lg outline-none focus:border-[var(--button-selected)]"
           value={tipoSelecionado}
           onChange={handleMudarTipo}
         >
@@ -79,7 +79,7 @@ function FormFiltros({ rotaDestino, onFechar }) {
 
       <div className="flex flex-col text-left gap-[5px]">
         <label className="text-xl font-medium text-[#333]">Curso:</label>
-        <select className="p-[8px] rounded-[5px] border border-[#ccc] bg-white text-lg outline-none focus:border-[#df3535]"
+        <select className="p-[8px] rounded-[5px] border border-[#ccc] bg-white text-lg outline-none focus:border-[var(--button-selected)]"
           value={cursoSelecionado}
           onChange={handleMudarCurso}
           disabled={!tipoSelecionado}
@@ -93,7 +93,7 @@ function FormFiltros({ rotaDestino, onFechar }) {
 
       <div className="flex flex-col text-left gap-[5px]">
         <label className="text-xl font-medium text-[#333]">Turma:</label>
-        <select className="p-[8px] rounded-[5px] border border-[#ccc] bg-white text-lg outline-none focus:border-[#df3535]"
+        <select className="p-[8px] rounded-[5px] border border-[#ccc] bg-white text-lg outline-none focus:border-[var(--button-selected)]"
           value={turmaSelecionada}
           onChange={(e) => setTurmaSelecionada(e.target.value)}
           disabled={!cursoSelecionado}
@@ -106,14 +106,14 @@ function FormFiltros({ rotaDestino, onFechar }) {
       </div>
 
       <div className="flex gap-[10px] mt-[5px]">
-        <button onClick={handleLimparFiltro} className="flex-1 p-[10px] bg-[#ea4335] text-white rounded-[5px] text-lg font-semibold hover:brightness-90 transition-all">
+        <button onClick={handleLimparFiltro} className="flex-1 p-[10px] bg-[var(--button-selected)] text-white rounded-[5px] text-lg font-semibold hover:brightness-90 transition-all">
           Limpar ⟲
         </button>
         <button
           onClick={handlePesquisar}
           disabled={formIncompleto}
           className={`flex-1 p-[10px] rounded-[5px] text-lg font-semibold transition-all
-            ${formIncompleto ? 'opacity-50 cursor-not-allowed bg-gray-400 text-gray-200' : 'bg-[#ea4335] text-white cursor-pointer hover:brightness-90'}`}>
+            ${formIncompleto ? 'opacity-50 cursor-not-allowed bg-gray-400 text-gray-200' : 'bg-[var(--button-selected)] text-white cursor-pointer hover:brightness-90'}`}>
           Pesquisar
         </button>
       </div>
@@ -169,10 +169,10 @@ function FormConselhoFinal({ rotaDestino, onFechar }) {
   };
 
   return (
-    <div className="flex flex-col gap-[12px] border-l-[2px] border-[#df3535] pl-[15px] ml-[5px] mb-[10px]">
+    <div className="flex flex-col gap-[12px] border-l-[2px] border-[var(--button-selected)] pl-[15px] ml-[5px] mb-[10px]">
       <div className="flex flex-col text-left gap-[5px]">
         <label className="text-xl font-medium text-[#333]">Área curso:</label>
-        <select className="p-[8px] rounded-[5px] border border-[#ccc] bg-white text-lg outline-none focus:border-[#df3535]"
+        <select className="p-[8px] rounded-[5px] border border-[#ccc] bg-white text-lg outline-none focus:border-[var(--button-selected)]"
           value={areaSelecionada}
           onChange={handleMudarArea}
         >
@@ -185,7 +185,7 @@ function FormConselhoFinal({ rotaDestino, onFechar }) {
 
       <div className="flex flex-col text-left gap-[5px]">
         <label className="text-xl font-medium text-[#333]">Curso:</label>
-        <select className="p-[8px] rounded-[5px] border border-[#ccc] bg-white text-lg outline-none focus:border-[#df3535]"
+        <select className="p-[8px] rounded-[5px] border border-[#ccc] bg-white text-lg outline-none focus:border-[var(--button-selected)]"
           value={cursoSelecionado}
           onChange={handleMudarCurso}
           disabled={!areaSelecionada}
@@ -198,18 +198,18 @@ function FormConselhoFinal({ rotaDestino, onFechar }) {
       </div>
 
       <div className="flex gap-[10px] mt-[5px]">
-        <button onClick={handleLimparFiltro} className="flex-1 p-[10px] bg-[#ea4335] text-white rounded-[5px] text-lg font-semibold hover:brightness-90 transition-all">
+        <button onClick={handleLimparFiltro} className="flex-1 p-[10px] bg-[var(--button-selected)] text-white rounded-[5px] text-lg font-semibold hover:brightness-90 transition-all">
           Limpar ⟲
         </button>
         <button onClick={handlePesquisar} disabled={formIncompleto}
           className={`flex-1 p-[10px] rounded-[5px] text-lg font-semibold transition-all
-            ${formIncompleto ? 'opacity-50 cursor-not-allowed bg-gray-400 text-gray-200' : 'bg-[#ea4335] text-white cursor-pointer hover:brightness-90'}`}>
+            ${formIncompleto ? 'opacity-50 cursor-not-allowed bg-gray-400 text-gray-200' : 'bg-[var(--button-selected)] text-white cursor-pointer hover:brightness-90'}`}>
           Pesquisar
         </button>
       </div>
       <button onClick={handleIniciarConselho} disabled={formIncompleto}
         className={`flex-1 p-[10px] rounded-[5px] text-lg font-semibold transition-all
-          ${formIncompleto ? 'opacity-50 cursor-not-allowed bg-gray-400 text-gray-200' : 'bg-[#ea4335] text-white cursor-pointer hover:brightness-90'}`}>
+          ${formIncompleto ? 'opacity-50 cursor-not-allowed bg-gray-400 text-gray-200' : 'bg-[var(--button-selected)] text-white cursor-pointer hover:brightness-90'}`}>
         Iniciar Conselho
       </button>
     </div>
@@ -270,25 +270,25 @@ export function Sidebar() {
 
   return (
     <section className="h-[calc(100vh-8vh)]">
-      <div className="bg-[var(--sidebar_bg)] w-[20vw] h-full flex flex-col border-r border-[#ccc] overflow-hidden">
+      <div className="bg-gray-200 w-[20vw] h-full flex flex-col border-r border-[#ccc] overflow-hidden">
 
         <div className="flex-1 overflow-y-auto pt-6 px-4 pb-4 custom-scrollbar">
 
           <button
             onClick={() => handleClick('/dashboard', 'dashboard')}
-            className={`flex items-center justify-center gap-4 w-full h-[10vh] px-10 mx-auto mt-0 bg-[var(--button_bg)] rounded-[10px] font-bold border border-black text-[26px] shadow-[0px_3px_3px_rgb(117,117,117)] cursor-pointer transition-all ${
-              botaoSelecionado === 'dashboard' ? 'bg-[#df3535] text-white' : ''
+            className={`flex items-center justify-center gap-4 w-full h-[10vh] px-10 mx-auto mt-0 bg-gray-100 rounded-[10px] font-bold border border-black text-[26px] shadow-[0px_3px_7px_rgb(117,117,117)] cursor-pointer transition-all ${
+              botaoSelecionado === 'dashboard' ? 'bg-[var(--button-selected)] text-white' : ''
             }`}>
             <img src={dashboardIcon} className={`w-6 h-6 ${botaoSelecionado === 'dashboard' ? 'brightness-0 invert' : 'brightness-0'}`} alt="Dashboard" />
-            <p className="flex-1 text-center">Dashboard</p>
+            <p className="flex-1 text-center ">Dashboard</p>
             <img src={arrowRightIcon} className={`w-6 h-6 ${botaoSelecionado === 'dashboard' ? 'brightness-0 invert' : 'brightness-0'}`} alt="Seta" />
           </button>
 
           {/* CONSELHOS */}
           <button
             onClick={toggleMenuConselho}
-            className={`flex items-center justify-center gap-4 w-full h-[10vh] px-10 mx-auto mt-4 bg-[var(--button_bg)] rounded-[10px] font-bold border border-black text-[26px] shadow-[0px_3px_3px_rgb(117,117,117)] cursor-pointer transition-all ${
-              botaoSelecionado === 'conselhos' || menuConselhoAberto ? 'bg-[#df3535] text-white' : ''
+            className={`flex items-center justify-center gap-4 w-full h-[10vh] px-10 mx-auto mt-4 bg-gray-100 rounded-[10px] font-bold border border-black text-[26px] shadow-[0px_3px_7px_rgb(117,117,117)] cursor-pointer transition-all ${
+              botaoSelecionado === 'conselhos' || menuConselhoAberto ? 'bg-[var(--button-selected)] text-white' : ''
             }`}>
             <img src={councilIcon} className={`w-7 h-7 ${botaoSelecionado === 'conselhos' || menuConselhoAberto ? 'brightness-0 invert' : 'brightness-0'}`} alt="Conselhos" />
             <p className="flex-1 text-center">Conselhos</p>
@@ -304,8 +304,8 @@ export function Sidebar() {
             <div className="flex flex-col w-full mx-auto mt-[10px] gap-2">
               <button
                 onClick={() => toggleAba('intermediario')}
-                className={`w-full py-3 px-2 rounded-[8px] border border-gray-500 text-xl font-medium transition-all text-center whitespace-nowrap ${
-                  abaAberta === 'intermediario' ? 'bg-[#df3535] text-white border border-gray-500 shadow-md' : 'bg-[#d9d9d9] border-[#ccc] hover:bg-gray-300'
+                className={`w-full py-3 px-2 rounded-[8px] border border-gray-500 text-xl font-medium transition-all shadow-lg text-center whitespace-nowrap ${
+                  abaAberta === 'intermediario' ? 'bg-[var(--button-selected)] text-white border border-gray-500 shadow-xl' : 'bg-gray-100 border-[#ccc] hover:bg-gray-300'
                 }`}>
                 Conselho Intermediário
               </button>
@@ -313,8 +313,8 @@ export function Sidebar() {
 
               <button
                 onClick={() => toggleAba('pre')}
-                className={`w-full py-3 px-4 rounded-[8px] border border-gray-500 text-xl font-medium transition-all text-center whitespace-nowrap ${
-                  abaAberta === 'pre' ? 'bg-[#df3535] text-white border border-gray-500 shadow-md' : 'bg-[#d9d9d9] border-[#ccc] hover:bg-gray-300'
+                className={`w-full py-3 px-4 rounded-[8px] border border-gray-500 text-xl font-medium transition-all shadow-lg text-center whitespace-nowrap ${
+                  abaAberta === 'pre' ? 'bg-[var(--button-selected)] text-white border border-gray-500 shadow-lg' : 'bg-gray-100 border-[#ccc] hover:bg-gray-300'
                 }`}>
                 Pré-Conselho
               </button>
@@ -322,8 +322,8 @@ export function Sidebar() {
 
               <button
                 onClick={() => toggleAba('final')}
-                className={`w-full py-3 px-4 rounded-[8px] border border-gray-500 text-xl font-medium transition-all text-center whitespace-nowrap ${
-                  abaAberta === 'final' ? 'bg-[#df3535] text-white border border-gray-500 shadow-md' : 'bg-[#d9d9d9] border-[#ccc] hover:bg-gray-300'
+                className={`w-full py-3 px-4 rounded-[8px] border border-gray-500 text-xl font-medium transition-all shadow-lg text-center whitespace-nowrap ${
+                  abaAberta === 'final' ? 'bg-[var(--button-selected)] text-white border border-gray-500 shadow-lg' : 'bg-gray-100 border-[#ccc] hover:bg-gray-300'
                 }`}>
                 Conselho Final
               </button>
@@ -334,8 +334,8 @@ export function Sidebar() {
           {/* RELATÓRIOS */}
           <button
             onClick={toggleMenuRelatorio}
-            className={`flex items-center justify-center gap-4 w-full h-[10vh] px-10 mx-auto mt-4 bg-[var(--button_bg)] rounded-[10px] border border-black font-bold text-[26px] shadow-[0px_3px_3px_rgb(117,117,117)] cursor-pointer transition-all ${
-              botaoSelecionado === 'relatorios' || menuRelatorioAberto ? 'bg-[#df3535] text-white' : ''
+            className={`flex items-center justify-center gap-4 w-full h-[10vh] px-10 mx-auto mt-4 bg-gray-100 rounded-[10px] border border-black font-bold text-[26px] shadow-[0px_3px_7px_rgb(117,117,117)] cursor-pointer transition-all ${
+              botaoSelecionado === 'relatorios' || menuRelatorioAberto ? 'bg-[var(--button-selected)] text-white' : ''
             }`}>
             <img src={reportIcon} className={`w-7 h-7 ${botaoSelecionado === 'relatorios' || menuRelatorioAberto ? 'brightness-0 invert' : 'brightness-0'}`} alt="Relatórios" />
             <p className="flex-1 text-center">Relatórios</p>
@@ -351,24 +351,24 @@ export function Sidebar() {
             <div className="flex flex-col w-full mx-auto mt-[10px] gap-2">
               <button
                 onClick={() => navigate('/relatorios/ata')}
-                className={`w-full py-3 px-4 rounded-[8px] border border-gray-500 text-lg font-medium transition-all text-center whitespace-nowrap ${
-                  location.pathname === '/relatorios/ata' ? 'bg-[#df3535] text-white border border-black shadow-md' : 'bg-[#d9d9d9] border-[#ccc] hover:bg-gray-300'
+                className={`w-full py-3 px-4 rounded-[8px] border border-gray-500 text-lg font-medium transition-all shadow-lg text-center whitespace-nowrap ${
+                  location.pathname === '/relatorios/ata' ? 'bg-[var(--button-selected)] text-white border border-black shadow-lg' : 'bg-gray-100 border-[#ccc] hover:bg-gray-300'
                 }`}>
                 Gerar Ata
               </button>
 
               <button
                 onClick={() => navigate('/relatorios/relatorio')}
-                className={`w-full py-3 px-4 rounded-[8px] border border-gray-500 text-lg font-medium transition-all text-center whitespace-nowrap ${
-                  location.pathname === '/relatorios/relatorio' ? 'bg-[#df3535] text-white border border-black shadow-md' : 'bg-[#d9d9d9] border-[#ccc] hover:bg-gray-300'
+                className={`w-full py-3 px-4 rounded-[8px] border border-gray-500 text-lg font-medium transition-all shadow-lg text-center whitespace-nowrap ${
+                  location.pathname === '/relatorios/relatorio' ? 'bg-[var(--button-selected)] text-white border border-black shadow-lg' : 'bg-gray-100 border-[#ccc] hover:bg-gray-300'
                 }`}>
                 Gerar Relatório
               </button>
 
               <button
                 onClick={() => navigate('/relatorios/termo')}
-                className={`w-full py-3 px-4 rounded-[8px] border border-gray-500 text-lg font-medium transition-all text-center whitespace-nowrap ${
-                  location.pathname === '/relatorios/termo' ? 'bg-[#df3535] text-white border border-black shadow-md' : 'bg-[#d9d9d9] border-[#ccc] hover:bg-gray-300'
+                className={`w-full py-3 px-4 rounded-[8px] border border-gray-500 text-lg font-medium transition-all shadow-lg text-center whitespace-nowrap ${
+                  location.pathname === '/relatorios/termo' ? 'bg-[var(--button-selected)] text-white border border-black shadow-lg' : 'bg-gray-100 border-[#ccc] hover:bg-gray-300'
                 }`}>
                 Gerar Termo de Ciência
               </button>
@@ -380,8 +380,8 @@ export function Sidebar() {
         <div className="w-full flex justify-center border-t border-[#ccc]">
           <button
             onClick={() => handleClick('/configuracoes', 'configuracoes')}
-            className={`flex items-center justify-center w-full h-[70px] px-[20px] bg-[var(--button_bg)] border shadow-[0px_-1px_5px_rgb(150,150,150)] font-bold text-[26px] cursor-pointer transition-all gap-[15px] ${
-              botaoSelecionado === 'configuracoes' ? 'bg-[#df3535] text-white border border-[#df3535]' : ''
+            className={`flex items-center justify-center w-full h-[70px] px-[20px] bg-gray-100 border shadow-[0px_-3px_7px_rgb(150,150,150)] font-bold text-[26px] cursor-pointer transition-all gap-[15px] ${
+              botaoSelecionado === 'configuracoes' ? 'bg-[var(--button-selected)] text-white border border-[var(--button-selected)]' : ''
             }`}>
             <img
               src={configIcon}

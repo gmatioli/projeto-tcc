@@ -49,9 +49,9 @@ export function Header() {
     }, [navigate]);
 
   return (
-      <header className='h-[8vh] bg-red-900 flex justify-between items-center'>
+      <header className='h-[8vh] bg-[#b91d32] flex justify-between items-center'>
         <div className="ml-7">
-          <img onClick={() => navigate('/docente/home')}  src="/img/logo-senai.png" alt="Logo da instituição SENAI" className='w-40 h-11 ml-10 cursor-pointer opacity-90' />
+          <img onClick={() => navigate('/docente/home')}  src="/img/logo-senai-branco.png" alt="Logo da instituição SENAI" className='w-40 h-11 ml-10 cursor-pointer opacity-100' />
         </div>
         <div className="justify-center">
             <h1 className='text-white font-bold text-4xl'>Conselhos de Classes</h1>
