@@ -49,6 +49,8 @@ export function ConselhoIntermediario() {
         const v = localStorage.getItem('conselhoIntermediarioAtivo');
         return v ? Number(v) : null;
     });
+    const [conselhoVerificado, setConselhoVerificado] = useState(false);
+    const [turmaVinculadaAoConselho, setTurmaVinculadaAoConselho] = useState(false);
 
     // Ciclo (semestre/ano) corrente — usado para reusar/abrir conselho no mesmo período
     const ciclo = useState(cicloAtual)[0];
@@ -132,6 +134,22 @@ export function ConselhoIntermediario() {
       }
     }, []);
 
+    const turmaEstaVinculadaAoConselho = useCallback(async (cid, tid) => {
+      if (!cid || !tid) return false;
+      try {
+        const resp = await fetch(`${API}/${cid}`);
+        const data = await resp.json();
+        return (
+          data?.sucesso &&
+          Array.isArray(data.conselho?.turmas) &&
+          data.conselho.turmas.some(t => String(t.idTurma) === String(tid))
+        );
+      } catch (e) {
+        console.error('Erro ao verificar se a turma pertence ao conselho:', e);
+        return false;
+      }
+    }, []);
+
       // 1) Carrega alunos da turma sempre que a turma muda
     useEffect(() => {
         if(!idTurma) return;
@@ -147,37 +165,75 @@ export function ConselhoIntermediario() {
             .finally(() => setCarregando(false));
     }, [idTurma]);
 
-     // 1b) Ao montar: se não há conselho em localStorage, busca um do ciclo atual.
-    // Permite retomar/editar conselho finalizado do mesmo semestre (ex: aluno esquecido).
+     // 1b) Ao montar: se já existe conselho do ciclo, restaura apenas se
+    // a turma atual pertencer a ele. Isso evita abrir o modal por causa de
+    // um conselho de outra turma no mesmo semestre.
     useEffect(() => {
-        if (conselhoId || !idUsuario) return;
-        fetch(`${API}/ativo/${encodeURIComponent('Intermediário')}/${idUsuario}?semestre=${ciclo.semestre}&ano=${ciclo.ano}`)
-            .then(r => r.json())
-            .then(d => {
-                if (d?.sucesso && d.conselho?.idConselho) {
-                    setConselhoId(d.conselho.idConselho);
-                    localStorage.setItem('conselhoIntermediarioAtivo', String(d.conselho.idConselho));
+        if (conselhoVerificado || !idUsuario || !idTurma) return;
+
+        const validarConselhoExistente = async () => {
+            try {
+                const storedId = localStorage.getItem('conselhoIntermediarioAtivo');
+                const idArmazenado = storedId ? Number(storedId) : null;
+
+                if (idArmazenado) {
+                    const vinculada = await turmaEstaVinculadaAoConselho(idArmazenado, idTurma);
+                    if (vinculada) {
+                        setConselhoId(idArmazenado);
+                        setTurmaVinculadaAoConselho(true);
+                        const avaliacao = await recarregarConselho(idArmazenado, idTurma);
+                        if (!avaliacao) setIsModalTurmaOpen(true);
+                        setConselhoVerificado(true);
+                        return;
+                    }
+
+                    localStorage.removeItem('conselhoIntermediarioAtivo');
+                    if (conselhoId === idArmazenado) setConselhoId(null);
                 }
-            })
-            .catch(err => console.error('Erro ao buscar conselho ativo do ciclo:', err));
-    }, [conselhoId, idUsuario, ciclo.semestre, ciclo.ano]);
+
+                const resposta = await fetch(`${API}/ativo/${encodeURIComponent('Intermediário')}/${idUsuario}?semestre=${ciclo.semestre}&ano=${ciclo.ano}`);
+                const dados = await resposta.json();
+
+                if (dados?.sucesso && dados.conselho?.idConselho) {
+                    const cid = dados.conselho.idConselho;
+                    const vinculada = await turmaEstaVinculadaAoConselho(cid, idTurma);
+                    if (vinculada) {
+                        setConselhoId(cid);
+                        localStorage.setItem('conselhoIntermediarioAtivo', String(cid));
+                        setTurmaVinculadaAoConselho(true);
+                        const avaliacao = await recarregarConselho(cid, idTurma);
+                        if (!avaliacao) setIsModalTurmaOpen(true);
+                    }
+                }
+            } catch (err) {
+                console.error('Erro ao validar conselho existente:', err);
+            } finally {
+                setConselhoVerificado(true);
+            }
+        };
+
+        validarConselhoExistente();
+    }, [conselhoVerificado, conselhoId, idUsuario, idTurma, ciclo.semestre, ciclo.ano, recarregarConselho, turmaEstaVinculadaAoConselho]);
 
     // 2) Ao trocar de turma, se já existe conselho ativo, vincula a turma a ele
     useEffect(() => {
-        if (!idTurma || !conselhoId) return;
+        if (!idTurma || !conselhoId || !conselhoVerificado || turmaVinculadaAoConselho) return;
         fetch(`${API}/iniciar`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ idTurma, conselhoId })
         })
-          .then(() => recarregarConselho(conselhoId, idTurma))
+          .then(() => {
+            setTurmaVinculadaAoConselho(true);
+            return recarregarConselho(conselhoId, idTurma);
+          })
           .then(avaliacao => {
             if (!avaliacao) setIsModalTurmaOpen(true);  
           })
           .catch(err => console.error('Erro ao adicionar turma ao conselho:', err));
         setAlunosSelecionados([]);
 
-    }, [idTurma, conselhoId, recarregarConselho]);
+    }, [idTurma, conselhoId, recarregarConselho, conselhoVerificado, turmaVinculadaAoConselho]);
 
 
     // Iniciar / Finalizar conselho
@@ -202,6 +258,8 @@ export function ConselhoIntermediario() {
             const dados = await resp.json();
             if (!dados.sucesso) throw new Error(dados.mensagem);
             setConselhoId(dados.conselhoId);
+            setConselhoVerificado(true);
+            setTurmaVinculadaAoConselho(true);
             localStorage.setItem('conselhoIntermediarioAtivo', String(dados.conselhoId));
             const avaliacao = await recarregarConselho(dados.conselhoId, idTurma);
 

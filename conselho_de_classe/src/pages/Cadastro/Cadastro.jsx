@@ -99,6 +99,7 @@ export function Cadastro() {
 
       if (dados.sucesso) {
         setMensagemSucesso('Cadastro realizado com sucesso!')
+        handleLimparFiltro();
         setTimeout(() => {
         setMensagemSucesso('')
 
@@ -263,8 +264,6 @@ export function Cadastro() {
                 
                 Cadastrar
               </button>
-              handleLimparFiltro
-
             </div>
 
           </form>
