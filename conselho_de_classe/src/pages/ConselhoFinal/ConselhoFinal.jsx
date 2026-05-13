@@ -1,65 +1,97 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useSearchParams, useNavigate } from 'react-router-dom'
+
 import notificationIcon from '../../assets/conselho-intermediario/notification-icon.svg';
 import ModalJustificativa from '../../components/modalJustificativa/ModalJustificativa.jsx';
 
 const intObservacoes = 3
 
+// Variável para evitar repetição nas células de tabela padronizadas
+const tableThClasses = "border border-[#ddd] p-[12px_15px] text-left font-bold bg-white sticky top-0 z-10";
+const tableTdClasses = "border border-[#ddd] p-[12px_15px] text-left text-lg";
+const btnClasses = "border border-black shadow-[3px_3px_5px_gray]"
+
 const ConselhoFinal = () => {
-  const turmas = [
-    { id: 1, nome: 'CPTMTDS4T126', preConselho: 'Reprovado(s):0 Restrito(s):2', conselhoFinal: 'Pendente' },
-    { id: 2, nome: 'CPTMTDS2T', preConselho: 'Reprovado(s):0 Restrito(s):2', conselhoFinal: 'Realizada' },
-    { id: 3, nome: 'CPTMTDS2T', preConselho: 'Reprovado(s):0 Restrito(s):2', conselhoFinal: 'Realizada' },
-    { id: 4, nome: 'CPTMTDS2T', preConselho: 'Reprovado(s):0 Restrito(s):2', conselhoFinal: 'Realizada' },
-    { id: 5, nome: 'CPTMTDS2T', preConselho: 'Reprovado(s):0 Restrito(s):2', conselhoFinal: 'Realizada' },
-    { id: 6, nome: 'CPTMTDS2T', preConselho: 'Reprovado(s):0 Restrito(s):2', conselhoFinal: 'Realizada' },
-  ];
 
-  const alunos = [
-    { 
-      id: 1, nome: 'Jorge Marques de Salves', 
-      preConselhoTexto: 'Excesso de faltas em PSOF 22/20 e plano de reposição de aulas',
-      obsCount: 0, temJustificativa: false, textoJustificativa: '', status: 'aprovado' 
-    },
-    { 
-      id: 2, nome: 'Maria Alves da Silva', 
-      preConselhoTexto: 'Excesso de faltas em PFE 26/20 e plano de reposição de aulas',
-      obsCount: 1, temJustificativa: true, textoJustificativa: 'Atestado médico.', status: 'aprovado-conselho'
-    },
-    { 
-      id: 3, nome: 'Roberto Paulo Dominique', 
-      preConselhoTexto: 'Excesso de faltas em PSOF 30/20 e plano de reposição de aulas',
-      obsCount: 3, temJustificativa: true, textoJustificativa: 'Problemas familiares.', status: 'reprovado'
-    },
-    { 
-      id: 4, nome: 'Ana Carolina Mendonça', 
-      preConselhoTexto: 'Desempenho abaixo da média em Banco de Dados (BD) no 2º semestre',
-      obsCount: 0, temJustificativa: false, textoJustificativa: '', status: 'reprovado'
-    },
-    { 
-      id: 5, nome: 'Lucas Ferreira Gomes', 
-      preConselhoTexto: 'Faltas pontuais em LOP, mas entregou o projeto final com sucesso',
-      obsCount: 2, temJustificativa: true, textoJustificativa: 'Declaração de trabalho no dia das aulas.', status: 'aprovado-conselho'
-    },
-    { 
-      id: 6, nome: 'Beatriz Souza Lima', 
-      preConselhoTexto: 'Sem pendências graves, atingiu todas as competências necessárias',
-      obsCount: 0, temJustificativa: false, textoJustificativa: '', status: 'aprovado'
-    }
-  ];
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  
+  // Parâmetros vindos da Sidebar (FormConselhoFinal)
+  const areaSelecionada = searchParams.get('area');
+  const cursoSelecionado = searchParams.get('curso');
+  
+  // Estados
+  const [turmas, setTurmas] = useState([]);
+  const [turmaSelecionada, setTurmaSelecionada] = useState(null);
+  const [alunos, setAlunos] = useState([]);
+  const [carregando, setCarregando] = useState(false);
+  const [mostrarTabelaAlunos, setMostrarTabelaAlunos] = useState(false);
+  
+  // Usuário logado vindo do localStorage (para registrar quem iniciou)
+  const usuario = JSON.parse(localStorage.getItem('usuarioLogado') || '{}');
+  const idUsuario = usuario.idUsuario;
 
-  const [turmaSelecionada, setTurmaSelecionada] = useState(turmas[0].id);
-
+  // Filtramos os alunos que possuem justificativa para mostrar na tabela lateral 
   const alunosComJustificativa = alunos.filter(aluno => aluno.temJustificativa);
-
-  // Variável para evitar repetição nas células de tabela padronizadas
-  const tableThClasses = "border border-[#ddd] p-[12px_15px] text-left font-bold bg-white sticky top-0 z-10";
-  const tableTdClasses = "border border-[#ddd] p-[12px_15px] text-left text-lg";
-  const btnClasses = "border border-black shadow-[3px_3px_5px_gray]"
 
   const [isModalJustificativaOpen, setIsModalJustificativaOpen] = useState(false);
 
+  // 1) Carrega turmas baseado em área e curso selecionados na Sidebar
+  useEffect(() => {
+    if (!areaSelecionada || !cursoSelecionado) return;
+
+    setCarregando(true);
+    setTurmaSelecionada(null);
+    setAlunos([]);
+    setMostrarTabelaAlunos(false);
+
+    fetch(`http://localhost:3001/api/turmas-filtro?area=${encodeURIComponent(areaSelecionada)}&curso=${encodeURIComponent(cursoSelecionado)}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.sucesso && Array.isArray(data.dados)) {
+          const turmasFiltradas = data.dados.filter(turma => turma.curso === cursoSelecionado);
+
+          setTurmas(turmasFiltradas);
+        } else {
+          setTurmas([]);
+        }
+      })
+      .catch(err => {
+        console.error('Erro ao carregar turmas:', err);
+        setTurmas([]);
+      })
+      .finally(() => setCarregando(false));
+  }, [areaSelecionada, cursoSelecionado]);
+
+  // 2) Carrega alunos quando uma turma é selecionada e o usuário clica em "Avaliar turma"
+  const handleAvaliarTurma = async () => {
+    if (!turmaSelecionada) {
+      alert('Selecione uma turma para avaliar.');
+      return;
+    }
+
+    setCarregando(true);
+    try {
+      const res = await fetch(`http://localhost:3001/api/alunos/${turmaSelecionada}`);
+      const data = await res.json();
+      if (data.sucesso && Array.isArray(data.alunos)) {
+        setAlunos(data.alunos);
+        setMostrarTabelaAlunos(true);
+      } else {
+        alert('Erro ao carregar alunos da turma.');
+      }
+    } catch (err) {
+      console.error('Erro ao carregar alunos:', err);
+      alert('Erro ao carregar alunos da turma.');
+    } finally {
+      setCarregando(false);
+    }
+  };
+
   const handleOpenModalJustificativa = () => setIsModalJustificativaOpen(true);
   const handleCloseModalJustificativa = () => setIsModalJustificativaOpen(false);
+
+
 
   return (
     <div id="conselho-tables-container" className="flex flex-col gap-2">
@@ -92,23 +124,37 @@ const ConselhoFinal = () => {
               </tr>
             </thead>
             <tbody>
-              {turmas.map(turma => (
-                <tr key={turma.id}>
-                  <td className={`${tableTdClasses}`}>
-                    <label className='flex items-center gap-2 m-0 cursor-pointer'>
-                      <input 
-                        type="radio" 
-                        name="turma" 
-                        checked={turmaSelecionada === turma.id}
-                        onChange={() => setTurmaSelecionada(turma.id)}
-                      /> 
-                      {turma.nome}
-                    </label>
+              {carregando ? (
+                <tr>
+                  <td colSpan="3" className={`${tableTdClasses} text-center text-gray-500`}>
+                    Carregando turmas...
                   </td>
-                  <td className={`${tableTdClasses}`}>{turma.preConselho}</td>
-                  <td className={`${tableTdClasses}`}>{turma.conselhoFinal}</td>
                 </tr>
-              ))}
+              ) : turmas.length > 0 ? (
+                turmas.map(turma => (
+                  <tr key={turma.idTurma}>
+                    <td className={`${tableTdClasses}`}>
+                      <label className='flex items-center gap-2 m-0 cursor-pointer'>
+                        <input 
+                          type="radio" 
+                          name="turma" 
+                          checked={turmaSelecionada === turma.idTurma}
+                          onChange={() => setTurmaSelecionada(turma.idTurma)}
+                        /> 
+                        {turma.turma}
+                      </label>
+                    </td>
+                    <td className={`${tableTdClasses}`}>{turma.preConselho}</td>
+                    <td className={`${tableTdClasses}`}>{turma.preConselho}</td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="3" className={`${tableTdClasses} text-center text-gray-500`}>
+                    Nenhuma turma encontrada. Selecione área e curso na Sidebar.
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
@@ -146,9 +192,16 @@ const ConselhoFinal = () => {
         </div>
         
         {/* Botões de Ação (Extrema Direita) */}
-        <div className="flex flex-col justify-center gap-[15px] w-[150px] shrink-0 h-[180px] ">
-          <button className={`${btnClasses} bg-red-500 text-white p-[10px] rounded-[20px] font-bold text-center`}>
-            Avaliar turma
+        <div className="flex flex-col justify-center gap-[15px] w-[150px] shrink-0 h-[110px] ">
+          <button 
+            onClick={handleAvaliarTurma}
+            disabled={!turmaSelecionada || carregando}
+            className={`${btnClasses} p-[10px] rounded-[20px] font-bold text-center transition-all ${
+              !turmaSelecionada || carregando 
+                ? 'opacity-50 cursor-not-allowed bg-gray-400 text-white' 
+                : 'bg-red-500 text-white cursor-pointer hover:bg-red-600'
+            }`}>
+            {carregando ? 'Carregando...' : 'Avaliar turma'}
           </button>
           <button className={`${btnClasses} bg-gray-400 text-white p-[10px] rounded-[20px] font-bold text-center`}>
             Salvar
@@ -157,7 +210,8 @@ const ConselhoFinal = () => {
 
       </section>
 
-      {/* SEÇÃO INFERIOR: ALUNOS GERAL */}
+      {/* SEÇÃO INFERIOR: ALUNOS GERAL - RENDERIZADO CONDICIONALMENTE */}
+      {mostrarTabelaAlunos && ( 
       <section className='h-[64vh] overflow-y-auto'>
         <table className="w-full border-collapse bg-white text-sm">
           <thead>
@@ -170,10 +224,10 @@ const ConselhoFinal = () => {
           </thead>
           <tbody>
             {alunos.map(aluno => (
-              <tr key={aluno.id}>
+              <tr key={aluno.idtblAluno}>
                 <td className={`${tableTdClasses} `}>{aluno.nome}</td>
                 <td className={`${tableTdClasses} `}>
-                  <p>{aluno.preConselhoTexto}</p>
+                  <p>-</p>
                   <button className="text-gray-500 text-xs mt-[5px] hover:underline">
                     <div className="flex items-center my-0 mx-1 gap-1">
                       <img src={notificationIcon} alt="" className="w-6 h-6 border border-yellow-600 rounded-full p-[1px]"/>
@@ -210,6 +264,7 @@ const ConselhoFinal = () => {
           </tbody>
         </table>
       </section>
+      )}
       <ModalJustificativa isOpen={isModalJustificativaOpen} onClose={handleCloseModalJustificativa} />
     </div>
   );
