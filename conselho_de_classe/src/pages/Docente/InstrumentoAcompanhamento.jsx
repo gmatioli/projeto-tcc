@@ -1,8 +1,45 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
  
 export function InstrumentoAcompanhamento() {
   const navigate = useNavigate();
+
+  const formatarNome = (texto) => {
+  if (!texto) return '';
+    return texto
+      .toLowerCase()
+      .split(' ')
+      .map(palavra => palavra.charAt(0).toUpperCase() + palavra.slice(1))
+      .join(' ');
+  };
+
+  const [docenteNome, setDocenteNome] = useState('Carregando...');
+
+  useEffect(() => {
+    const carregarPerfil = async () => {
+      const logado = localStorage.getItem('usuarioLogado');
+      
+      if (logado) {
+        const { email } = JSON.parse(logado);
+        
+        try {
+          const resposta = await fetch(`http://localhost:3001/perfil/${email}`);
+          const dados = await resposta.json();
+
+          if (dados.sucesso) {
+            setDocenteNome(dados.usuario.nomeUsuario);
+          } else {
+            setDocenteNome("Usuário não encontrado");
+          }
+        } catch (erro) {
+          console.error("Erro de conexão:", erro);
+          setDocenteNome("Erro ao carregar docente");
+        }
+      }
+    };
+
+    carregarPerfil();
+  }, []);
  
   // ── Campos de cabeçalho ──────────────────────────────────────────────────
   const [turma,    setTurma]    = useState('');
@@ -86,7 +123,7 @@ export function InstrumentoAcompanhamento() {
       turma, aluno, componente,
       exec, hig, qual,
       sugAluno, sugResp, encaminhar,
-      criterios, prov, obsEscola, plano,
+      criterios, prov, obsEscola, plano, docente: formatarNome(docenteNome)
     };
  
     try {
@@ -197,7 +234,9 @@ export function InstrumentoAcompanhamento() {
               />
             </div>
           </div>
-          <p className="text-xs text-gray-500">Docente(s): Lincoln Bezerra Souza</p>
+          <p className="text-xs text-gray-500 capitalize">
+            Docente: {docenteNome}
+          </p>
         </div>
  
         {/* Corpo rolável com todas as seções */}

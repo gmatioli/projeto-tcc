@@ -8,7 +8,7 @@ function formatPayload(payload) {
     aluno:      payload.aluno,
     turma:      payload.turma,
     componente: payload.componente,
-    docente:    'Lincoln Bezerra Souza',
+    docente:    payload.docente || ' ',
  
     // exec
     exec_qualidadeTrabalho:       chk(payload.exec.qualidadeTrabalho),
