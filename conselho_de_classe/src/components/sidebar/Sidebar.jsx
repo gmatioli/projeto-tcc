@@ -49,13 +49,6 @@ function FormFiltros({ rotaDestino, onFechar }) {
     onFechar();
   };
 
-  const handleIniciarConselho = () => {
-    const turmaObj = turmasDisponiveis.find(t => t.idTurma.toString() === turmaSelecionada.toString());
-    const nomeDaTurma = turmaObj ? turmaObj.turma : '';
-    navigate(`${rotaDestino}?turma=${turmaSelecionada}&nomeTurma=${encodeURIComponent(nomeDaTurma)}&modo=iniciar`);
-    onFechar();
-  };
-
   const handleLimparFiltro = () => {
     setTipoSelecionado("");
     setCursoSelecionado("");
@@ -158,11 +151,6 @@ function FormConselhoFinal({ rotaDestino, onFechar }) {
     onFechar();
   };
 
-  const handleIniciarConselho = () => {
-    navigate(`${rotaDestino}?area=${encodeURIComponent(areaSelecionada)}&curso=${encodeURIComponent(cursoSelecionado)}&modo=iniciar`);
-    onFechar();
-  };
-
   const handleLimparFiltro = () => {
     setAreaSelecionada("");
     setCursoSelecionado("");
@@ -207,11 +195,7 @@ function FormConselhoFinal({ rotaDestino, onFechar }) {
           Pesquisar
         </button>
       </div>
-      <button onClick={handleIniciarConselho} disabled={formIncompleto}
-        className={`flex-1 p-[10px] rounded-[5px] text-lg font-semibold transition-all
-          ${formIncompleto ? 'opacity-50 cursor-not-allowed bg-gray-400 text-gray-200' : 'bg-[#ea4335] text-white cursor-pointer hover:brightness-90'}`}>
-        Iniciar Conselho
-      </button>
+    
     </div>
   );
 }
