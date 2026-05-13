@@ -247,6 +247,8 @@ export function PreConselho() {
     ]);
     const totalRestritos = idsRestritos.size;
 
+    const tableThClasses = "border border-[#ddd] p-[12px_15px] text-left font-bold bg-white";
+    const tableTdClasses = "border border-[#ddd] p-[12px_15px] text-left text-lg";
 
   return (
       <section>
@@ -364,69 +366,88 @@ export function PreConselho() {
                         <p>Alunos Selecionados: 0</p>
                     </div>
                 </div>
-                <div className="overflow-y-auto
-                                [&::-webkit-scrollbar]:w-2
-                                [&::-webkit-scrollbar-track]:bg-[#f1f1f1]
-                                [&::-webkit-scrollbar-track]:rounded-full
-                                [&::-webkit-scrollbar-track]:m-[5px]
-                                [&::-webkit-scrollbar-thumb]:bg-[#888]
-                                [&::-webkit-scrollbar-thumb]:rounded-full
-                                [&::-webkit-scrollbar-thumb:hover]:bg-[#555]
-                                ">
 
-                    {carregando && (
-                        <p className="text-center text-gray-500 py-4">Carregando alunos...</p>
-                    )}    
-
-                    <div className="p-5 w-[98.5%] bg-[#FEFEFE] border border-black rounded-[10px] box-border m-[10px] h-[50vh] overflow-y-auto overflow overflow-x-hidden pr-[5px] shadow-[0_0_2px_black]">
-                            
-                           {!carregando && alunos.map((aluno) => {
-                                // const restrito = !!alunosAvaliados[aluno.idtblAluno];
-                                const restritoAtual       = !!alunosAvaliados[aluno.idtblAluno];
-                                const restritoHistorico   = !!historicoIntermediario[aluno.idtblAluno];
-                                const restrito            = restritoAtual;
-                                return (
-                                <div key={aluno.idtblAluno}>
-                                    <div className="flex items-center justify-between">
-                                    <div className="flex items-center gap-2">
-                                        <input
-                                        disabled={botoesDesabilitados}
-                                        type="checkbox"
-                                        className='w-5 h-5 cursor-pointer'
-                                        checked={alunosSelecionados.includes(aluno.idtblAluno)}
-                                        onChange={() => handleToogleAluno(aluno.idtblAluno)}
-                                        />
-                                        <p className="text-xl">{aluno.nome}</p>
-                                        <button className='text-gray-500 text-xs mt-[5px] hover:underline'>
-                                        <div className="flex items-center my-0 mx-1 gap-1">
-                                            <img src={notificationIcon} alt="" className="w-6 h-6 border border-yellow-600 rounded-full p-[1px]"/>
-                                            <div className='flex'>
-                                            <p className="text-m underline">Ver Observações</p>
-                                                </div>
-                                            </div>
-                                    </button>
+                <section className='h-[54vh] overflow-y-auto border border-gray-200 rounded-md'>
+                    {!carregando && (
+                        
+                    <table className="w-full bg-[#FEFEFE] box-border border-separate border-spacing-0 shadow-[0_0_4px_gray]">
+                        <thead>
+                        <tr>
+                            <th className={`${tableThClasses} w-[44%] sticky top-0 z-10 bg-white shadow-[0_1px_0_0_#e5e7eb] p-2 text-left font-bold border-separate border-spacing-0 `}>Aluno</th>
+                            <th className={`${tableThClasses} w-[12%] text-center sticky top-0 z-10 bg-white shadow-[0_1px_0_0_#e5e7eb] p-2 text-left font-bold border-separate border-spacing-0`}>Observações</th>
+                            <th className={`${tableThClasses} w-[20%] text-center sticky top-0 z-10 bg-white shadow-[0_1px_0_0_#e5e7eb] p-2 text-left font-bold border-separate border-spacing-0`}>Empresa</th>
+                            <th className={`${tableThClasses} w-[14%] text-center sticky top-0 z-10 bg-white shadow-[0_1px_0_0_#e5e7eb] p-2 text-left font-bold border-separate border-spacing-0`}>Restrição - (C.I)</th>
+                            <th className={`${tableThClasses} w-[10%] text-center sticky top-0 z-10 bg-white shadow-[0_1px_0_0_#e5e7eb] p-2 text-left font-bold border-separate border-spacing-0`}>Restrição</th>
+                        </tr>
+                        </thead>
+                    
+                        <tbody>
+                        {/* O map fica AQUI, apenas para gerar as linhas (tr) da tabela */}
+                        {alunos.map((aluno) => {
+                            const restritoAtual= !!alunosAvaliados[aluno.idtblAluno];
+                            const restritoHistorico = !!historicoIntermediario[aluno.idtblAluno];
+                            const restrito = restritoAtual;
+                    
+                            return (
+                            <tr key={aluno.idtblAluno}>
+                    
+                                {/* Coluna 1: Aluno */}
+                                <td className={`${tableTdClasses}`}>
+                                <label className='flex items-center gap-2 m-0 cursor-pointer'>
+                                    <input
+                                    disabled={botoesDesabilitados}
+                                    type="checkbox"
+                                    className='w-5 h-5 cursor-pointer'
+                                    checked={alunosSelecionados.includes(aluno.idtblAluno)}
+                                    onChange={() => handleToogleAluno(aluno.idtblAluno)}
+                                    />
+                                    <p className="text-xl">{aluno.nome}</p>
+                                </label>
+                                </td>
+                                {/* Coluna 2: Observações */}
+                                <td className={`${tableTdClasses}`}>
+                                <button className='text-gray-500 text-xs mt-[5px] hover:underline'>
+                                <div className="flex items-center my-0 mx-1 gap-1">
+                                    <img src={notificationIcon} alt="" className="w-6 h-6 p-[1px]"/>
+                                    <div className='flex'>
+                                    <p className="text-m underline text-orange-700">Ver Observações</p>
+                                        </div>
                                     </div>
-                                    <div className="div_btn_restrito">
-                                    {restritoHistorico && (
-                                        <button className="bg-gray-400 shadow-[inset_0_0_10px_rgba(0,0,0,0.5)] w-[150px] p-1 text-xl rounded-[20px] mr-4 active:scale-95">
-                                        Restrito (C.I)
-                                        </button>
-                                    )}
-                                    {restritoAtual && (
-                                        <button className="bg-gray-400 shadow-[inset_0_0_10px_rgba(0,0,0,0.5)] w-[150px] p-1 text-xl rounded-[20px] mr-4 active:scale-95">
+                                </button>
+                                </td>
+                                {/* Coluna 3: Empresa */}
+                                <td className={`${tableTdClasses}`}>
+                                </td>
+
+                                {/* Coluna 4: Restrito - C.I */}
+                                <td className={`${tableTdClasses} text-center`}>
+                                    <div className="div_label_restrito_ci">
+                                        {restritoHistorico && (
+                                        <label className="text-lg text-white font-bold bg-red-800 px-4 py-2 rounded-full">
+                                            Restrito - (C.I)
+                                        </label>
+                                        )}
+                                    </div>
+                                </td>
+
+                                {/* Coluna 5: Restrito */}
+                                <td className={`${tableTdClasses} text-center`}>
+                                <div className="div_btn_restrito">
+                                    {restrito && (
+                                    <label className="text-lg text-white font-bold bg-red-800 px-4 py-2 rounded-full">
                                         Restrito
-                                        </button>
+                                    </label>
                                     )}
-                                    </div>
                                 </div>
-                                <hr className='my-[10px] mx-0' />
-                                </div>
+                                </td>
+                    
+                            </tr>
                             );
                         })}
-                                   
-                    </div>                  
-                </div>
-                
+                        </tbody>
+                    </table>
+                    )}
+                </section>
             </div>
       </section>
       
