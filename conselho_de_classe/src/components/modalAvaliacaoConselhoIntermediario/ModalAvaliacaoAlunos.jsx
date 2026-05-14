@@ -25,7 +25,25 @@ const ModalAvaliacaoAlunos = ({
 
   useEffect(() => {
     if (!isOpen) return;
-    setForm(initialState);
+    // Pré-preenche apenas quando UM único aluno com avaliação existente é selecionado.
+    // Para múltiplos alunos, o formulário começa vazio (avaliação em lote).
+    const unico = alunosSelecionados.length === 1 ? alunosSelecionados[0] : null;
+    const av = unico?.avaliacaoExistente;
+
+    if (av) {
+      const naturezasBruto = Array.isArray(av.naturezaOcorrencia) ? av.naturezaOcorrencia : [];
+      const naturezasMarcadas = naturezasBruto.filter(n => NATUREZAS.includes(n));
+      const naturezaOutro = naturezasBruto.find(n => !NATUREZAS.includes(n)) || '';
+      setForm({
+        naturezas: naturezasMarcadas,
+        naturezaOutro,
+        restricao:    av.restricao                || '',
+        acaoProposta: av.acaoPropostaIntermediario || '',
+        responsavel:  av.responsavelIntermediario  || '',
+      });
+    } else {
+      setForm(initialState);
+    }
   }, [isOpen]);
 
   if (!isOpen || alunosSelecionados.length === 0) return null;
@@ -152,11 +170,11 @@ const ModalAvaliacaoAlunos = ({
               onChange={e => setCampo('responsavel', e.target.value)}
               className="p-1 py-4 mt-[5px] rounded-[18px] border border-[#bbb]">
               <option value="" disabled hidden >Selecione</option>
-              <option value="aqv_coordenacao_docente">AQV, coordenação e docente</option>
-              <option value="aqv_coordenacao">AQV e coordenação</option>
-              <option value="docente_aqv">Docente e AQV</option>
-              <option value="docente_uc">Docente da U.C</option>
+              <option value="docente">Docente</option>
+              <option value="orientador_praticas_profissionais">Orientador Práticas Profissionais</option>
+              <option value="coordenacao">Coordenação</option>
               <option value="analista_qualidade_vida">Analista e Qualidade de Vida</option>
+              <option value="trabalho_em_conjunto">Trabalho em Conjunto</option>
             </select>
           </div>
 

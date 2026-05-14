@@ -49,8 +49,8 @@ export function ConselhoIntermediario() {
         const v = localStorage.getItem('conselhoIntermediarioAtivo');
         return v ? Number(v) : null;
     });
-    const [conselhoVerificado, setConselhoVerificado] = useState(false);
-    const [turmaVinculadaAoConselho, setTurmaVinculadaAoConselho] = useState(false);
+  
+    const [modoEdicao, setModoEdicao] = useState(false);
 
     // Ciclo (semestre/ano) corrente — usado para reusar/abrir conselho no mesmo período
     const ciclo = useState(cicloAtual)[0];
@@ -77,15 +77,24 @@ export function ConselhoIntermediario() {
     // Regras de habilitação (centralizadas aqui pra ficar fácil de manter):
     //  - botoesDesabilitados: bloqueia tudo enquanto o conselho não for iniciado
     //  - podeAvaliarAlunos: precisa ter conselho + avaliação da turma + alunos marcados
-    const botoesDesabilitados = !conselhoAtivo;
+    const botoesDesabilitados = !modoEdicao 
+    // && !conselhoAtivo; // modoEdição libera os botões mesmo sem conselho, para permitir edição posterior
+
     const podeAvaliarAlunos =
-        conselhoAtivo && turmaJaAvaliada && alunosSelecionados.length > 0;
+       modoEdicao  && turmaJaAvaliada && alunosSelecionados.length > 0;
 
      // O botão principal (Iniciar/Finalizar) só fica bloqueado se está
     // carregando OU se não tem turma/usuário para iniciar
     const botaoPrincipalDesabilitado =
         carregandoConselho || (!conselhoAtivo && (!idTurma || !idUsuario));
 
+    const textoBotaoPrincipal = carregandoConselho
+        ? 'Carregando...'
+        : modoEdicao
+            ? 'Finalizar Conselho'
+            : conselhoAtivo
+                ? 'Editar Conselho'
+                : 'Iniciar Conselho';
 
     // =====================================================================
     // CONTROLE DOS MODAIS
@@ -93,7 +102,7 @@ export function ConselhoIntermediario() {
     // Modal da TURMA: só abre se há conselho ativo
     // (Serve tanto para CRIAR a primeira avaliação quanto para EDITAR a existente)
     const handleOpenModalTurma = () => {
-        if (!conselhoAtivo) return; // proteção contra cliques indevidos
+        if (!modoEdicao) return; // proteção contra cliques indevidos
         setIsModalTurmaOpen(true);
     };
     const handleCloseModalTurma = () => setIsModalTurmaOpen(false);
@@ -134,27 +143,12 @@ export function ConselhoIntermediario() {
       }
     }, []);
 
-    const turmaEstaVinculadaAoConselho = useCallback(async (cid, tid) => {
-      if (!cid || !tid) return false;
-      try {
-        const resp = await fetch(`${API}/${cid}`);
-        const data = await resp.json();
-        return (
-          data?.sucesso &&
-          Array.isArray(data.conselho?.turmas) &&
-          data.conselho.turmas.some(t => String(t.idTurma) === String(tid))
-        );
-      } catch (e) {
-        console.error('Erro ao verificar se a turma pertence ao conselho:', e);
-        return false;
-      }
-    }, []);
-
       // 1) Carrega alunos da turma sempre que a turma muda
     useEffect(() => {
         if(!idTurma) return;
         setAlunosAvaliados({});
         setAlunosSelecionados([]);
+        setModoEdicao(false);
 
         setCarregando(true);
         fetch(`http://localhost:3001/api/alunos/${idTurma}`)
@@ -165,75 +159,39 @@ export function ConselhoIntermediario() {
             .finally(() => setCarregando(false));
     }, [idTurma]);
 
-     // 1b) Ao montar: se já existe conselho do ciclo, restaura apenas se
-    // a turma atual pertencer a ele. Isso evita abrir o modal por causa de
-    // um conselho de outra turma no mesmo semestre.
+    // 1b) Ao montar: se não há conselho em localStorage, busca um do ciclo atual.
+    // Permite retomar/editar conselho finalizado do mesmo semestre (ex: aluno esquecido).
+
+
     useEffect(() => {
-        if (conselhoVerificado || !idUsuario || !idTurma) return;
-
-        const validarConselhoExistente = async () => {
-            try {
-                const storedId = localStorage.getItem('conselhoIntermediarioAtivo');
-                const idArmazenado = storedId ? Number(storedId) : null;
-
-                if (idArmazenado) {
-                    const vinculada = await turmaEstaVinculadaAoConselho(idArmazenado, idTurma);
-                    if (vinculada) {
-                        setConselhoId(idArmazenado);
-                        setTurmaVinculadaAoConselho(true);
-                        const avaliacao = await recarregarConselho(idArmazenado, idTurma);
-                        if (!avaliacao) setIsModalTurmaOpen(true);
-                        setConselhoVerificado(true);
-                        return;
-                    }
-
-                    localStorage.removeItem('conselhoIntermediarioAtivo');
-                    if (conselhoId === idArmazenado) setConselhoId(null);
+        if (conselhoId || !idUsuario) return;
+        fetch(`${API}/ativo/${encodeURIComponent('Intermediário')}/${idUsuario}?semestre=${ciclo.semestre}&ano=${ciclo.ano}`)
+            .then(r => r.json())
+            .then(d => {
+                if (d?.sucesso && d.conselho?.idConselho) {
+                    setConselhoId(d.conselho.idConselho);
+                    localStorage.setItem('conselhoIntermediarioAtivo', String(d.conselho.idConselho));
                 }
-
-                const resposta = await fetch(`${API}/ativo/${encodeURIComponent('Intermediário')}/${idUsuario}?semestre=${ciclo.semestre}&ano=${ciclo.ano}`);
-                const dados = await resposta.json();
-
-                if (dados?.sucesso && dados.conselho?.idConselho) {
-                    const cid = dados.conselho.idConselho;
-                    const vinculada = await turmaEstaVinculadaAoConselho(cid, idTurma);
-                    if (vinculada) {
-                        setConselhoId(cid);
-                        localStorage.setItem('conselhoIntermediarioAtivo', String(cid));
-                        setTurmaVinculadaAoConselho(true);
-                        const avaliacao = await recarregarConselho(cid, idTurma);
-                        if (!avaliacao) setIsModalTurmaOpen(true);
-                    }
-                }
-            } catch (err) {
-                console.error('Erro ao validar conselho existente:', err);
-            } finally {
-                setConselhoVerificado(true);
-            }
-        };
-
-        validarConselhoExistente();
-    }, [conselhoVerificado, conselhoId, idUsuario, idTurma, ciclo.semestre, ciclo.ano, recarregarConselho, turmaEstaVinculadaAoConselho]);
+            })
+            .catch(err => console.error('Erro ao buscar conselho ativo do ciclo:', err));
+    }, [conselhoId, idUsuario, ciclo.semestre, ciclo.ano]);
 
     // 2) Ao trocar de turma, se já existe conselho ativo, vincula a turma a ele
     useEffect(() => {
-        if (!idTurma || !conselhoId || !conselhoVerificado || turmaVinculadaAoConselho) return;
+        if (!idTurma || !conselhoId) return;
         fetch(`${API}/iniciar`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ idTurma, conselhoId })
         })
-          .then(() => {
-            setTurmaVinculadaAoConselho(true);
-            return recarregarConselho(conselhoId, idTurma);
-          })
+          .then(() => recarregarConselho(conselhoId, idTurma))
           .then(avaliacao => {
             if (!avaliacao) setIsModalTurmaOpen(true);  
           })
           .catch(err => console.error('Erro ao adicionar turma ao conselho:', err));
         setAlunosSelecionados([]);
 
-    }, [idTurma, conselhoId, recarregarConselho, conselhoVerificado, turmaVinculadaAoConselho]);
+    }, [idTurma, conselhoId, recarregarConselho]);
 
 
     // Iniciar / Finalizar conselho
@@ -258,10 +216,9 @@ export function ConselhoIntermediario() {
             const dados = await resp.json();
             if (!dados.sucesso) throw new Error(dados.mensagem);
             setConselhoId(dados.conselhoId);
-            setConselhoVerificado(true);
-            setTurmaVinculadaAoConselho(true);
             localStorage.setItem('conselhoIntermediarioAtivo', String(dados.conselhoId));
             const avaliacao = await recarregarConselho(dados.conselhoId, idTurma);
+            setModoEdicao(true);
 
             if (!avaliacao) {
               setIsModalTurmaOpen(true); // auto-abre se ainda não tem avaliação da turma
@@ -274,6 +231,41 @@ export function ConselhoIntermediario() {
             setCarregandoConselho(false);
         }
     };  
+
+     const handleEditarConselho = async () => {
+        if (!conselhoId || !idTurma || !idUsuario) return;
+        setCarregandoConselho(true);
+        try {
+            const resp = await fetch(`${API}/iniciar`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    tipoConselho: 'Intermediário',
+                    idTurma,
+                    idUsuario,
+                    semestre: ciclo.semestre,
+                    ano: ciclo.ano
+                })
+            });
+            const dados = await resp.json();
+            if (!dados.sucesso) throw new Error(dados.mensagem);
+ 
+            // Garante consistência do ID local com o retorno do backend
+            const idFinal = dados.conselhoId || conselhoId;
+            if (idFinal !== conselhoId) {
+                setConselhoId(idFinal);
+                localStorage.setItem('conselhoIntermediarioAtivo', String(idFinal));
+            }
+ 
+            await recarregarConselho(idFinal, idTurma);
+            setModoEdicao(true);
+        } catch (e) {
+            console.error(e);
+            alert('Erro ao editar conselho.');
+        } finally {
+            setCarregandoConselho(false);
+        }
+    };
 
     const handleFinalizarConselho = async () => {
         if (!conselhoId) return;
@@ -293,6 +285,7 @@ export function ConselhoIntermediario() {
             if (!dados.sucesso) throw new Error(dados.mensagem);
             localStorage.removeItem('conselhoIntermediarioAtivo');
             setConselhoId(null);
+            setModoEdicao(false);
             setAvaliacaoTurma(null);
             setAlunosAvaliados({});
             alert('Conselho finalizado com sucesso!');
@@ -304,6 +297,12 @@ export function ConselhoIntermediario() {
         } finally {
             setCarregandoConselho(false);
         }
+    };
+
+    const handleAcaoBotaoPrincipal = () => {
+      if (modoEdicao) return handleFinalizarConselho();
+      if (conselhoAtivo) return handleEditarConselho();
+      return handleIniciarConselho();
     };
     
     // =====================================================================
@@ -344,6 +343,15 @@ export function ConselhoIntermediario() {
     const tableThClasses = "border border-[#ddd] p-[12px_15px] text-left font-bold bg-white sticky top-0 z-10";
     const tableTdClasses = "border border-[#ddd] p-[12px_15px] text-left text-lg";
 
+    // Classes do botão principal baseadas no estado atual
+    const classeBotaoPrincipal = botaoPrincipalDesabilitado
+        ? 'opacity-50 cursor-not-allowed bg-gray-400 text-white'
+        : modoEdicao
+            ? 'bg-red-900 text-white cursor-pointer active:scale-95 hover:bg-red-700'
+            : conselhoAtivo
+                ? 'bg-red-700 text-white cursor-pointer active:scale-95 hover:bg-red-800'
+                : 'bg-green-600 text-white cursor-pointer active:scale-95 hover:bg-green-700';
+ 
 
   return (
       <section>
@@ -401,25 +409,26 @@ export function ConselhoIntermediario() {
           <div className="card_avaliacoes">
             <div className="flex flex-col gap-3 mr-5 min-h-[220px]">
                 <button
-                  onClick={conselhoAtivo ? handleFinalizarConselho : handleIniciarConselho}
+                  onClick={handleAcaoBotaoPrincipal}
                   disabled={botaoPrincipalDesabilitado}
-                  className={`p-[10px] w-[350px] rounded-[15px] border border-black shadow-[0_0_3px_black] transition-all duration-200 font-bold text-lg
-                  ${botaoPrincipalDesabilitado
-                      ? 'opacity-50 cursor-not-allowed bg-gray-400 text-white'
-                      : conselhoAtivo
-                          ? 'bg-red-900 text-white cursor-pointer active:scale-95 hover:bg-red-700'
-                          : 'bg-green-600 text-white cursor-pointer active:scale-95 hover:bg-green-700'}`}>
-                  {carregandoConselho
-                      ? 'Carregando...'
-                      : conselhoAtivo ? 'Finalizar Conselho' : 'Iniciar Conselho'}
+                  className={`p-[10px] w-[350px] rounded-[15px] border border-black shadow-[0_0_3px_black] transition-all duration-200 font-bold text-lg ${classeBotaoPrincipal}`}>
+                  {textoBotaoPrincipal}
               </button>
 
                 <button
                   onClick={handleOpenModalTurma}
-                  disabled={!conselhoAtivo || turmaJaAvaliada}
-                  title={turmaJaAvaliada ? 'Avaliação da turma já foi registrada' : ''}
+                  disabled={!modoEdicao || turmaJaAvaliada}
+                  title={
+                      !modoEdicao
+                          ? (conselhoAtivo
+                              ? 'Clique em "Editar Conselho" para fazer alterações'
+                              : 'Inicie o conselho primeiro')
+                          : turmaJaAvaliada
+                              ? 'Avaliação da turma já foi registrada'
+                              : ''
+                  }                  
                   className={`avaliar_toda_turma p-[10px] w-[350px] rounded-[15px] border border-black shadow-[0_0_3px_black] transition-all duration-200
-                  ${(!conselhoAtivo || turmaJaAvaliada)
+                  ${(!modoEdicao || turmaJaAvaliada)
                       ? 'opacity-50 cursor-not-allowed bg-gray-100'
                       : 'bg-[#FEFEFE] cursor-pointer active:scale-95'}`}>
                   {turmaJaAvaliada ? 'Avaliação da Turma Salva' : 'Avaliar Toda Turma'}
@@ -437,8 +446,10 @@ export function ConselhoIntermediario() {
                 onClick={handleOpenModalAlunos}
                 disabled={!podeAvaliarAlunos}
                 title={
-                    !conselhoAtivo
-                        ? 'Inicie o conselho para avaliar alunos'
+                    !modoEdicao
+                        ? (conselhoAtivo
+                            ? 'Clique em "Editar Conselho" para fazer alterações'
+                            : 'Inicie o conselho para avaliar alunos')
                         : !turmaJaAvaliada
                             ? 'Avalie a turma antes de avaliar alunos'
                             : alunosSelecionados.length === 0
