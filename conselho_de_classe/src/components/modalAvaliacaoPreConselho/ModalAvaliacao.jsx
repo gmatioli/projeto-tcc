@@ -190,13 +190,12 @@ const ModalAvaliacao = ({
               onChange={e => setCampo('responsavel', e.target.value)}
               className="p-1 mt-[5px] py-2 rounded-[18px] border border-black">
               <option value="" disabled hidden >Selecione</option>
-              <option value="aqv_coordenacao_docente">AQV, coordenação e docente</option>
-              <option value="aqv_coordenacao">AQV e coordenação</option>
-              <option value="docente_aqv">Docente e AQV</option>
-              <option value="docente_uc">Docente da U.C</option>
+              <option value="docente">Docente</option>
+              <option value="orientador_praticas_profissionais">Orientador Práticas Profissionais</option>
+              <option value="coordenacao">Coordenação</option>
               <option value="analista_qualidade_vida">Analista e Qualidade de Vida</option>
+              <option value="trabalho_em_conjunto">Trabalho em Conjunto</option>
             </select>
-            <label className="text-gray-500">(*) Todos os Docentes se for trabalho Conjunto.</label>
           </div>
 
           <div className="flex flex-col mt-[50px] mb-[5px]">
