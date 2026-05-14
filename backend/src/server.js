@@ -19,6 +19,7 @@ app.use('/api/conselho', require('./routes/conselho'));
 app.use('/api/dashboard', require('./routes/dashboard')); 
 app.use('/', require('./routes/termo'));
 app.use('/instrumento-acompanhamento', instrumentoRouter);
+app.use('/api/AtribuirTurma', require('./routes/AtribuirTurma'));
 
 
 // ==========================================
