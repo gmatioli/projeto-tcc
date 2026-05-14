@@ -80,42 +80,44 @@ export function SidebarDocente() {
     navigate('/perfil');
   };
  
+  const formIncompleto = !turmaSelecionada || !cursoSelecionado || !tipoSelecionado;
+ 
   return (
     <section className="h-[calc(100vh-8vh)]">
-      <div className="bg-[var(--sidebar_bg)] w-[20vw] h-full flex flex-col border-r border-[#ccc] overflow-hidden">
+      <div className="bg-gray-200 w-[20vw] h-full flex flex-col border-r border-[#ccc] overflow-hidden">
  
-        <div className="flex-1 overflow-y-auto pt-6 px-4 pb-4">
+        <div className="flex-1 overflow-y-auto pt-6 px-4 pb-4 custom-scrollbar">
  
           {/* BOTÃO TURMAS */}
           <button
             onClick={toggleTurmas}
-            className={`flex items-center justify-between w-full h-[10vh] px-5 mx-auto bg-[var(--button_bg)] rounded-[10px] font-bold border border-black text-[22px] shadow-[0px_3px_3px_rgb(117,117,117)] cursor-pointer transition-all ${
-              botaoSelecionado === 'turmas' || menuTurmasAberto ? 'bg-[#df3535] text-white' : ''
+            className={`flex items-center justify-center gap-4 w-full h-[10vh] px-10 mx-auto bg-gray-100 rounded-[10px] font-bold border border-black text-[26px] shadow-[0px_3px_7px_rgb(117,117,117)] cursor-pointer transition-all ${
+              botaoSelecionado === 'turmas' || menuTurmasAberto ? 'bg-[var(--button-selected)] text-white' : ''
             }`}
           >
             <img
               src={councilIcon}
-              className={`w-6 h-6 ${botaoSelecionado === 'turmas' || menuTurmasAberto ? 'brightness-0 invert' : 'brightness-0'}`}
+              className={`w-7 h-7 ${botaoSelecionado === 'turmas' || menuTurmasAberto ? 'brightness-0 invert' : 'brightness-0'}`}
               alt="Turmas"
             />
             <p className="flex-1 text-center">Turmas</p>
             <img
               src={arrowRightIcon}
-              className={`w-5 h-5 transition-transform duration-300 ${menuTurmasAberto ? '[transform:rotate(90deg)]' : '[transform:rotate(0deg)]'} ${botaoSelecionado === 'turmas' || menuTurmasAberto ? 'brightness-0 invert' : 'brightness-0'}`}
+              className={`w-6 h-6 transition-transform duration-300 ${menuTurmasAberto ? '[transform:rotate(90deg)]' : '[transform:rotate(0deg)]'} ${botaoSelecionado === 'turmas' || menuTurmasAberto ? 'brightness-0 invert' : 'brightness-0'}`}
               alt="Seta"
             />
           </button>
  
           {/* SUBMENU FILTRO DE TURMAS */}
           {menuTurmasAberto && (
-            <div className="flex flex-col gap-3 border-l-2 border-[#df3535] pl-4 ml-1 mt-3 mb-2">
+            <div className="flex flex-col gap-[12px] border-l-[2px] border-[var(--button-selected)] pl-[15px] ml-[5px] mt-3 mb-[10px]">
  
-              <div className="flex flex-col gap-1">
-                <label className="text-sm font-semibold text-gray-700">Tipo de Curso:</label>
+              <div className="flex flex-col text-left gap-[5px]">
+                <label className="text-xl font-medium text-[#333]">Tipo de Curso:</label>
                 <select
                   value={tipoSelecionado}
                   onChange={handleMudarTipo}
-                  className="p-2 rounded border border-[#ccc] bg-white text-sm outline-none focus:border-[#df3535]"
+                  className="p-[8px] rounded-[5px] border border-[#ccc] bg-white text-lg outline-none focus:border-[var(--button-selected)]"
                 >
                   <option value="" disabled hidden>Selecione</option>
                   {tiposCursos.map(tipo => (
@@ -124,13 +126,13 @@ export function SidebarDocente() {
                 </select>
               </div>
  
-              <div className="flex flex-col gap-1">
-                <label className="text-sm font-semibold text-gray-700">Curso:</label>
+              <div className="flex flex-col text-left gap-[5px]">
+                <label className="text-xl font-medium text-[#333]">Curso:</label>
                 <select
                   value={cursoSelecionado}
                   onChange={handleMudarCurso}
                   disabled={!tipoSelecionado}
-                  className="p-2 rounded border border-[#ccc] bg-white text-sm outline-none focus:border-[#df3535] disabled:opacity-50"
+                  className="p-[8px] rounded-[5px] border border-[#ccc] bg-white text-lg outline-none focus:border-[var(--button-selected)] disabled:opacity-50"
                 >
                   <option value="" disabled hidden>Selecione</option>
                   {cursosDisponiveis.map(curso => (
@@ -139,13 +141,13 @@ export function SidebarDocente() {
                 </select>
               </div>
  
-              <div className="flex flex-col gap-1">
-                <label className="text-sm font-semibold text-gray-700">Turma:</label>
+              <div className="flex flex-col text-left gap-[5px]">
+                <label className="text-xl font-medium text-[#333]">Turma:</label>
                 <select
                   value={turmaSelecionada}
                   onChange={(e) => setTurmaSelecionada(e.target.value)}
                   disabled={!cursoSelecionado}
-                  className="p-2 rounded border border-[#ccc] bg-white text-sm outline-none focus:border-[#df3535] disabled:opacity-50"
+                  className="p-[8px] rounded-[5px] border border-[#ccc] bg-white text-lg outline-none focus:border-[var(--button-selected)] disabled:opacity-50"
                 >
                   <option value="" disabled hidden>Selecione</option>
                   {turmasDisponiveis.map(item => (
@@ -154,18 +156,20 @@ export function SidebarDocente() {
                 </select>
               </div>
  
-              <div className="flex gap-2 mt-1">
+              <div className="flex gap-[10px] mt-[5px]">
                 <button
                   onClick={handleLimpar}
-                  className="flex-1 p-2 bg-[#ea4335] text-white rounded text-sm font-semibold hover:brightness-90 transition-all"
+                  className="flex-1 p-[10px] bg-[var(--button-selected)] text-white rounded-[5px] text-lg font-semibold hover:brightness-90 transition-all"
                 >
                   Limpar ⟲
                 </button>
                 <button
                   onClick={handlePesquisar}
-                  className="flex-1 p-2 bg-[#ea4335] text-white rounded text-sm font-semibold hover:brightness-90 transition-all"
+                  disabled={formIncompleto}
+                  className={`flex-1 p-[10px] rounded-[5px] text-lg font-semibold transition-all
+                    ${formIncompleto ? 'opacity-50 cursor-not-allowed bg-gray-400 text-gray-200' : 'bg-[var(--button-selected)] text-white cursor-pointer hover:brightness-90'}`}
                 >
-                  Pesquisar 🔍
+                  Pesquisar
                 </button>
               </div>
             </div>
@@ -174,19 +178,19 @@ export function SidebarDocente() {
           {/* BOTÃO INSTR. DE ACOMP. */}
           <button
             onClick={handleInstrAcomp}
-            className={`flex items-center justify-between w-full h-[10vh] px-5 mx-auto mt-4 bg-[var(--button_bg)] rounded-[10px] border border-black font-bold text-[22px] shadow-[0px_3px_3px_rgb(117,117,117)] cursor-pointer transition-all ${
-              botaoSelecionado === 'instr' ? 'bg-[#df3535] text-white' : ''
+            className={`flex items-center justify-center gap-4 w-full h-[10vh] px-10 mx-auto mt-4 bg-gray-100 rounded-[10px] border border-black font-bold text-[26px] shadow-[0px_3px_7px_rgb(117,117,117)] cursor-pointer transition-all ${
+              botaoSelecionado === 'instr' ? 'bg-[var(--button-selected)] text-white' : ''
             }`}
           >
             <img
               src={reportIcon}
-              className={`w-6 h-6 ${botaoSelecionado === 'instr' ? 'brightness-0 invert' : 'brightness-0'}`}
+              className={`w-7 h-7 ${botaoSelecionado === 'instr' ? 'brightness-0 invert' : 'brightness-0'}`}
               alt="Instrumento"
             />
             <p className="flex-1 text-center">Instr. de Acomp.</p>
             <img
               src={arrowRightIcon}
-              className={`w-5 h-5 ${botaoSelecionado === 'instr' ? 'brightness-0 invert' : 'brightness-0'}`}
+              className={`w-6 h-6 ${botaoSelecionado === 'instr' ? 'brightness-0 invert' : 'brightness-0'}`}
               alt="Seta"
             />
           </button>
@@ -197,13 +201,13 @@ export function SidebarDocente() {
         <div className="w-full flex justify-center border-t border-[#ccc]">
           <button
             onClick={handleConfig}
-            className={`flex items-center justify-center w-full h-[60px] px-5 font-bold text-[20px] cursor-pointer transition-all gap-3 ${
-              botaoSelecionado === 'config' ? 'bg-[#df3535] text-white' : 'bg-[var(--button_bg)]'
+            className={`flex items-center justify-center w-full h-[70px] px-[20px] bg-gray-100 border shadow-[0px_-3px_7px_rgb(150,150,150)] font-bold text-[26px] cursor-pointer transition-all gap-[15px] ${
+              botaoSelecionado === 'config' ? 'bg-[var(--button-selected)] text-white border border-[var(--button-selected)]' : ''
             }`}
           >
             <img
               src={configIcon}
-              className={`w-5 h-5 ${botaoSelecionado === 'config' ? 'brightness-0 invert' : ''}`}
+              className={`w-6 h-6 ${botaoSelecionado === 'config' ? 'brightness-0 invert' : ''}`}
               alt="Configurações"
             />
             <p>Config. Perfil</p>
