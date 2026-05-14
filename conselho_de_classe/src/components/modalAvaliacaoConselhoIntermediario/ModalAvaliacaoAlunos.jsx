@@ -25,7 +25,25 @@ const ModalAvaliacaoAlunos = ({
 
   useEffect(() => {
     if (!isOpen) return;
-    setForm(initialState);
+    // Pré-preenche apenas quando UM único aluno com avaliação existente é selecionado.
+    // Para múltiplos alunos, o formulário começa vazio (avaliação em lote).
+    const unico = alunosSelecionados.length === 1 ? alunosSelecionados[0] : null;
+    const av = unico?.avaliacaoExistente;
+
+    if (av) {
+      const naturezasBruto = Array.isArray(av.naturezaOcorrencia) ? av.naturezaOcorrencia : [];
+      const naturezasMarcadas = naturezasBruto.filter(n => NATUREZAS.includes(n));
+      const naturezaOutro = naturezasBruto.find(n => !NATUREZAS.includes(n)) || '';
+      setForm({
+        naturezas: naturezasMarcadas,
+        naturezaOutro,
+        restricao:    av.restricao                || '',
+        acaoProposta: av.acaoPropostaIntermediario || '',
+        responsavel:  av.responsavelIntermediario  || '',
+      });
+    } else {
+      setForm(initialState);
+    }
   }, [isOpen]);
 
   if (!isOpen || alunosSelecionados.length === 0) return null;

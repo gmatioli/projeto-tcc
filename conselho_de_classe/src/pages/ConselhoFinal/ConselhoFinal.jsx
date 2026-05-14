@@ -76,6 +76,7 @@ const ConselhoFinal = () => {
       const data = await res.json();
       if (data.sucesso && Array.isArray(data.alunos)) {
         setAlunos(data.alunos);
+        
         setMostrarTabelaAlunos(true);
       } else {
         alert('Erro ao carregar alunos da turma.');
@@ -211,8 +212,14 @@ const ConselhoFinal = () => {
       </section>
 
       {/* SEÇÃO INFERIOR: ALUNOS GERAL - RENDERIZADO CONDICIONALMENTE */}
-      {mostrarTabelaAlunos && ( 
-      <section className='h-[64vh] overflow-y-auto'>
+      {!mostrarTabelaAlunos ? (
+          <section className='h-[64vh] flex items-center justify-center'>
+            <div className="text-center text-gray-500">
+              <p className="text-xl font-medium">Selecione uma turma e clique em "Avaliar turma" para iniciar avaliação dos alunos.</p>
+            </div>
+          </section>
+        ) : ( 
+        <section className='h-[64vh] overflow-y-auto'>
         <table className="w-full border-collapse bg-white text-sm">
           <thead>
             <tr>
