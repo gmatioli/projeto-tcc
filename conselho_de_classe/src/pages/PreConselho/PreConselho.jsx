@@ -30,6 +30,8 @@ export function PreConselho() {
     const [searchParams] = useSearchParams();
     const idTurma = searchParams.get('turma');
     const nomeTurma = searchParams.get('nomeTurma');
+    const nomeEmpresa = searchParams.get('');
+
 
     // Usuário logado vindo do localStorage (para registrar quem iniciou)
     const usuario = JSON.parse(localStorage.getItem('usuarioLogado') || '{}');
@@ -40,6 +42,8 @@ export function PreConselho() {
             return v ? Number(v) : null;
         });
     
+    const [modoEdicao, setModoEdicao] = useState(false);
+        
     // Ciclo (semestre/ano) corrente — usado para reusar/abrir conselho no mesmo período
     const ciclo = useState(cicloAtual)[0];
     const [alunos, setAlunos] = useState([]);
@@ -59,14 +63,24 @@ export function PreConselho() {
     // Regras de habilitação (centralizadas aqui pra ficar fácil de manter):
     //  - botoesDesabilitados: bloqueia tudo enquanto o conselho não for iniciado
     //  - podeAvaliarAlunos: precisa ter conselho +  alunos marcados
-    const botoesDesabilitados = !conselhoAtivo;
+    const botoesDesabilitados = !modoEdicao;
+    
     const podeAvaliarAlunos =
-        conselhoAtivo && alunosSelecionados.length > 0;
+        modoEdicao && alunosSelecionados.length > 0;
 
     // O botão principal (Iniciar/Finalizar) só fica bloqueado se está
     // carregando OU se não tem turma/usuário para iniciar
     const botaoPrincipalDesabilitado =
         carregandoConselho || (!conselhoAtivo && (!idTurma || !idUsuario));
+
+    const textoBotaoPrincipal = carregandoConselho
+    ? 'Carregando...'
+    : modoEdicao
+        ? 'Finalizar Conselho'
+        : conselhoAtivo
+            ? 'Editar Conselho'
+            : 'Iniciar Conselho';    
+
 
 
     // Funções para manipular o estado
@@ -92,7 +106,7 @@ export function PreConselho() {
             console.error('Erro ao recarregar pré-conselho:', e);
         }
     }, []);
-            
+
 
     useEffect(() => {
         if(!idTurma) return;
@@ -100,7 +114,7 @@ export function PreConselho() {
         setAlunosSelecionados([]);
         setHistoricoIntermediario({});
         setCarregando(true);
-        fetch(`http://localhost:3001/api/alunos/${idTurma}`)
+        fetch(`http://localhost:3001/api/alunos/empresa/${idTurma}`)
             .then(res => res.json())
             .then(data => {
                 if (data.sucesso) setAlunos(data.alunos);
@@ -175,7 +189,8 @@ export function PreConselho() {
             if (!dados.sucesso) throw new Error(dados.mensagem);
             setConselhoId(dados.conselhoId);
             localStorage.setItem('preConselhoAtivo', String(dados.conselhoId));
-            const avaliacao = await recarregarConselho(dados.conselhoId, idTurma);
+            setModoEdicao(true);
+
 
         } catch (e) {
             console.error(e);
@@ -184,6 +199,41 @@ export function PreConselho() {
             setCarregandoConselho(false);
         }
     };  
+
+    const handleEditarConselho = async () => {
+        if (!conselhoId || !idTurma || !idUsuario) return;
+        setCarregandoConselho(true);
+        try {
+            const resp = await fetch(`${API}/iniciar`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    tipoConselho: 'Pré-Conselho',
+                    idTurma,
+                    idUsuario,
+                    semestre: ciclo.semestre,
+                    ano: ciclo.ano
+                })
+            });
+            const dados = await resp.json();
+            if (!dados.sucesso) throw new Error(dados.mensagem);
+ 
+            // Garante consistência do ID local com o retorno do backend
+            const idFinal = dados.conselhoId || conselhoId;
+            if (idFinal !== conselhoId) {
+                setConselhoId(idFinal);
+                localStorage.setItem('preConselhoAtivo', String(idFinal));
+            }
+ 
+            await recarregarConselho(idFinal, idTurma);
+            setModoEdicao(true);
+        } catch (e) {
+            console.error(e);
+            alert('Erro ao editar conselho.');
+        } finally {
+            setCarregandoConselho(false);
+        }
+    };
 
     const handleFinalizarConselho = async () => {
         if (!conselhoId) return;
@@ -202,6 +252,7 @@ export function PreConselho() {
             if (!dados.sucesso) throw new Error(dados.mensagem);
             localStorage.removeItem('preConselhoAtivo');
             setConselhoId(null);
+            setModoEdicao(false);
             setAlunosAvaliados({});
             alert('Conselho finalizado com sucesso!');
             navigate('/dashboard')
@@ -214,6 +265,11 @@ export function PreConselho() {
         }
     };
     
+    const handleAcaoBotaoPrincipal = () => {
+        if (modoEdicao) return handleFinalizarConselho();
+        if (conselhoAtivo) return handleEditarConselho();
+        return handleIniciarConselho();
+      };
 
     const handleToogleAluno = (id) => {
         setAlunosSelecionados(prev => 
@@ -250,6 +306,15 @@ export function PreConselho() {
     const tableThClasses = "border border-[#ddd] p-[12px_15px] text-left font-bold bg-white";
     const tableTdClasses = "border border-[#ddd] p-[12px_15px] text-left text-lg";
 
+    // Classes do botão principal baseadas no estado atual
+    const classeBotaoPrincipal = botaoPrincipalDesabilitado
+        ? 'opacity-50 cursor-not-allowed bg-gray-400 text-white'
+        : modoEdicao
+            ? 'bg-red-900 text-white cursor-pointer active:scale-95 hover:bg-red-700'
+            : conselhoAtivo
+                ? 'bg-red-700 text-white cursor-pointer active:scale-95 hover:bg-red-800'
+                : 'bg-green-600 text-white cursor-pointer active:scale-95 hover:bg-green-700';
+ 
   return (
       <section>
       <nav className="mb-4">
@@ -305,17 +370,11 @@ export function PreConselho() {
                 <div className="card_avaliacoes">
             <div className="flex flex-col gap-7 min-h-[220px]">
                 <button
-                  onClick={conselhoAtivo ? handleFinalizarConselho : handleIniciarConselho}
+                  onClick={handleAcaoBotaoPrincipal}
                   disabled={botaoPrincipalDesabilitado}
                   className={`p-[10px] w-[350px] rounded-[15px] border border-black shadow-[0_0_3px_black] transition-all duration-200 font-bold text-lg
-                  ${botaoPrincipalDesabilitado
-                      ? 'opacity-50 cursor-not-allowed bg-gray-400 text-white'
-                      : conselhoAtivo
-                          ? 'bg-red-900 text-white cursor-pointer active:scale-95 hover:bg-red-700'
-                          : 'bg-green-600 text-white cursor-pointer active:scale-95 hover:bg-green-700'}`}>
-                  {carregandoConselho
-                      ? 'Carregando...'
-                      : conselhoAtivo ? 'Finalizar Conselho' : 'Iniciar Conselho'}
+                  ${classeBotaoPrincipal}`}>
+                  {textoBotaoPrincipal}
               </button>
 
                 <button onClick={handleLimparSelecao}  disabled={botoesDesabilitados}  className={`limpar_selecao p-[10px] w-[350px] rounded-[15px] border border-black shadow-[0_0_3px_black] transition-all duration-200 
@@ -326,7 +385,7 @@ export function PreConselho() {
                 onClick={handleOpenModal}
                 disabled={!podeAvaliarAlunos}
                 title={
-                    !conselhoAtivo
+                    !conselhoAtivo || !modoEdicao
                         ? 'Inicie o conselho para avaliar alunos'
                         : alunosSelecionados.length === 0
                             ? 'Selecione ao menos um aluno'
@@ -359,7 +418,7 @@ export function PreConselho() {
             <div className="flex flex-col mx-2 mr-6 ">
                 <div className="flex justify-between my-0 mx-[10px] text-xl ">
                     <div className="flex gap-2">
-                        <input disabled={botoesDesabilitados} type="checkbox" id="checkbox_selecionar_tudo" className="w-5 h-5 cursor-pointer" />
+                        <input onChange={handleSelecionarTudo} disabled={botoesDesabilitados} type="checkbox" id="checkbox_selecionar_tudo" className="w-5 h-5 cursor-pointer" />
                         <p>Selecionar Tudo</p>
                     </div>
                     <div className="quatidade_alunos_selecionados">
@@ -376,8 +435,8 @@ export function PreConselho() {
                             <th className={`${tableThClasses} w-[44%] sticky top-0 z-10 bg-white shadow-[0_1px_0_0_#e5e7eb] p-2 text-left font-bold border-separate border-spacing-0 `}>Aluno</th>
                             <th className={`${tableThClasses} w-[12%] text-center sticky top-0 z-10 bg-white shadow-[0_1px_0_0_#e5e7eb] p-2 text-left font-bold border-separate border-spacing-0`}>Observações</th>
                             <th className={`${tableThClasses} w-[20%] text-center sticky top-0 z-10 bg-white shadow-[0_1px_0_0_#e5e7eb] p-2 text-left font-bold border-separate border-spacing-0`}>Empresa</th>
-                            <th className={`${tableThClasses} w-[14%] text-center sticky top-0 z-10 bg-white shadow-[0_1px_0_0_#e5e7eb] p-2 text-left font-bold border-separate border-spacing-0`}>Restrição - (C.I)</th>
-                            <th className={`${tableThClasses} w-[10%] text-center sticky top-0 z-10 bg-white shadow-[0_1px_0_0_#e5e7eb] p-2 text-left font-bold border-separate border-spacing-0`}>Restrição</th>
+                            <th className={`${tableThClasses} w-[14%] text-center sticky top-0 z-10 bg-white shadow-[0_1px_0_0_#e5e7eb] p-2 text-left font-bold border-separate border-spacing-0`}>1° Conselho</th>
+                            <th className={`${tableThClasses} w-[10%] text-center sticky top-0 z-10 bg-white shadow-[0_1px_0_0_#e5e7eb] p-2 text-left font-bold border-separate border-spacing-0`}>2° Conselho</th>
                         </tr>
                         </thead>
                     
@@ -417,6 +476,8 @@ export function PreConselho() {
                                 </td>
                                 {/* Coluna 3: Empresa */}
                                 <td className={`${tableTdClasses}`}>
+                                    <p className="text-xl text-center">{aluno.nomeEmpresa || "-"}</p>
+
                                 </td>
 
                                 {/* Coluna 4: Restrito - C.I */}
@@ -424,7 +485,7 @@ export function PreConselho() {
                                     <div className="div_label_restrito_ci">
                                         {restritoHistorico && (
                                         <label className="text-lg text-white font-bold bg-red-800 px-4 py-2 rounded-full">
-                                            Restrito - (C.I)
+                                            Restrito
                                         </label>
                                         )}
                                     </div>

@@ -24,25 +24,37 @@ const ModalAvaliacao = ({
   const [form, setForm] = useState(initialState);
   const [salvando, setSalvando] = useState(false);
 
+  useEffect(() => {
+      if (!isOpen) return;
+      // Pré-preenche apenas quando UM único aluno com avaliação existente é selecionado.
+      // Para múltiplos alunos, o formulário começa vazio (avaliação em lote).
+      const unico = alunosSelecionados.length === 1 ? alunosSelecionados[0] : null;
+      const av = unico?.avaliacaoExistente;
+  
+      if (av) {
+        const naturezasBruto = Array.isArray(av.naturezaOcorrencia) ? av.naturezaOcorrencia : [];
+        const naturezasMarcadas = naturezasBruto.filter(n => NATUREZAS.includes(n));
+        const naturezaOutro = naturezasBruto.find(n => !NATUREZAS.includes(n)) || '';
+        setForm({
+          naturezas: naturezasMarcadas,
+          naturezaOutro,
+          justificativa:    av.justificativa                || '',
+          acaoProposta: av.acaoPropostaPreConselho || '',
+          responsavel:  av.responsavelPreConselho  || '',
+        });
+      } else {
+        setForm(initialState);
+      }
+    }, [isOpen]);
+
   // Alunos selecionados que JÁ possuem avaliação no Conselho Intermediário
   // do mesmo ciclo. Usado para mostrar contexto e pré-preencher restrição.
   const comHistorico = (alunosSelecionados || []).filter(a => a.historicoIntermediario);
   const historicoUnico = comHistorico.length === 1 ? comHistorico[0].historicoIntermediario : null;
-  
-  useEffect(() => {
-    if (!isOpen) return;
-    // Se exatamente 1 aluno selecionado e tem histórico do intermediário,
-    // pré-preenche a restrição com a vinda do intermediário (read-only).
-    if (historicoUnico) {
-      setForm({
-        ...initialState,
-        restricao: historicoUnico.restricao || ''
-      });
-    } else {
-      setForm(initialState);
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isOpen]);
+
+  // Reconhece quando escreve em um dos campos
+  const justificativaPreenchida = form.justificativa.trim().length > 0;
+  const acaoPropostaPreenchida  = form.acaoProposta.trim().length > 0;
 
   if (!isOpen || alunosSelecionados.length === 0) return null;
 
@@ -92,6 +104,10 @@ const ModalAvaliacao = ({
         throw new Error(
           `${falhas.length} avaliações não foram salvas. ${falhas[0].mensagem || ''}`
         );
+      }
+      if (form.justificativa.trim() && form.acaoProposta.trim()) {
+        alert('Preencha apenas Justificativa OU Ação Proposta, não os dois.');
+        return;
       }
 
       onSaved && onSaved();
@@ -159,9 +175,17 @@ const ModalAvaliacao = ({
             <input
             type="text"
             value={form.justificativa}
+            disabled={acaoPropostaPreenchida}
             onChange={e => setCampo('justificativa', e.target.value)}
-            className="p-1 mt-2 py-2 rounded-[18px] border border-black pl-4" />         
-            
+            className={`p-1 mt-2 py-2 rounded-[18px] border border-black pl-4
+            ${acaoPropostaPreenchida ? 'opacity-50 cursor-not-allowed bg-gray-100' : ''}`}
+            />
+            {acaoPropostaPreenchida && (
+              <span className="text-sm text-gray-500 mt-1">
+                Limpe a "Ação Proposta" para preencher a justificativa.
+              </span>
+            )}
+                  
           </div>
 
           <div className="flex flex-col mt-[15px] mb-[10px]">
@@ -169,17 +193,25 @@ const ModalAvaliacao = ({
             <input
               type="text"
               value={form.acaoProposta}
+              disabled={justificativaPreenchida}
               onChange={e => setCampo('acaoProposta', e.target.value)}
-              className="p-1 mt-2 py-2 rounded-[18px] border border-black pl-4" />
+              className={`p-1 mt-2 py-2 rounded-[18px] border border-black pl-4
+              ${justificativaPreenchida ? 'opacity-50 cursor-not-allowed bg-gray-100' : ''}`}
+              />
+              {justificativaPreenchida && (
+                <span className="text-sm text-gray-500 mt-1">
+                  Limpe a "Justificativa" para preencher a ação proposta.
+                </span>
+              )}
           </div>
-          <div className="flex flex-col mt-[15px] mb-[10px]">
+          {/* <div className="flex flex-col mt-[15px] mb-[10px]">
             <label>Informações Complementares:</label>
             <input
               type="text"
               value={form.informacoesComplementares}
               onChange={e => setCampo('informacoesComplementares', e.target.value)}
               className="p-1 mt-2 py-2 rounded-[18px] border border-black pl-4" />
-          </div>
+          </div> */}
 
         
 
