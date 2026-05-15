@@ -418,11 +418,12 @@ export function PreConselho() {
             <div className="flex flex-col mx-2 mr-6 ">
                 <div className="flex justify-between my-0 mx-[10px] text-xl ">
                     <div className="flex gap-2">
-                        <input onChange={handleSelecionarTudo} disabled={botoesDesabilitados} type="checkbox" id="checkbox_selecionar_tudo" className="w-5 h-5 cursor-pointer" />
+                        <input onChange={handleSelecionarTudo} disabled={botoesDesabilitados} type="checkbox" id="checkbox_selecionar_tudo" className="w-5 h-5 cursor-pointer"
+                        checked={alunos.length > 0 && alunosSelecionados.length === alunos.length} />
                         <p>Selecionar Tudo</p>
                     </div>
                     <div className="quatidade_alunos_selecionados">
-                        <p>Alunos Selecionados: 0</p>
+                        <p>Alunos Selecionados: {alunosSelecionados.length}</p>
                     </div>
                 </div>
 

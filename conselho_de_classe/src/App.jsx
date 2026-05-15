@@ -3,6 +3,7 @@ import React from 'react';
 // importei o navigate
 import { BrowserRouter, Routes, Route, Outlet, Navigate } from 'react-router-dom'; 
 import './App.css';
+import { Toaster } from 'sonner';
 
 // 1. Importe a sua tela de Login
 import Login from './pages/Login/Login.jsx'; 
@@ -111,8 +112,13 @@ function App() {
         <Route path="/recuperarsenha" element={<Senha />} /> 
         <Route path="/atribuirturma" element={<Turma />}/>
 
+
       </Routes>
+    <Toaster position="top-right" className='mt-[300px]' richColors />
+
+
     </BrowserRouter>
+
   );
 }
 
