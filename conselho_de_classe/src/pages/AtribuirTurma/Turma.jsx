@@ -267,13 +267,13 @@ export function Turma() {
                     <div className="flex gap-6 mt-8">
 
                         {/* SELECIONADAS */}
-                        <div className='flex flex-col w-[35%]'>
+                        <div className='flex flex-col w-[50%]'>
 
                             <label className="text-sm font-semibold mb-2">
-                                Turmas Selecionadas
+                                Turmas Atuais do Docente
                             </label>
 
-                            <div className="border border-gray-400 rounded-xl p-4 h-[250px] overflow-y-auto bg-white">
+                            <div className="border border-gray-400 rounded-xl p-4 h-[250px] overflow-y-auto bg-white">     
 
                                 {turmas
                                     .filter((t) =>
@@ -285,9 +285,23 @@ export function Turma() {
 
                                         <div
                                             key={turma.idTurma}
-                                            className="border-b border-gray-300 pb-3 mb-3 text-sm text-gray-700"
+                                            className="flex items-center justify-between border-b border-gray-300 pb-2 mb-2 text-sm text-gray-700"
                                         >
-                                            {turma.codigo}
+                                            <span>{turma.codigo}</span>
+                                            
+                                            <button 
+                                                className="text-gray-400 hover:text-red-600 transition-colors p-1" 
+                                                title="Excluir Turma do Docente"
+                                                onClick={() => {/* Sua função de remover aqui */}}
+                                            >
+                                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                    <polyline points="3 6 5 6 21 6"/>
+                                                    <path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/>
+                                                    <path d="M10 11v6"/>
+                                                    <path d="M14 11v6"/>
+                                                    <path d="M9 6V4h6v2"/>
+                                                </svg>
+                                            </button>
                                         </div>
 
                                     ))}
@@ -297,10 +311,10 @@ export function Turma() {
                         </div>
 
                         {/* TURMAS */}
-                        <div className="flex flex-col w-[65%]">
+                        <div className="flex flex-col w-[50%]">
 
                             <label className="text-sm font-semibold mb-2">
-                                Turmas
+                                Atribuir Turma
                             </label>
 
                             <div className="border border-gray-400 rounded-xl p-4 h-[250px] overflow-y-auto bg-white">

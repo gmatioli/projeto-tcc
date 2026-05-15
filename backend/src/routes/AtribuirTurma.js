@@ -32,7 +32,9 @@ router.get('/turmas', async (req, res) => {
   }
 });
 
-// 3. SALVAR ATRIBUIÇÕES (CORRIGIDO)
+// ==========================================
+// 3. SALVAR ATRIBUIÇÕES (MODO ADITIVO)
+// ==========================================
 router.post('/salvar', async (req, res) => {
   const { idDocente, turmas } = req.body;
 
@@ -41,26 +43,26 @@ router.post('/salvar', async (req, res) => {
   }
 
   try {
-    // Primeiro deleta as antigas
-    await db`
-      DELETE FROM "Docente_Turma" 
-      WHERE "Usuario_idUsuario" = ${idDocente}
-    `;
+    // REMOVEMOS O DELETE DAQUI. 
+    // Assim, o que já está no banco não é tocado.
 
-    // Depois insere as novas
     if (turmas && turmas.length > 0) {
       for (const idTurma of turmas) {
+        // Usamos "ON CONFLICT DO NOTHING". 
+        // Isso serve para: se você tentar adicionar uma turma que o docente 
+        // JÁ TEM, o banco ignora e não gera um erro de duplicata.
         await db`
           INSERT INTO "Docente_Turma" ("Usuario_idUsuario", "Turma_idTurma")
           VALUES (${idDocente}, ${idTurma})
+          ON CONFLICT DO NOTHING
         `;
       }
     }
 
-    res.json({ sucesso: true, mensagem: 'Salvo com sucesso!' });
+    res.json({ sucesso: true, mensagem: 'Novas turmas adicionadas sem apagar as anteriores!' });
   } catch (erro) {
-    console.error(erro);
-    res.status(500).json({ sucesso: false, mensagem: 'Erro ao salvar no banco' });
+    console.error('Erro ao salvar no banco:', erro);
+    res.status(500).json({ sucesso: false, mensagem: 'Erro interno ao salvar' });
   }
 });
 
