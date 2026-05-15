@@ -113,7 +113,6 @@ export function PreConselho() {
         setAlunosAvaliados({});
         setAlunosSelecionados([]);
         setHistoricoIntermediario({});
-        setModoEdicao(false);
         setCarregando(true);
         fetch(`http://localhost:3001/api/alunos/empresa/${idTurma}`)
             .then(res => res.json())
@@ -386,7 +385,7 @@ export function PreConselho() {
                 onClick={handleOpenModal}
                 disabled={!podeAvaliarAlunos}
                 title={
-                    !conselhoAtivo
+                    !conselhoAtivo || !modoEdicao
                         ? 'Inicie o conselho para avaliar alunos'
                         : alunosSelecionados.length === 0
                             ? 'Selecione ao menos um aluno'
@@ -477,7 +476,7 @@ export function PreConselho() {
                                 </td>
                                 {/* Coluna 3: Empresa */}
                                 <td className={`${tableTdClasses}`}>
-                                    <p className="text-xl">{aluno.nomeEmpresa}</p>
+                                    <p className="text-xl text-center">{aluno.nomeEmpresa || "-"}</p>
 
                                 </td>
 

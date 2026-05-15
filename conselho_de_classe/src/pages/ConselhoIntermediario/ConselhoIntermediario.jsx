@@ -102,7 +102,7 @@ export function ConselhoIntermediario() {
     // Modal da TURMA: só abre se há conselho ativo
     // (Serve tanto para CRIAR a primeira avaliação quanto para EDITAR a existente)
     const handleOpenModalTurma = () => {
-        if (!modoEdicao) return; // proteção contra cliques indevidos
+        if (!modoEdicao || !conselhoAtivo) return; // proteção contra cliques indevidos
         setIsModalTurmaOpen(true);
     };
     const handleCloseModalTurma = () => setIsModalTurmaOpen(false);
@@ -148,10 +148,9 @@ export function ConselhoIntermediario() {
         if(!idTurma) return;
         setAlunosAvaliados({});
         setAlunosSelecionados([]);
-        setModoEdicao(false);
 
         setCarregando(true);
-        fetch(`http://localhost:3001/api/alunos/${idTurma}`)
+        fetch(`http://localhost:3001/api/alunos/empresa/${idTurma}`)
             .then(res => res.json())
             .then(data => {
                 if (data.sucesso) setAlunos(data.alunos);
@@ -256,9 +255,10 @@ export function ConselhoIntermediario() {
                 setConselhoId(idFinal);
                 localStorage.setItem('conselhoIntermediarioAtivo', String(idFinal));
             }
- 
+          
             await recarregarConselho(idFinal, idTurma);
             setModoEdicao(true);
+ 
         } catch (e) {
             console.error(e);
             alert('Erro ao editar conselho.');
@@ -417,7 +417,7 @@ export function ConselhoIntermediario() {
 
                 <button
                   onClick={handleOpenModalTurma}
-                  disabled={!modoEdicao || turmaJaAvaliada}
+                  disabled={!modoEdicao}
                   title={
                       !modoEdicao
                           ? (conselhoAtivo
@@ -550,6 +550,8 @@ export function ConselhoIntermediario() {
                             </td>
                             {/* Coluna 3: Empresa */}
                             <td className={`${tableTdClasses} text-center`}>
+                                <p className="text-xl text-center">{aluno.nomeEmpresa || "-"}</p>
+
                             </td>
                             {/* Coluna 5: Restrito */}
                             <td className={`${tableTdClasses} text-center`}>

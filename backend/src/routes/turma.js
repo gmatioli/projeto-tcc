@@ -110,4 +110,28 @@ router.get('/alunos/:idTurma', async (req, res) => {
   }
 });
 
+
+// ==========================================
+// ROTA: Para aparecer se aluno tem empresa (GET)
+// Acessada via: GET /api/alunos/empresa
+// ==========================================
+router.get('/alunos/empresa/:idTurma', async (req, res) => {
+  const { idTurma } = req.params;
+  
+  if (!idTurma) return res.status(400).json({ sucesso: false, mensagem: 'idTurma é obrigatório.' });
+
+  try {
+    const result = await db`
+      SELECT a."idtblAluno", a.nome, e."empresaContrato" AS "nomeEmpresa"
+      FROM "tblAluno" a
+      LEFT JOIN "Empresa" e ON a."Empresa_idEmpresa" = e."idEmpresa"
+      WHERE a."Turma_idTurma" = ${idTurma};
+    `;
+    res.json({ sucesso: true, alunos: result });
+  } catch (erro) {
+    console.error(erro);
+    res.status(500).json({ sucesso: false, mensagem: 'Erro ao buscar alunos.' });
+  }
+});
+
 module.exports = router;
