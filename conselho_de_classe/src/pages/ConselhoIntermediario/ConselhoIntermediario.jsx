@@ -96,6 +96,14 @@ export function ConselhoIntermediario() {
                 ? 'Editar Conselho'
                 : 'Iniciar Conselho';
 
+    const textoBotaoAvaliar = !modoEdicao
+    ? (conselhoAtivo ? 'Clique em Editar Conselho' : 'Inicie o conselho')
+    : !turmaJaAvaliada
+      ? 'Avalie a turma primeiro'
+      : alunosSelecionados.length === 0
+        ? 'Selecione ao menos um aluno'
+        : 'Avaliar Selecionado(s)';
+
     // =====================================================================
     // CONTROLE DOS MODAIS
     // =====================================================================
@@ -185,12 +193,12 @@ export function ConselhoIntermediario() {
         })
           .then(() => recarregarConselho(conselhoId, idTurma))
           .then(avaliacao => {
-            if (!avaliacao) setIsModalTurmaOpen(true);  
+            if (!avaliacao && modoEdicao) setIsModalTurmaOpen(true);  
           })
           .catch(err => console.error('Erro ao adicionar turma ao conselho:', err));
         setAlunosSelecionados([]);
 
-    }, [idTurma, conselhoId, recarregarConselho]);
+    }, [idTurma, conselhoId, recarregarConselho, modoEdicao]);
 
 
     // Iniciar / Finalizar conselho
@@ -429,7 +437,7 @@ export function ConselhoIntermediario() {
                   }                  
                   className={`avaliar_toda_turma p-[10px] w-[350px] rounded-[15px] border border-black shadow-[0_0_3px_black] transition-all duration-200
                   ${(!modoEdicao || turmaJaAvaliada)
-                      ? 'opacity-50 cursor-not-allowed bg-gray-100'
+                      ? ''
                       : 'bg-[#FEFEFE] cursor-pointer active:scale-95'}`}>
                   {turmaJaAvaliada ? 'Avaliação da Turma Salva' : 'Avaliar Toda Turma'}
               </button>
@@ -445,22 +453,11 @@ export function ConselhoIntermediario() {
               <button
                 onClick={handleOpenModalAlunos}
                 disabled={!podeAvaliarAlunos}
-                title={
-                    !modoEdicao
-                        ? (conselhoAtivo
-                            ? 'Clique em "Editar Conselho" para fazer alterações'
-                            : 'Inicie o conselho para avaliar alunos')
-                        : !turmaJaAvaliada
-                            ? 'Avalie a turma antes de avaliar alunos'
-                            : alunosSelecionados.length === 0
-                                ? 'Selecione ao menos um aluno'
-                                : ''
-                }
                 className={`p-[10px] w-[350px] rounded-[15px] border border-black shadow-[0_0_3px_black] transition-all duration-200
                 ${!podeAvaliarAlunos
-                    ? 'opacity-50 cursor-not-allowed bg-gray-100'
+                    ? 'opacity-50 cursor-not-allowed bg-gray-100'  
                     : 'bg-red-600 text-white cursor-pointer active:scale-95'}`}>
-                Avaliar Selecionados
+              {textoBotaoAvaliar}
             </button>
           </div>
 

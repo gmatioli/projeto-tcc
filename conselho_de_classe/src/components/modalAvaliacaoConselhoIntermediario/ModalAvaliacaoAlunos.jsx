@@ -178,7 +178,7 @@ const ModalAvaliacaoAlunos = ({
             </select>
           </div>
 
-          <div className="flex flex-col text-xl mt-[80px] mb-[15px]">
+          <div className="flex flex-col text-xl mt-[40px] mb-[15px]">
             <label className="text-2xl font-bold">Natureza da Ocorrência:</label>
             <div className="flex justify-center items-center gap-[25px] mt-[25px]">
                {NATUREZAS.map(n => (
