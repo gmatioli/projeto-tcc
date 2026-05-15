@@ -143,45 +143,6 @@ router.get('/ativo/:tipoConselho/:idUsuario', async (req, res) => {
   }
 });
 
-
-// ==========================================
-// POST: EDITAR CONSELHO
-// POST -> /api/conselho/editar
-// ==========================================
-router.post('/editar', async (req, res) => {
-  try {
-    const { conselhoId } = req.body;
-
-    if (!conselhoId) {
-      return res.status(400).json({ sucesso: false, mensagem: 'ID do conselho é obrigatório' });
-    }
-
-    const result = await db`
-      UPDATE "Conselho"
-      SET "status" = ${'Em andamento'}
-      WHERE "idConselho" = ${conselhoId}
-      RETURNING *
-    `;
-
-    if (result.length === 0) {
-      return res.status(404).json({ sucesso: false, mensagem: 'Conselho não encontrado' });
-
-    }
-
-    return res.json({
-      sucesso: true,
-      mensagem: 'Conselho finalizado com sucesso',
-      conselho: result[0]
-    });
-
-  } catch (erro) {
-    console.error('ERRO FINALIZAR CONSELHO:', erro);
-    return res.status(500).json({ sucesso: false, mensagem: 'Erro ao finalizar conselho' });
-
-  }
-});
-
-
 // ==========================================
 // POST: FINALIZAR CONSELHO
 // POST -> /api/conselho/finalizar

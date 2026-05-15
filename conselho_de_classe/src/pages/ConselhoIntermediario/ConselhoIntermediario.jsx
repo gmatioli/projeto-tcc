@@ -1,6 +1,6 @@
 import React, { useState,  useEffect, useCallback  } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom'
-
+import { toast } from 'sonner'
 import totalAlunosIcon from '../../assets/conselho-intermediario/total-alunos-icon.svg'
 import situacaoNormalIcon from '../../assets/conselho-intermediario/situacao-normal-icon.svg'
 import restritosIcon from '../../assets/conselho-intermediario/restritos-icon.svg'
@@ -204,7 +204,7 @@ export function ConselhoIntermediario() {
     // Iniciar / Finalizar conselho
     const handleIniciarConselho = async () => {
         if (!idTurma || !idUsuario) {
-            alert('Selecione uma turma e faça login para iniciar o conselho.');
+            toast.warning('Selecione uma turma e faça login para iniciar o conselho.');
             return;
         }
         setCarregandoConselho(true);
@@ -233,7 +233,7 @@ export function ConselhoIntermediario() {
 
         } catch (e) {
             console.error(e);
-            alert('Erro ao iniciar conselho.');
+            toast.error('Erro ao iniciar conselho.');
         } finally {
             setCarregandoConselho(false);
         }
@@ -277,7 +277,23 @@ export function ConselhoIntermediario() {
 
     const handleFinalizarConselho = async () => {
         if (!conselhoId) return;
-        if (!confirm('Tem certeza que deseja finalizar o conselho?')) return;
+
+        toast('Deseja finalizar o conselho?', {
+          action: {
+              label: "FINALIZAR",
+              className: "mt-100",
+              onClick: () => executarFinalizacao(),
+          },
+          cancel: {
+              label: "CANCELAR",
+              onClick: () => {},
+          },
+          duration: 10000,
+
+        });
+      };
+
+    const executarFinalizacao = async () => {
         setCarregandoConselho(true);
 
         try {
@@ -288,15 +304,14 @@ export function ConselhoIntermediario() {
             });
             
             const dados = await resp.json();
-
-
             if (!dados.sucesso) throw new Error(dados.mensagem);
+
             localStorage.removeItem('conselhoIntermediarioAtivo');
             setConselhoId(null);
             setModoEdicao(false);
             setAvaliacaoTurma(null);
             setAlunosAvaliados({});
-            alert('Conselho finalizado com sucesso!');
+            toast.success('Conselho finalizado com sucesso!');
             navigate('/dashboard')
 
         } catch (e) {
@@ -317,7 +332,7 @@ export function ConselhoIntermediario() {
     // SELEÇÃO DE ALUNOS (checkboxes da lista)
     // =====================================================================
 
-    const handleToogleAluno = (id) => {
+    const handleToggleAluno = (id) => {
         setAlunosSelecionados(prev => 
             prev.includes(id) ? prev.filter(a => a !== id) : [...prev, id]
         );
@@ -436,8 +451,8 @@ export function ConselhoIntermediario() {
                               : ''
                   }                  
                   className={`avaliar_toda_turma p-[10px] w-[350px] rounded-[15px] border border-black shadow-[0_0_3px_black] transition-all duration-200
-                  ${(!modoEdicao || turmaJaAvaliada)
-                      ? ''
+                  ${!modoEdicao
+                      ? 'opacity-50 cursor-not-allowed bg-gray-100'
                       : 'bg-[#FEFEFE] cursor-pointer active:scale-95'}`}>
                   {turmaJaAvaliada ? 'Avaliação da Turma Salva' : 'Avaliar Toda Turma'}
               </button>
@@ -529,7 +544,7 @@ export function ConselhoIntermediario() {
                                   type="checkbox"
                                   className='w-5 h-5 cursor-pointer'
                                   checked={alunosSelecionados.includes(aluno.idtblAluno)}
-                                  onChange={() => handleToogleAluno(aluno.idtblAluno)}
+                                  onChange={() => handleToggleAluno(aluno.idtblAluno)}
                                 />
                                 <p className="text-xl">{aluno.nome}</p>
                               </label>
