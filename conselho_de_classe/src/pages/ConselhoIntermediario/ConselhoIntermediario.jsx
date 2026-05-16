@@ -60,7 +60,7 @@ export function ConselhoIntermediario() {
     const [carregandoConselho, setCarregandoConselho] = useState(false); // loading dos botões iniciar/finalizar
     const [avaliacaoTurma, setAvaliacaoTurma] = useState(null);        // avaliação da turma (null se ainda não foi feita)
     const [alunosAvaliados, setAlunosAvaliados] = useState({});        // mapa { idAluno: avaliacao }
-
+    const [aguardandoConfirmacao, setAguardandoConfirmacao] = useState(false);
 
     // Estados independentes para controlar cada modal
     const [isModalTurmaOpen, setIsModalTurmaOpen] = useState(false);
@@ -85,8 +85,7 @@ export function ConselhoIntermediario() {
 
      // O botão principal (Iniciar/Finalizar) só fica bloqueado se está
     // carregando OU se não tem turma/usuário para iniciar
-    const botaoPrincipalDesabilitado =
-        carregandoConselho || (!conselhoAtivo && (!idTurma || !idUsuario));
+   
 
     const textoBotaoPrincipal = carregandoConselho
         ? 'Carregando...'
@@ -278,22 +277,26 @@ export function ConselhoIntermediario() {
     const handleFinalizarConselho = async () => {
         if (!conselhoId) return;
 
+        setAguardandoConfirmacao(true);
+
         toast('Deseja finalizar o conselho?', {
           action: {
               label: "FINALIZAR",
-              className: "mt-100",
               onClick: () => executarFinalizacao(),
           },
           cancel: {
               label: "CANCELAR",
-              onClick: () => {},
+              onClick: () => setAguardandoConfirmacao(false),
           },
-          duration: 10000,
+          onDismiss: () => setAguardandoConfirmacao(false),    // ← libera se fechar
+          onAutoClose: () => setAguardandoConfirmacao(false),  // ← libera se expirar
+          duration: 5000,
 
         });
       };
 
     const executarFinalizacao = async () => {
+        setAguardandoConfirmacao(false);   
         setCarregandoConselho(true);
 
         try {
@@ -316,7 +319,7 @@ export function ConselhoIntermediario() {
 
         } catch (e) {
             console.error(e);
-            alert('Erro ao finalizar conselho.');
+            toast.error('Erro ao finalizar conselho.');
         } finally {
             setCarregandoConselho(false);
         }
@@ -365,6 +368,8 @@ export function ConselhoIntermediario() {
 
     const tableThClasses = "border border-[#ddd] p-[12px_15px] text-left font-bold bg-white sticky top-0 z-10";
     const tableTdClasses = "border border-[#ddd] p-[12px_15px] text-left text-lg";
+
+    const botaoPrincipalDesabilitado = carregandoConselho || aguardandoConfirmacao || (!conselhoAtivo && (!idTurma || !idUsuario));
 
     // Classes do botão principal baseadas no estado atual
     const classeBotaoPrincipal = botaoPrincipalDesabilitado

@@ -1,6 +1,6 @@
 import React, { useState,  useEffect, useCallback  } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom'
-
+import { toast } from 'sonner';
 import totalAlunosIcon from '../../assets/pre-conselho/total-alunos-icon.svg'
 import situacaoNormalIcon from '../../assets/pre-conselho/situacao-normal-icon.svg'
 import restritosIcon from '../../assets/pre-conselho/restritos-icon.svg'
@@ -53,6 +53,7 @@ export function PreConselho() {
     const [alunosAvaliados, setAlunosAvaliados] = useState({}); 
      // Avaliações vindas do Conselho Intermediário do MESMO ciclo (histórico)
     const [historicoIntermediario, setHistoricoIntermediario] = useState({});       
+    const [aguardandoConfirmacao, setAguardandoConfirmacao] = useState(false);
 
     // Estado que controla se o modal está aberto ou não
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -71,7 +72,7 @@ export function PreConselho() {
     // O botão principal (Iniciar/Finalizar) só fica bloqueado se está
     // carregando OU se não tem turma/usuário para iniciar
     const botaoPrincipalDesabilitado =
-        carregandoConselho || (!conselhoAtivo && (!idTurma || !idUsuario));
+        carregandoConselho || aguardandoConfirmacao ||(!conselhoAtivo && (!idTurma || !idUsuario));
 
     const textoBotaoPrincipal = carregandoConselho
     ? 'Carregando...'
@@ -237,7 +238,27 @@ export function PreConselho() {
 
     const handleFinalizarConselho = async () => {
         if (!conselhoId) return;
-        if (!confirm('Tem certeza que deseja finalizar o conselho?')) return;
+
+        setAguardandoConfirmacao(true);
+
+        toast('Deseja finalizar o conselho?', {
+          action: {
+              label: "FINALIZAR",
+              onClick: () => executarFinalizacao(),
+          },
+          cancel: {
+              label: "CANCELAR",
+              onClick: () => setAguardandoConfirmacao(false),
+          },
+          onDismiss: () => setAguardandoConfirmacao(false),    // ← libera se fechar
+          onAutoClose: () => setAguardandoConfirmacao(false),  // ← libera se expirar
+          duration: 5000,
+
+        });
+      };
+
+    const executarFinalizacao = async () => {
+        setAguardandoConfirmacao(false);   
         setCarregandoConselho(true);
 
         try {
@@ -254,12 +275,12 @@ export function PreConselho() {
             setConselhoId(null);
             setModoEdicao(false);
             setAlunosAvaliados({});
-            alert('Conselho finalizado com sucesso!');
+            toast.success('Conselho finalizado com sucesso!');
             navigate('/dashboard')
 
         } catch (e) {
             console.error(e);
-            alert('Erro ao finalizar conselho.');
+            toast.error('Erro ao finalizar conselho.');
         } finally {
             setCarregandoConselho(false);
         }

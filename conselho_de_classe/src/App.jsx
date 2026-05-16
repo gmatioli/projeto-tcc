@@ -114,7 +114,18 @@ function App() {
 
 
       </Routes>
-    <Toaster position="top-right" className='mt-[300px]' richColors />
+      <Toaster
+        position="top-right"
+        richColors
+        toastOptions={{
+          classNames: {
+            toast: 'rounded-2xl shadow-lg border-2 mt-[35px] mr-[15px]',
+          },
+          style: {
+            fontSize: '1rem',
+          },
+        }}
+      />
 
 
     </BrowserRouter>

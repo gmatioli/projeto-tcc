@@ -86,6 +86,32 @@ router.get('/turmas-filtro', async (req, res) => {
 });
 
 // ==========================================
+// ROTA: FILTRO DE TURMAS PARA CONSELHO FINAL  (GET)
+// Acessada via: GET /api/turmas-filtro
+// ==========================================
+router.get('/turmas-filtro/pre-conselho', async (req, res) => {
+  try {
+    const result = await db`
+      SELECT
+        T."idTurma",
+        T."codigo"    AS turma,
+        C."nomeCurso" AS curso,
+        C."tipo",
+        C."area"
+      FROM "Turma" T
+      INNER JOIN "Cursos" C ON T."Cursos_idCurso" = C."idCurso"
+      ORDER BY C."tipo" ASC, C."nomeCurso" ASC, T."codigo" ASC
+    `;
+
+    res.json({ sucesso: true, dados: result });
+
+  } catch (erro) {
+    console.error('Erro ao buscar filtros de turma:', erro);
+    res.status(500).json({ sucesso: false, mensagem: 'Erro no servidor.' });
+  }
+});
+
+// ==========================================
 // ROTA: Para aparecer os alunos (GET)
 // Acessada via: GET /api/alunos/:idTurma
 // ==========================================

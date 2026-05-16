@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { toast } from 'sonner';
 
 const API = 'http://localhost:3001/api/conselho';
 
@@ -23,6 +24,8 @@ const ModalAvaliacao = ({
 }) => {
   const [form, setForm] = useState(initialState);
   const [salvando, setSalvando] = useState(false);
+  const [removendo, setRemovendo] = useState(false);
+
 
   useEffect(() => {
       if (!isOpen) return;
@@ -47,6 +50,10 @@ const ModalAvaliacao = ({
       }
     }, [isOpen]);
 
+  const alunoUnicoComAvaliacao = alunosSelecionados.length === 1 && alunosSelecionados[0].avaliacaoExistente;
+
+  if (!isOpen || alunosSelecionados.length === 0) return null;
+
   // Alunos selecionados que JÁ possuem avaliação no Conselho Intermediário
   // do mesmo ciclo. Usado para mostrar contexto e pré-preencher restrição.
   const comHistorico = (alunosSelecionados || []).filter(a => a.historicoIntermediario);
@@ -70,7 +77,27 @@ const ModalAvaliacao = ({
     });
   };
 
+  const validarForm = () => {
+    const erros = [];
+
+    if (!form.acaoProposta.trim() && !form.justificativa.trim())  erros.push('Ação Proposta');
+    if (!form.responsavel)          erros.push('Responsável');
+
+    // Natureza: aceita check OU texto livre em "Outro"
+    const temNatureza = form.naturezas.length > 0 || form.naturezaOutro.trim();
+    if (!temNatureza) erros.push('Natureza da Ocorrência');
+
+    return erros;
+  };
+
   const handleSalvarTodos = async () => {
+    const erros = validarForm();
+
+    if(erros.length > 0) {
+      toast.error('Preencha os campos obrigatórios: ' + erros.join(', '));
+      return; 
+    }
+
     setSalvando(true);
 
     const naturezasFinais = [
@@ -118,6 +145,32 @@ const ModalAvaliacao = ({
       setSalvando(false);
     }
   };
+
+     // =====================================================================
+  // REMOVER RESTRIÇÃO POR ALUNO INDIVIDUAL
+  // =====================================================================
+  const handleRemoverRestricao = async () => {
+    if (!alunoUnicoComAvaliacao) return
+    const idAluno = alunosSelecionados[0].id;    
+
+    setRemovendo(true);
+    try {
+      const resp = await fetch(`${API}/avaliacao-aluno/${conselhoId}/${idAluno}`, 
+      { method: 'DELETE' }
+      ).then(r => r.json());
+
+      if (!resp.sucesso) {
+        throw new Error(resp.mensagem || 'Erro desconhecido');
+      }
+      onSaved && onSaved();
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setRemovendo(false);
+    }
+
+  }
+
     
   return (
     // Fundo escuro do modal
@@ -221,7 +274,7 @@ const ModalAvaliacao = ({
               value={form.responsavel}
               onChange={e => setCampo('responsavel', e.target.value)}
               className="p-1 mt-[5px] py-2 rounded-[18px] border border-black">
-              <option value="" disabled hidden >Selecione</option>
+              <option value=""   hidden >Selecione</option>
               <option value="docente">Docente</option>
               <option value="orientador_praticas_profissionais">Orientador Práticas Profissionais</option>
               <option value="coordenacao">Coordenação</option>
@@ -257,17 +310,29 @@ const ModalAvaliacao = ({
           
           <div className="flex justify-center items-end gap-[50px] mt-10">
             {/* O botão Cancelar chama a função onClose que vem das props */}
-            <button type="button" onClick={onClose} disabled={salvando} className="py-2 px-[120px] rounded-[50px] text-xl border border-black shadow-[0_0_3px_gray] cursor-pointer trasition-all duration-200 active:scale-95">
+            <button type="button" onClick={onClose} disabled={salvando || removendo} className="py-2 px-[120px] rounded-[50px] text-xl border border-black shadow-[0_0_3px_gray] cursor-pointer trasition-all duration-200 active:scale-95">
               Cancelar
             </button>
+
+            {alunoUnicoComAvaliacao && (
+              <button type="button"
+              onClick={handleRemoverRestricao}
+              disabled={salvando || removendo}
+              className="py-2 px-[40px] rounded-[50px] text-xl border-2 border-red-700 text-red-700 bg-white shadow-[0_0_3px_gray] cursor-pointer transition-all duration-200 active:scale-95 disabled:opacity-50 hover:bg-red-50">
+              {removendo ? 'Removendo...' : 'Remover Restrição'}
+
+              </button>
+            )}
+
+
              <button 
             type="button" 
             onClick={handleSalvarTodos}
-            disabled={salvando}
+            disabled={salvando || removendo}
             className="py-2 px-[80px] rounded-[50px] text-xl border border-black bg-[#E53935] shadow-[0_0_3px_gray] text-white cursor-pointer transition-all duration-200 active:scale-95 disabled:opacity-50">
             {salvando
-              ? 'Salvando...'
-              : `Salvar`}
+              ? (alunoUnicoComAvaliacao ? 'Atualizando...' : 'Salvando...')
+              : (alunoUnicoComAvaliacao ? 'Atualizar Avaliação' : 'Salvar Avaliação')}
             </button>
           </div>
         </div>

@@ -334,6 +334,50 @@ router.post('/avaliacao-turma', async (req, res) => {
   }
 });
 
+
+// ==========================================
+// DELETE: REMOVER AVALIAÇÃO DE ALUNO (RESTRIÇÃO) - USADO PARA "DESRESTRINGIR" ALUNO
+// DELETE -> /api/conselho/avaliacao-aluno/:conselhoId/:idAluno
+// ========================================== 
+router.delete('/avaliacao-aluno/:conselhoId/:idAluno', async (req, res) => {
+  const { conselhoId, idAluno } = req.params;
+
+  if (!conselhoId || !idAluno) {
+    return res.status(400).json({
+      sucesso: false,
+      mensagem: 'conselhoId e idAluno são obrigatórios'
+    });
+  }
+
+  try {
+    const deletado = await db`
+      DELETE FROM "Avaliacao_Aluno"
+      WHERE "Conselho_idConselho" = ${conselhoId}
+        AND "tblAluno_idtblAluno" = ${idAluno}
+      RETURNING *
+    `;
+
+    if (deletado.length === 0) {
+      return res.status(404).json({
+        sucesso: false,
+        mensagem: 'Nenhuma avaliação encontrada para esse aluno neste conselho'
+      });
+    }
+
+    return res.json({
+      sucesso: true,
+      mensagem: 'Restrição removida com sucesso',
+      avaliacaoRemovida: deletado[0]
+    });
+  } catch (err) {
+    console.error('ERRO REMOVER AVALIACAO ALUNO:', err);
+    return res.status(500).json({
+      sucesso: false,
+      mensagem: 'Erro ao remover avaliação do aluno'
+    });
+  }
+});
+
 // ==========================================
 // POST: SALVAR AVALIAÇÃO DE ALUNO
 // POST -> /api/conselho/avaliacao-aluno

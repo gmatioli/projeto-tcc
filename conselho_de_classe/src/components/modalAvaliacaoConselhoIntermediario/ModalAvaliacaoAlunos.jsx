@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { toast } from 'sonner';
 
 const API =  'http://localhost:3001/api/conselho';
 
@@ -12,6 +13,7 @@ const initialState = {
   responsavel: '',
 };
 
+
 const ModalAvaliacaoAlunos = ({ 
   isOpen, 
   onClose,
@@ -22,6 +24,9 @@ const ModalAvaliacaoAlunos = ({
 }) => { 
   const [form, setForm] = useState(initialState);
   const [salvando, setSalvando] = useState(false);
+  const [removendo, setRemovendo] = useState(false);
+
+
 
   useEffect(() => {
     if (!isOpen) return;
@@ -41,10 +46,14 @@ const ModalAvaliacaoAlunos = ({
         acaoProposta: av.acaoPropostaIntermediario || '',
         responsavel:  av.responsavelIntermediario  || '',
       });
+
     } else {
       setForm(initialState);
     }
   }, [isOpen]);
+
+  const alunoUnicoComAvaliacao = alunosSelecionados.length === 1 && alunosSelecionados[0].avaliacaoExistente;
+
 
   if (!isOpen || alunosSelecionados.length === 0) return null;
 
@@ -61,10 +70,30 @@ const ModalAvaliacaoAlunos = ({
     });
   };
 
+  const validarForm = () => {
+    const erros = [];
+
+    if (!form.restricao.trim())     erros.push('Restrição');
+    if (!form.acaoProposta.trim())  erros.push('Ação Proposta');
+    if (!form.responsavel)          erros.push('Responsável');
+
+    // Natureza: aceita check OU texto livre em "Outro"
+    const temNatureza = form.naturezas.length > 0 || form.naturezaOutro.trim();
+    if (!temNatureza) erros.push('Natureza da Ocorrência');
+
+    return erros;
+};
    // =====================================================================
   // SALVAR EM LOTE: a MESMA avaliação para TODOS os alunos selecionados
   // =====================================================================
   const handleSalvarTodos = async () => {
+    const erros = validarForm();
+
+    if(erros.length > 0) {
+      toast.error('Preencha os campos obrigatórios: ' + erros.join(', '));
+      return; 
+    }
+
     setSalvando(true);
 
     // Junta as naturezas marcadas (checkboxes) com o texto livre (Outro)
@@ -118,6 +147,32 @@ const ModalAvaliacaoAlunos = ({
     }
   }
 
+   // =====================================================================
+  // REMOVER RESTRIÇÃO POR ALUNO INDIVIDUAL
+  // =====================================================================
+  const handleRemoverRestricao = async () => {
+    if (!alunoUnicoComAvaliacao) return
+    const idAluno = alunosSelecionados[0].id;    
+
+    setRemovendo(true);
+    try {
+      const resp = await fetch(`${API}/avaliacao-aluno/${conselhoId}/${idAluno}`, 
+      { method: 'DELETE' }
+      ).then(r => r.json());
+
+      if (!resp.sucesso) {
+        throw new Error(resp.mensagem || 'Erro desconhecido');
+      }
+      onSaved && onSaved();
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setRemovendo(false);
+    }
+
+  }
+
+
   return (
     // Fundo escuro do modal
     <div className="flex justify-center items-center fixed top-0 left-0 right-0 bottom-0 bg-black/50 z-[1000]" >
@@ -169,7 +224,7 @@ const ModalAvaliacaoAlunos = ({
               value={form.responsavel}
               onChange={e => setCampo('responsavel', e.target.value)}
               className="p-1 py-4 mt-[5px] rounded-[18px] border border-[#bbb]">
-              <option value="" disabled hidden >Selecione</option>
+              <option value="" hidden  >Selecione</option>
               <option value="docente">Docente</option>
               <option value="orientador_praticas_profissionais">Orientador Práticas Profissionais</option>
               <option value="coordenacao">Coordenação</option>
@@ -209,18 +264,29 @@ const ModalAvaliacaoAlunos = ({
             <button 
             type="button" 
             onClick={onClose} 
-            disabled={salvando}
+            disabled={salvando || removendo}
             className="py-2 px-[120px] rounded-[50px] text-xl border border-black shadow-[0_0_3px_gray] cursor-pointer trasition-all duration-200 active:scale-95">
               Cancelar
             </button>
+
+            {alunoUnicoComAvaliacao && (
+              <button type="button"
+              onClick={handleRemoverRestricao}
+              disabled={salvando || removendo}
+              className="py-2 px-[40px] rounded-[50px] text-xl border-2 border-red-700 text-red-700 bg-white shadow-[0_0_3px_gray] cursor-pointer transition-all duration-200 active:scale-95 disabled:opacity-50 hover:bg-red-50">
+             {removendo ? 'Removendo...' : 'Remover Restrição'}
+
+              </button>
+              )}
+
             <button 
             type="submit" 
             onClick={handleSalvarTodos}
-            disabled={salvando}
+            disabled={salvando || removendo}
             className="py-2 px-[80px] rounded-[50px] text-xl border border-black bg-[#E53935] shadow-[0_0_3px_gray] text-white cursor-pointer transition-all duration-200 active:scale-95 disabled:opacity-50">
             {salvando
-              ? 'Salvando...'
-              : `Salvar`}
+              ? (alunoUnicoComAvaliacao ? 'Atualizando...' : 'Salvando...')
+              : (alunoUnicoComAvaliacao ? 'Atualizar Avaliação' : 'Salvar Avaliação')}
             </button>
           </div>
         </div>
