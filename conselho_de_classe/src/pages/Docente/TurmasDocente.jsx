@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
- 
+import { API } from '../../config/api';
+
 // ── Modal: Ver Observações ─────────────────────────────────────────────────
 function ModalObservacoes({ isOpen, onClose, aluno, onAdicionar }) {
   if (!isOpen) return null;

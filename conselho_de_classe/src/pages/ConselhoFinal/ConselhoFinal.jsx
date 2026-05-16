@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom'
+import { API } from '../../config/api';
 
 import notificationIcon from '../../assets/conselho-intermediario/notification-icon.svg';
 import ModalJustificativa from '../../components/modalJustificativa/ModalJustificativa.jsx';
@@ -45,7 +46,7 @@ const ConselhoFinal = () => {
     setAlunos([]);
     setMostrarTabelaAlunos(false);
 
-    fetch(`http://localhost:3001/api/turmas-filtro?area=${encodeURIComponent(areaSelecionada)}&curso=${encodeURIComponent(cursoSelecionado)}`)
+    fetch(`${API.turmasFiltro}?area=${encodeURIComponent(areaSelecionada)}&curso=${encodeURIComponent(cursoSelecionado)}`)
       .then(res => res.json())
       .then(data => {
         if (data.sucesso && Array.isArray(data.dados)) {
@@ -72,7 +73,7 @@ const ConselhoFinal = () => {
 
     setCarregando(true);
     try {
-      const res = await fetch(`http://localhost:3001/api/alunos/${turmaSelecionada}`);
+      const res = await fetch(`${API.alunos}/${turmaSelecionada}`);
       const data = await res.json();
       if (data.sucesso && Array.isArray(data.alunos)) {
         setAlunos(data.alunos);

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { HomepageDocente } from '../../pages/Docente/HomepageDocente.jsx';
+import { API } from '../../config/api';
 
 export function Header() {
   const navigate = useNavigate(); 
@@ -27,7 +28,7 @@ export function Header() {
           const { email } = JSON.parse(logado);
           
           try {
-            const resposta = await fetch(`http://localhost:3001/perfil/${email}`);
+            const resposta = await fetch(`${API.perfil}/${email}`);
             const dados = await resposta.json();
   
             if (dados.sucesso) {

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
- 
+import { API } from '../../config/api';
+
 export function GerarAta() {
   const navigate = useNavigate();
  
@@ -45,7 +46,7 @@ export function GerarAta() {
     };
 
     const response = await fetch(
-      'http://localhost:3001/gerar-doc',
+      API.gerarDoc,
       {
         method: 'POST',
         headers: {

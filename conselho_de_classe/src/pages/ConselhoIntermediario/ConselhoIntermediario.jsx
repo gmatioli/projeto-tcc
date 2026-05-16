@@ -10,7 +10,7 @@ import notificationIcon from '../../assets/conselho-intermediario/notification-i
 import ModalAvaliacaoAlunos from '../../components/modalAvaliacaoConselhoIntermediario/ModalAvaliacaoAlunos';
 import ModalAvaliacaoTurma from '../../components/modalAvaliacaoConselhoIntermediario/ModalAvaliacaoTurma';
 
-const API = 'http://localhost:3001/api/conselho';
+import { API } from '../../config/api';
 
 // Calcula semestre/ano corrente (mês <= 6 => 1º semestre)
 const cicloAtual = () => {
@@ -130,8 +130,8 @@ export function ConselhoIntermediario() {
       if (!cid || !tid) return null;
       try {
           const [respT, respA] = await Promise.all([
-              fetch(`${API}/${cid}/avaliacao-turma/${tid}`).then(r => r.json()),
-              fetch(`${API}/${cid}/turma/${tid}/avaliacoes-alunos`).then(r => r.json()),
+              fetch(`${API.conselho}/${cid}/avaliacao-turma/${tid}`).then(r => r.json()),
+              fetch(`${API.conselho}/${cid}/turma/${tid}/avaliacoes-alunos`).then(r => r.json()),
           ]);
 
           const avaliacao = respT?.avaliacao || null;
@@ -157,7 +157,7 @@ export function ConselhoIntermediario() {
         setAlunosSelecionados([]);
 
         setCarregando(true);
-        fetch(`http://localhost:3001/api/alunos/empresa/${idTurma}`)
+        fetch(`${API.alunos}/empresa/${idTurma}`)
             .then(res => res.json())
             .then(data => {
                 if (data.sucesso) setAlunos(data.alunos);
@@ -171,7 +171,7 @@ export function ConselhoIntermediario() {
 
     useEffect(() => {
         if (conselhoId || !idUsuario) return;
-        fetch(`${API}/ativo/${encodeURIComponent('Intermediário')}/${idUsuario}?semestre=${ciclo.semestre}&ano=${ciclo.ano}`)
+        fetch(`${API.conselho}/ativo/${encodeURIComponent('Intermediário')}/${idUsuario}?semestre=${ciclo.semestre}&ano=${ciclo.ano}`)
             .then(r => r.json())
             .then(d => {
                 if (d?.sucesso && d.conselho?.idConselho) {
@@ -185,7 +185,7 @@ export function ConselhoIntermediario() {
     // 2) Ao trocar de turma, se já existe conselho ativo, vincula a turma a ele
     useEffect(() => {
         if (!idTurma || !conselhoId) return;
-        fetch(`${API}/iniciar`, {
+        fetch(`${API.conselho}/iniciar`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ idTurma, conselhoId })
@@ -208,7 +208,7 @@ export function ConselhoIntermediario() {
         }
         setCarregandoConselho(true);
         try {
-            const resp = await fetch(`${API}/iniciar`, {
+            const resp = await fetch(`${API.conselho}/iniciar`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -242,7 +242,7 @@ export function ConselhoIntermediario() {
         if (!conselhoId || !idTurma || !idUsuario) return;
         setCarregandoConselho(true);
         try {
-            const resp = await fetch(`${API}/iniciar`, {
+            const resp = await fetch(`${API.conselho}/iniciar`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -300,7 +300,7 @@ export function ConselhoIntermediario() {
         setCarregandoConselho(true);
 
         try {
-            const resp = await fetch(`${API}/finalizar`, {
+            const resp = await fetch(`${API.conselho}/finalizar`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ conselhoId })

@@ -1,5 +1,7 @@
 import React, {useState, useEffect} from 'react';
 import { useNavigate } from 'react-router-dom';
+import { API } from '../../config/api';
+
 import {
   Chart as ChartJS,
   ArcElement,
@@ -41,7 +43,7 @@ export function Dashboard() {
   const [totalRestritos, setTotalRestritos] = useState(0);
 
   useEffect(() => {
-    fetch('http://localhost:3001/api/dashboard/dados')
+    fetch(`${API.dashboard}/dados`)
         .then(resposta => resposta.json()) 
         .then(json => {
             if (json.sucesso) {
@@ -91,7 +93,7 @@ export function Dashboard() {
   };
   
   useEffect(() => {
-    fetch('http://localhost:3001/api/dashboard/dados')
+    fetch(`${API.dashboard}/dados`)
       .then(res => res.json())
       .then(json => {
         if (json.sucesso && json.dados.dadosGraficoRosca) {
@@ -133,7 +135,7 @@ export function Dashboard() {
   };
 
   useEffect(() => {
-    fetch('http://localhost:3001/api/dashboard/dados')
+    fetch(`${API.dashboard}/dados`)
       .then((res) => res.json())
       .then((json) => {
         if (json.sucesso) {

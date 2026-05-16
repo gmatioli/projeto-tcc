@@ -12,11 +12,11 @@ app.use(express.json());
 // ==========================================
 app.use('/', require('./routes/auth'));
 app.use('/', require('./routes/usuario'));
-app.use('/api', require('./routes/turma'));
+app.use('/', require('./routes/turma'));
 app.use('/', require('./routes/planilha'));
 app.use('/relatorio', require('./routes/relatorio'));
-app.use('/api/conselho', require('./routes/conselho'));
-app.use('/api/dashboard', require('./routes/dashboard')); 
+app.use('/conselho', require('./routes/conselho'));
+app.use('/dashboard', require('./routes/dashboard')); 
 app.use('/', require('./routes/termo'));
 app.use('/instrumento-acompanhamento', instrumentoRouter);
 

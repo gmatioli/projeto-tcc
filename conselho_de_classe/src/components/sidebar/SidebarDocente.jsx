@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
- 
+import { API } from '../../config/api';
+
 import councilIcon from '../../assets/sidebar/council-icon.svg';
 import reportIcon from '../../assets/sidebar/report-icon.svg';
 import configIcon from '../../assets/sidebar/config-icon.svg';
@@ -19,7 +20,7 @@ export function SidebarDocente() {
   const [botaoSelecionado, setBotaoSelecionado] = useState(null);
  
   useEffect(() => {
-    fetch('http://localhost:3001/api/turmas-filtro')
+    fetch(API.turmasFiltro)
       .then(res => res.json())
       .then(data => {
         if (data.sucesso) setDadosCompletos(data.dados);

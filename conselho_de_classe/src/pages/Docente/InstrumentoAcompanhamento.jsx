@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { API } from '../../config/api';
+
  
 export function InstrumentoAcompanhamento() {
   const navigate = useNavigate();
@@ -23,7 +25,7 @@ export function InstrumentoAcompanhamento() {
         const { email } = JSON.parse(logado);
         
         try {
-          const resposta = await fetch(`http://localhost:3001/perfil/${email}`);
+          const resposta = await fetch(`${API.perfil}/${email}`);
           const dados = await resposta.json();
 
           if (dados.sucesso) {
@@ -127,7 +129,7 @@ export function InstrumentoAcompanhamento() {
     };
  
     try {
-      const response = await fetch('http://localhost:3001/instrumento-acompanhamento', {
+      const response = await fetch(API.instrumento, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),

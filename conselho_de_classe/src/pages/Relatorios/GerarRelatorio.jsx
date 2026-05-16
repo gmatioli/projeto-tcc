@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { API } from '../../config/api';
+
 
 export function GerarRelatorio() {
 
@@ -26,7 +28,7 @@ export function GerarRelatorio() {
   // ==========================================
   useEffect(() => {
 
-    fetch('http://localhost:3001/relatorio/datas')
+    fetch(`${API.relatorio}/datas`)
 
       .then((res) => res.json())
 
@@ -51,7 +53,7 @@ export function GerarRelatorio() {
   // ==========================================
   useEffect(() => {
 
-    fetch('http://localhost:3001/relatorio/turmas')
+    fetch(`${API.relatorio}/turmas`)
 
       .then((res) => res.json())
 
@@ -130,7 +132,7 @@ export function GerarRelatorio() {
       };
 
       const response = await fetch(
-        'http://localhost:3001/relatorio/gerar-doc',
+         `${API.relatorio}/gerar-doc`,
         {
           method: 'POST',
           headers: {

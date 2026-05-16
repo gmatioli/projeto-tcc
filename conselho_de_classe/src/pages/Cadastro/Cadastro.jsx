@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { API } from '../../config/api';
 
 export function Cadastro() {
   const navigate = useNavigate();
@@ -82,7 +83,7 @@ export function Cadastro() {
     }
 
     try {
-      const resposta = await fetch('http://localhost:3001/cadastro', {
+      const resposta = await fetch(API.cadastro, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

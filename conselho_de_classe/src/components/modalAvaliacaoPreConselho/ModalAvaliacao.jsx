@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { toast } from 'sonner';
-
-const API = 'http://localhost:3001/api/conselho';
+import { API } from '../../config/api';
 
 const NATUREZAS = ['Comportamental', 'Aproveitamento Escolar', 'Frequência'];
 
@@ -118,7 +117,7 @@ const ModalAvaliacao = ({
     try {
       const respostas = await Promise.all(
         alunosSelecionados.map(aluno =>
-          fetch(`${API}/avaliacao-aluno`, {
+          fetch(`${API.conselho}/avaliacao-aluno`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ ...payloadBase, idAluno: aluno.id })

@@ -1,7 +1,6 @@
 
 import { useEffect, useState } from 'react';
-
-const API = 'http://localhost:3001/api/conselho';
+import { API } from '../../config/api';
 
 const CRITERIOS = ['Atende satisfatoriamente', 'Necessita de orientação'];
 
@@ -57,7 +56,7 @@ const ModalAvaliacaoTurma = ({
     }
     setSalvando(true);
     try {
-      const resp = await fetch(`${API}/avaliacao-turma`, {
+      const resp = await fetch(`${API.conselho}/avaliacao-turma`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

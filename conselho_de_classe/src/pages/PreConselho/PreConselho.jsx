@@ -9,7 +9,7 @@ import notificationIcon from '../../assets/pre-conselho/notification-icon.svg'
 
 import ModalAvaliacao from '../../components/modalAvaliacaoPreConselho/ModalAvaliacao';
 
-const API = 'http://localhost:3001/api/conselho';
+import { API } from '../../config/api';
 
 // Calcula semestre/ano corrente (mês <= 6 => 1º semestre)
 const cicloAtual = () => {
@@ -96,7 +96,7 @@ export function PreConselho() {
     const recarregarConselho = useCallback(async (cid, tid) => {
         if (!cid || !tid) return;
         try {
-            const respA = await fetch(`${API}/${cid}/turma/${tid}/avaliacoes-alunos`).then(r => r.json());
+            const respA = await fetch(`${API.conselho}/${cid}/turma/${tid}/avaliacoes-alunos`).then(r => r.json());
 
             const mapa = {};
             (respA?.avaliacoes || []).forEach(a => {
@@ -115,7 +115,7 @@ export function PreConselho() {
         setAlunosSelecionados([]);
         setHistoricoIntermediario({});
         setCarregando(true);
-        fetch(`http://localhost:3001/api/alunos/empresa/${idTurma}`)
+        fetch(`${API.alunos}/empresa/${idTurma}`)
             .then(res => res.json())
             .then(data => {
                 if (data.sucesso) setAlunos(data.alunos);
@@ -123,7 +123,7 @@ export function PreConselho() {
             .finally(() => setCarregando(false));
         // Busca histórico do Conselho Intermediário do MESMO ciclo (semestre+ano)
         // Marca como "Restrito" no Pré-Conselho os alunos que já tiveram restrição no Intermediário.
-        fetch(`${API}/historico-intermediario/turma/${idTurma}?semestre=${ciclo.semestre}&ano=${ciclo.ano}`)
+        fetch(`${API.conselho}/historico-intermediario/turma/${idTurma}?semestre=${ciclo.semestre}&ano=${ciclo.ano}`)
             .then(res => res.json())
             .then(data => {
                 if (!data?.sucesso) return;
@@ -139,7 +139,7 @@ export function PreConselho() {
     // 1b) Ao montar: se não há conselho em localStorage, busca um do ciclo atual.
     useEffect(() => {
         if (conselhoId || !idUsuario) return;
-        fetch(`${API}/ativo/${encodeURIComponent('Pré-Conselho')}/${idUsuario}?semestre=${ciclo.semestre}&ano=${ciclo.ano}`)
+        fetch(`${API.conselho}/ativo/${encodeURIComponent('Pré-Conselho')}/${idUsuario}?semestre=${ciclo.semestre}&ano=${ciclo.ano}`)
             .then(r => r.json())
             .then(d => {
                 if (d?.sucesso && d.conselho?.idConselho) {
@@ -155,7 +155,7 @@ export function PreConselho() {
      // 2) Ao trocar de turma, se já existe conselho ativo, vincula a turma a ele
     useEffect(() => {
         if (!idTurma || !conselhoId) return;
-        fetch(`${API}/iniciar`, {
+        fetch(`${API.conselho}/iniciar`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ idTurma, conselhoId })
@@ -175,7 +175,7 @@ export function PreConselho() {
         }
         setCarregandoConselho(true);
         try {
-            const resp = await fetch(`${API}/iniciar`, {
+            const resp = await fetch(`${API.conselho}/iniciar`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
