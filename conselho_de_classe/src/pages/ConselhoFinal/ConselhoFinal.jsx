@@ -24,7 +24,8 @@ const ConselhoFinal = () => {
   // Estados
   const [turmas, setTurmas] = useState([]);
   const [turmaSelecionada, setTurmaSelecionada] = useState(null);
-  const [alunos, setAlunos] = useState([]);
+  const [alunosComAcaoProposta, setAlunosComAcaoProposta] = useState([]);
+  const [alunosComJustificativa, setAlunosComJustificativa] = useState([]);
   const [carregando, setCarregando] = useState(false);
   const [mostrarTabelaAlunos, setMostrarTabelaAlunos] = useState(false);
   
@@ -32,8 +33,6 @@ const ConselhoFinal = () => {
   const usuario = JSON.parse(localStorage.getItem('usuarioLogado') || '{}');
   const idUsuario = usuario.idUsuario;
 
-  // Filtramos os alunos que possuem justificativa para mostrar na tabela lateral 
-  const alunosComJustificativa = alunos.filter(aluno => aluno.temJustificativa);
 
   const [isModalJustificativaOpen, setIsModalJustificativaOpen] = useState(false);
 
@@ -43,7 +42,8 @@ const ConselhoFinal = () => {
 
     setCarregando(true);
     setTurmaSelecionada(null);
-    setAlunos([]);
+    setAlunosComAcaoProposta([]);
+    setAlunosComJustificativa([]);
     setMostrarTabelaAlunos(false);
 
     fetch(`${API.turmasFiltro}?area=${encodeURIComponent(areaSelecionada)}&curso=${encodeURIComponent(cursoSelecionado)}`)
@@ -73,11 +73,11 @@ const ConselhoFinal = () => {
 
     setCarregando(true);
     try {
-      const res = await fetch(`${API.alunos}/${turmaSelecionada}`);
+      const res = await fetch(`${API.conselho}/dados-pre-conselho/turma/${turmaSelecionada}`);
       const data = await res.json();
-      if (data.sucesso && Array.isArray(data.alunos)) {
-        setAlunos(data.alunos);
-        
+      if (data.sucesso) {
+        setAlunosComAcaoProposta(data.alunosComAcaoProposta);
+        setAlunosComJustificativa(data.alunosComJustificativa);
         setMostrarTabelaAlunos(true);
       } else {
         alert('Erro ao carregar alunos da turma.');
@@ -173,12 +173,12 @@ const ConselhoFinal = () => {
             <tbody>
               {alunosComJustificativa.length > 0 ? (
                 alunosComJustificativa.map(aluno => (
-                  <tr key={`just-${aluno.id}`}>
-                    <td className={`${tableTdClasses} font-bold text-[12px]`}>
+                  <tr key={`just-${aluno.idtblAluno}`}>
+                    <td className={`${tableTdClasses}  text-[16px]`}>
                       {aluno.nome}
                     </td>
-                    <td className={`${tableTdClasses} text-[#555] italic text-[12px]`}>
-                      {aluno.textoJustificativa}
+                    <td className={`${tableTdClasses} text-[#555] italic text-[16px]`}>
+                      {aluno.justificativa}
                     </td>
                   </tr>
                 ))
@@ -231,11 +231,11 @@ const ConselhoFinal = () => {
             </tr>
           </thead>
           <tbody>
-            {alunos.map(aluno => (
+            {alunosComAcaoProposta.map(aluno => (
               <tr key={aluno.idtblAluno}>
                 <td className={`${tableTdClasses} `}>{aluno.nome}</td>
                 <td className={`${tableTdClasses} `}>
-                  <p>-</p>
+                  <p>{aluno.acaoPropostaPreConselho}</p>
                   <button className="text-gray-500 text-xs mt-[5px] hover:underline">
                     <div className="flex items-center my-0 mx-1 gap-1">
                       <img src={notificationIcon} alt="" className="w-6 h-6 border border-yellow-600 rounded-full p-[1px]"/>
@@ -247,7 +247,7 @@ const ConselhoFinal = () => {
                   </button>
                 </td>
                 <td className={`${tableTdClasses} text-center `}>
-                  {aluno.temJustificativa ? (
+                  {aluno.justificativa ? (
                     <button onClick={handleOpenModalJustificativa} className=" text-orange-600 px-2 py-1 rounded text-lg underline font-bold ">
                       Ver contestação
                     </button>

@@ -528,4 +528,56 @@ router.get('/historico-intermediario/turma/:idTurma', async (req, res) => {
   }
 });
 
+
+// ==========================================
+// GET: DADOS DO PRÉ-CONSELHO PARA O CONSELHO FINAL
+// GET -> /api/conselho/dados-pre-conselho/turma/:idTurma?semestre=1&ano=2026
+// Retorna dois grupos de alunos da turma com base nas avaliações do Pré-Conselho:
+//   - alunosComAcaoProposta: alunos com acaoPropostaPreConselho preenchida (tabela principal)
+//   - alunosComJustificativa: alunos com justificativa preenchida (tabela lateral)
+// ==========================================
+router.get('/dados-pre-conselho/turma/:idTurma', async (req, res) => {
+  try {
+    const { idTurma } = req.params;
+    let { semestre, ano } = req.query;
+
+    if (!semestre || !ano) {
+      const ciclo = cicloAtual();
+      semestre = semestre || ciclo.semestre;
+      ano = ano || ciclo.ano;
+    }
+
+    const result = await db`
+      SELECT
+        a."idtblAluno",
+        a."nome",
+        a."matricula",
+        aa."acaoPropostaPreConselho",
+        aa."justificativa"
+      FROM "tblAluno" a
+      INNER JOIN "Avaliacao_Aluno" aa ON aa."tblAluno_idtblAluno" = a."idtblAluno"
+      INNER JOIN "Conselho" c ON c."idConselho" = aa."Conselho_idConselho"
+      WHERE a."Turma_idTurma" = ${idTurma}
+        AND c."tipoConselho"  = 'Pré-Conselho'
+        AND c."semestre"      = ${semestre}
+        AND c."ano"           = ${ano}
+      ORDER BY a."nome" ASC
+    `;
+
+    const alunosComAcaoProposta = result.filter(
+      a => a.acaoPropostaPreConselho && a.acaoPropostaPreConselho.trim() !== ''
+    );
+
+    const alunosComJustificativa = result.filter(
+      a => a.justificativa && a.justificativa.trim() !== ''
+    );
+
+    return res.json({ sucesso: true, alunosComAcaoProposta, alunosComJustificativa });
+  } catch (erro) {
+    console.error('ERRO BUSCAR DADOS PRÉ-CONSELHO:', erro);
+    return res.status(500).json({ sucesso: false, mensagem: 'Erro ao buscar dados do pré-conselho' });
+  }
+});
+
+
 module.exports = router;
