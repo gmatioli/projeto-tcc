@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+import { API } from '../../config/api';
+
 export function Turma() {
 
     const navigate = useNavigate();
@@ -34,7 +36,7 @@ export function Turma() {
     useEffect(() => {
 
         fetch(
-            'http://localhost:3001/api/AtribuirTurma/docentes'
+            `${API.atribuirTurma}/docentes`
         )
 
             .then((res) => res.json())
@@ -61,7 +63,7 @@ export function Turma() {
     useEffect(() => {
 
         fetch(
-            'http://localhost:3001/api/AtribuirTurma/turmas'
+            `${API.atribuirTurma}/turmas`
         )
 
             .then((res) => res.json())
@@ -138,7 +140,8 @@ export function Turma() {
         return;
     }
 
-    fetch('http://localhost:3001/api/AtribuirTurma/salvar', {
+    fetch(
+        `${API.atribuirTurma}/salvar`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

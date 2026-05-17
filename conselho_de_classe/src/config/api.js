@@ -15,4 +15,5 @@ export const API = {
     instrumento: `${API_BASE}/instrumento-acompanhamento`,
     usuarios:    `${API_BASE}/usuarios`,
     uploadPlanilha: `${API_BASE}/upload-planilha`,
+    atribuirTurma: `${API_BASE}/atribuirTurma`,
 };
