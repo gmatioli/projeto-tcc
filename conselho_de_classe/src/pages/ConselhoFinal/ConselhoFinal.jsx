@@ -28,13 +28,21 @@ const ConselhoFinal = () => {
   const [alunosComJustificativa, setAlunosComJustificativa] = useState([]);
   const [carregando, setCarregando] = useState(false);
   const [mostrarTabelaAlunos, setMostrarTabelaAlunos] = useState(false);
+  const [salvando, setSalvando] = useState(false);
+  const [situacoesFinais, setSituacoesFinais] = useState({});
   
   // Usuário logado vindo do localStorage (para registrar quem iniciou)
   const usuario = JSON.parse(localStorage.getItem('usuarioLogado') || '{}');
   const idUsuario = usuario.idUsuario;
 
 
-  const [isModalJustificativaOpen, setIsModalJustificativaOpen] = useState(false);
+  // Modal Justificativa
+  const [modalAberto, setModalAberto] = useState(false);
+  const [modalSoLeitura, setModalSoLeitura] = useState(false);
+  const [alunoModal, setAlunoModal] = useState(null);
+  const [situacaoModal, setSituacaoModal] = useState('');
+  const [contestacaoModal, setContestacaoModal] = useState('');
+
 
   // 1) Carrega turmas baseado em área e curso selecionados na Sidebar
   useEffect(() => {
@@ -45,14 +53,13 @@ const ConselhoFinal = () => {
     setAlunosComAcaoProposta([]);
     setAlunosComJustificativa([]);
     setMostrarTabelaAlunos(false);
+    setSituacoesFinais({});
 
     fetch(`${API.turmasFiltro}?area=${encodeURIComponent(areaSelecionada)}&curso=${encodeURIComponent(cursoSelecionado)}`)
       .then(res => res.json())
       .then(data => {
         if (data.sucesso && Array.isArray(data.dados)) {
-          const turmasFiltradas = data.dados.filter(turma => turma.curso === cursoSelecionado);
-
-          setTurmas(turmasFiltradas);
+          setTurmas(data.dados.filter(turma => turma.curso === cursoSelecionado));
         } else {
           setTurmas([]);
         }
@@ -64,21 +71,47 @@ const ConselhoFinal = () => {
       .finally(() => setCarregando(false));
   }, [areaSelecionada, cursoSelecionado]);
 
-  // 2) Carrega alunos quando uma turma é selecionada e o usuário clica em "Avaliar turma"
+  // 2) Carrega alunos e restaura situações finais salvas
   const handleAvaliarTurma = async () => {
-    if (!turmaSelecionada) {
-      alert('Selecione uma turma para avaliar.');
-      return;
-    }
+    if (!turmaSelecionada) return;
 
     setCarregando(true);
-    try {
+     try {
+      // Vincula a turma ao Conselho Final (cria o conselho se não existir)
+      const resIniciar = await fetch(`${API.conselho}/iniciar`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          tipoConselho: 'Conselho-Final',
+          idTurma: turmaSelecionada,
+          idUsuario,
+        }),
+      });
+      const dataIniciar = await resIniciar.json();
+      if (!dataIniciar.sucesso) {
+        alert('Erro ao vincular turma ao Conselho Final.');
+        return;
+      }
+
       const res = await fetch(`${API.conselho}/dados-pre-conselho/turma/${turmaSelecionada}`);
       const data = await res.json();
       if (data.sucesso) {
         setAlunosComAcaoProposta(data.alunosComAcaoProposta);
         setAlunosComJustificativa(data.alunosComJustificativa);
         setMostrarTabelaAlunos(true);
+
+         // Restaura situações finais já salvas no banco
+        const situacoesRestauradas = {};
+        data.alunosComAcaoProposta.forEach(aluno => {
+          if (aluno.situacaoFinal) {
+            situacoesRestauradas[aluno.idtblAluno] = {
+              situacaoFinal: aluno.situacaoFinal,
+              contestacao: aluno.contestacaoSituacaoFinal || '',
+            };
+          }
+        });
+        setSituacoesFinais(situacoesRestauradas);
+
       } else {
         alert('Erro ao carregar alunos da turma.');
       }
@@ -90,10 +123,106 @@ const ConselhoFinal = () => {
     }
   };
 
-  const handleOpenModalJustificativa = () => setIsModalJustificativaOpen(true);
-  const handleCloseModalJustificativa = () => setIsModalJustificativaOpen(false);
+  const salvarSituacaoFinal = async (idAluno, novaSituacao, contestacao = null) => {
+    setSalvando(true);
 
+    try { 
+      const res = await fetch(`${API.conselho}/situacao-final`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          idAluno,
+          idUsuario,
+          situacaoFinal: novaSituacao,
+          contestacaoSituacaoFinal: contestacao,
+        }),
+      });
 
+      const data = await res.json();  
+
+      if (!data.sucesso) {
+        alert(data.mensagem || 'Erro ao salvar situação final.');
+      }
+    } catch (err) {
+      alert('Erro ao salvar situação final.');
+    } finally {
+      setSalvando(false);
+    }
+  }
+
+   // Botão Salvar: salva todas as situações finais pendentes
+  const handleSalvarTudo = async () => {
+    const entradas = Object.entries(situacoesFinais);
+    if (entradas.length === 0) {
+      toast.info('Nenhuma avaliação para salvar.');
+      return;
+    }
+    setSalvando(true);
+    try {
+      await Promise.all(
+        entradas.map(([idAluno, { situacaoFinal, contestacao }]) =>
+          fetch(`${API.conselho}/situacao-final`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              idAluno: Number(idAluno),
+              idUsuario,
+              situacaoFinal,
+              contestacaoSituacaoFinal: contestacao || null,
+            }),
+          })
+        )
+      );
+      toast.success('Avaliações salvas com sucesso!');
+    } catch (err) {
+
+    } finally {
+      setSalvando(false);
+    }
+  };
+
+  
+  // Clique em "Aprovado"
+  const handleAprovado = async (aluno) => {
+    const novaSituacao = 'Aprovado';
+    setSituacoesFinais(prev => ({
+      ...prev,
+      [aluno.idtblAluno]: { situacaoFinal: novaSituacao, contestacao: '' },
+    }));
+    await salvarSituacaoFinal(aluno.idtblAluno, novaSituacao, null);
+  };
+
+  // Clique em "Aprovado pelo Conselho" ou "Reprovado" → abre modal
+  const handleAbrirModal = (aluno, situacao) => {
+    setModalSoLeitura(false);
+    setAlunoModal(aluno);
+    setSituacaoModal(situacao);
+    setContestacaoModal('');
+    setModalAberto(true);
+  };
+
+  // Callback do modal ao salvar justificativa
+  const handleSalvarJustificativa = async (contestacao) => {
+    setSituacoesFinais(prev => ({
+      ...prev,
+      [alunoModal.idtblAluno]: { situacaoFinal: situacaoModal, contestacao },
+    }));
+    await salvarSituacaoFinal(alunoModal.idtblAluno, situacaoModal, contestacao);
+    setModalAberto(false);
+    setAlunoModal(null);
+    setSituacaoModal('');
+  };
+
+  // Abre modal em modo leitura para ver contestação já salva
+  const handleVerContestacao = (aluno, situacaoAtual) => {
+    setAlunoModal(aluno);
+    setSituacaoModal(situacaoAtual.situacaoFinal);
+    setContestacaoModal(situacaoAtual.contestacao);
+    setModalSoLeitura(true);
+    setModalAberto(true);
+  };
+
+  const getSituacaoAluno = (idtblAluno) => situacoesFinais[idtblAluno] || null;
 
   return (
     <div id="conselho-tables-container" className="flex flex-col gap-2">
@@ -115,7 +244,7 @@ const ConselhoFinal = () => {
       {/* SEÇÃO SUPERIOR: TURMAS + JUSTIFICATIVAS LADO A LADO */}
       <section className="flex gap-[15px] items-start w-full mb-6">
         
-        {/* Tabela de Turmas (Esquerda - flex 1.3) */}
+        {/* Tabela de Turmas  */}
         <div className="flex-1 max-h-[180px] overflow-y-auto">
           <table className="w-full border-collapse bg-white text-sm">
             <thead>
@@ -161,39 +290,40 @@ const ConselhoFinal = () => {
           </table>
         </div>
 
-        {/* Tabela de Justificativas (Direita - flex 1) */}
-        <div className="flex-1 max-h-[180px] overflow-y-auto">
-          <table className="w-full border-collapse bg-white text-sm">
-            <thead>
-              <tr>
-                <th className={`${tableThClasses} w-[40%]`}>Aluno</th>
-                <th className={`${tableThClasses} w-[60%]`}>Justificativa</th>
-              </tr>
-            </thead>
-            <tbody>
-              {alunosComJustificativa.length > 0 ? (
-                alunosComJustificativa.map(aluno => (
-                  <tr key={`just-${aluno.idtblAluno}`}>
-                    <td className={`${tableTdClasses}  text-[16px]`}>
-                      {aluno.nome}
-                    </td>
-                    <td className={`${tableTdClasses} text-[#555] italic text-[16px]`}>
-                      {aluno.justificativa}
+        {/* Tabela de Justificativas - Renderiza somente após selecionar turma */}
+        {mostrarTabelaAlunos && (
+          <div className="flex-1 max-h-[180px] overflow-y-auto">
+            <table className="w-full border-collapse bg-white text-sm">
+              <thead>
+                <tr>
+                  <th className={`${tableThClasses} w-[40%]`}>Aluno</th>
+                  <th className={`${tableThClasses} w-[60%]`}>Justificativa</th>
+                </tr>
+              </thead>
+              <tbody>
+                {alunosComJustificativa.length > 0 ? (
+                  alunosComJustificativa.map(aluno => (
+                    <tr key={`just-${aluno.idtblAluno}`}>
+                      <td className={`${tableTdClasses}  text-[16px]`}>
+                        {aluno.nome}
+                      </td>
+                      <td className={`${tableTdClasses} text-[#555] italic text-[16px]`}>
+                        {aluno.justificativa}
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="2" className={`${tableTdClasses} text-center text-[#555] italic`}>
+                      Nenhuma justificativa na turma.
                     </td>
                   </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan="2" className={`${tableTdClasses} text-center text-[#555] italic`}>
-                    Nenhuma justificativa na turma.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
         
-        {/* Botões de Ação (Extrema Direita) */}
         <div className="flex flex-col justify-center gap-[15px] w-[150px] shrink-0 h-[110px] ">
           <button 
             onClick={handleAvaliarTurma}
@@ -205,8 +335,15 @@ const ConselhoFinal = () => {
             }`}>
             {carregando ? 'Carregando...' : 'Avaliar turma'}
           </button>
-          <button className={`${btnClasses} bg-gray-400 text-white p-[10px] rounded-[20px] font-bold text-center`}>
-            Salvar
+          <button
+            onClick={handleSalvarTudo}
+            disabled={salvando || !mostrarTabelaAlunos}
+            className={`${btnClasses} p-[10px] rounded-[20px] font-bold text-center transition-all ${
+              salvando || !mostrarTabelaAlunos
+                ? 'bg-gray-400 text-white opacity-50 cursor-not-allowed'
+                : 'bg-green-500 text-white cursor-pointer hover:bg-green-600'
+            }`}>
+            {salvando ? 'Salvando...' : 'Salvar'}
           </button>
         </div>
 
@@ -228,52 +365,90 @@ const ConselhoFinal = () => {
               <th className={`${tableThClasses}`}>Pré Conselho</th>
               <th className={`${tableThClasses}`}>Conselho final</th>
               <th className={`${tableThClasses}`}>Avaliação Situação Final</th>
+              
             </tr>
+             
           </thead>
           <tbody>
-            {alunosComAcaoProposta.map(aluno => (
-              <tr key={aluno.idtblAluno}>
-                <td className={`${tableTdClasses} `}>{aluno.nome}</td>
-                <td className={`${tableTdClasses} `}>
-                  <p>{aluno.acaoPropostaPreConselho}</p>
-                  <button className="text-gray-500 text-xs mt-[5px] hover:underline">
-                    <div className="flex items-center my-0 mx-1 gap-1">
-                      <img src={notificationIcon} alt="" className="w-6 h-6 border border-yellow-600 rounded-full p-[1px]"/>
-                      <div className='flex'>
-                          <p className="text-m underline">Ver Observações</p>
-                          <p className="text-m underline">({intObservacoes})</p>
-                      </div>
-                  </div>
-                  </button>
-                </td>
-                <td className={`${tableTdClasses} text-center `}>
-                  {aluno.justificativa ? (
-                    <button onClick={handleOpenModalJustificativa} className=" text-orange-600 px-2 py-1 rounded text-lg underline font-bold ">
-                      Ver contestação
-                    </button>
-                  ) : '-'}
-                </td>
-                <td className={`${tableTdClasses} flex flex-col gap-2 items-center p-2`}>
-                  
-                  {/* Botões de Status com renderização condicional de classes */}
-                  <button className={`${btnClasses} w-full max-w-[250px] p-[6px] rounded-[15px] font-bold text-[17px] text-white ${aluno.status === 'aprovado' ? 'bg-green-500' : 'bg-gray-400'}`}>
-                    Aprovado
-                  </button>
-                  <button className={`${btnClasses} w-full max-w-[250px] p-[6px] rounded-[15px] font-bold text-[17px] text-white ${aluno.status === 'aprovado-conselho' ? 'bg-yellow-500' : 'bg-gray-400'}`}>
-                    Aprovado pelo Conselho
-                  </button>
-                  <button className={`${btnClasses} w-full max-w-[250px] p-[6px] rounded-[15px] font-bold text-[17px] text-white ${aluno.status === 'reprovado' ? 'bg-red-500' : 'bg-gray-400'}`}>
-                    Reprovado
-                  </button>
+              {alunosComAcaoProposta.map(aluno => {
+                const situacaoAtual = getSituacaoAluno(aluno.idtblAluno);
+                const statusSalvo = situacaoAtual?.situacaoFinal;
 
-                </td>
-              </tr>
-            ))}
+                return (
+                  <tr key={aluno.idtblAluno}>
+                    <td className={`${tableTdClasses} `}>{aluno.nome}</td>
+
+                  <td className={`${tableTdClasses} `}>
+                    <p>{aluno.acaoPropostaPreConselho}</p>
+
+                    <button className="text-gray-500 text-xs mt-[5px] hover:underline">
+                      <div className="flex items-center my-0 mx-1 gap-1">
+                        <img src={notificationIcon} alt="" className="w-6 h-6 border border-yellow-600 rounded-full p-[1px]"/>
+                        <div className='flex'>
+                            <p className="text-m underline">Ver Observações</p>
+                            <p className="text-m underline">({intObservacoes})</p>
+                        </div>
+                    </div>
+                    </button>
+                  </td>
+
+                  <td className={`${tableTdClasses} text-center `}>
+                    {situacaoAtual?.contestacao ? (
+                      <button onClick={() => handleVerContestacao(aluno,situacaoAtual)} className=" text-orange-600 px-2 py-1 rounded text-lg underline font-bold ">
+                        Ver contestação
+                      </button>
+                    ) : '-'}
+                  </td>
+
+                  <td className={`${tableTdClasses} flex flex-col gap-2 items-center p-2`}>
+                    <button
+                        onClick={() => handleAprovado(aluno)}
+                        disabled={salvando}
+                        className={`${btnClasses} w-full max-w-[250px] p-[6px] rounded-[15px] font-bold text-[17px] text-white transition-colors ${
+                          statusSalvo === 'Aprovado' ? 'bg-green-500' : 'bg-gray-400 hover:bg-green-400'
+                        }`}
+                      >
+                        Aprovado
+                      </button>
+                      <button
+                        onClick={() => handleAbrirModal(aluno, 'Aprovado pelo conselho')}
+                        disabled={salvando}
+                        className={`${btnClasses} w-full max-w-[250px] p-[6px] rounded-[15px] font-bold text-[17px] text-white transition-colors ${
+                          statusSalvo === 'Aprovado pelo conselho' ? 'bg-yellow-500' : 'bg-gray-400 hover:bg-yellow-400'
+                        }`}
+                      >
+                        Aprovado pelo Conselho
+                      </button>
+                      <button
+                        onClick={() => handleAbrirModal(aluno, 'Reprovado')}
+                        disabled={salvando}
+                        className={`${btnClasses} w-full max-w-[250px] p-[6px] rounded-[15px] font-bold text-[17px] text-white transition-colors ${
+                          statusSalvo === 'Reprovado' ? 'bg-red-500' : 'bg-gray-400 hover:bg-red-400'
+                        }`}
+                      >
+                        Reprovado
+                      </button>
+
+                  </td>
+
+                  
+                </tr>
+              );
+            })}
+           
           </tbody>
         </table>
       </section>
       )}
-      <ModalJustificativa isOpen={isModalJustificativaOpen} onClose={handleCloseModalJustificativa} />
+      <ModalJustificativa
+        isOpen={modalAberto}
+        onClose={() => { setModalAberto(false); setAlunoModal(null); setSituacaoModal(''); setContestacaoModal(''); setModalSoLeitura(false); }}
+        aluno={alunoModal}
+        situacao={situacaoModal}
+        contestacaoInicial={contestacaoModal}
+        soLeitura={modalSoLeitura}
+        onSalvar={handleSalvarJustificativa}
+      />
     </div>
   );
 };
