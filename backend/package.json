@@ -18,6 +18,7 @@
     "docxtemplater": "^3.68.7",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
+    "iconv-lite": "^0.7.2",
     "multer": "^2.1.1",
     "pizzip": "^3.2.0",
     "react-router-dom": "^7.14.1"

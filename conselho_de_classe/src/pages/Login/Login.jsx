@@ -9,7 +9,7 @@ function Login() {
   const [erroLogin, setErroLogin] = useState('');
 
     useEffect(() => {
-      document.title = "Login | Sistema de Conselhos";
+      document.title = "Sistema de Conselhos";
     }, []);
 
     const handleLogin = async (e) => {

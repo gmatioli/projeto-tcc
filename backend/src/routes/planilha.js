@@ -4,8 +4,9 @@ const db = require('../config/db');
 const multer = require('multer');
 const fs = require('fs');
 const csv = require('csv-parser');
+const iconv = require('iconv-lite');
 
-const upload = multer({ dest: 'uploads/' });
+const upload = multer({ storage: multer.memoryStorage() });
 
 // ==========================================
 // ROTA: UPLOAD DA PLANILHA SGSET (POST)
@@ -16,13 +17,17 @@ router.post('/upload-planilha', upload.single('arquivo'), (req, res) => {
   }
 
   // Auto-detecção do separador (vírgula ou ponto-e-vírgula)
-  const conteudoFicheiro = fs.readFileSync(req.file.path, 'utf-8');
+  const conteudoFicheiro = iconv.decode(req.file.buffer, 'win1252');
   const primeiraLinha = conteudoFicheiro.split('\n')[0];
   const separadorDetectado = primeiraLinha.includes(';') ? ';' : ',';
 
+  // E para o csv-parser, use um Readable a partir do buffer:
+  const { Readable } = require('stream');
   const resultados = [];
 
-  fs.createReadStream(req.file.path)
+    // Passa o conteúdo JÁ em UTF-8 para o csv-parser
+  const bufferUtf8 = Buffer.from(conteudoFicheiro, 'utf-8');
+  Readable.from(bufferUtf8)
     .pipe(csv({ separator: separadorDetectado }))
     .on('data', (data) => resultados.push(data))
     .on('end', async () => {
@@ -125,9 +130,6 @@ router.post('/upload-planilha', upload.single('arquivo'), (req, res) => {
             `;
           }
         }
-
-        // Remove o arquivo temporário
-        fs.unlinkSync(req.file.path);
 
         res.json({ sucesso: true, mensagem: 'Planilha processada e banco atualizado com sucesso!' });
 
