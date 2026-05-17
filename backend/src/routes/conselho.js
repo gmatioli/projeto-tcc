@@ -553,7 +553,9 @@ router.get('/dados-pre-conselho/turma/:idTurma', async (req, res) => {
         a."nome",
         a."matricula",
         aa."acaoPropostaPreConselho",
-        aa."justificativa"
+        aa."justificativa", 
+        aa."situacaoFinal",
+        aa."contestacaoSituacaoFinal"
       FROM "tblAluno" a
       INNER JOIN "Avaliacao_Aluno" aa ON aa."tblAluno_idtblAluno" = a."idtblAluno"
       INNER JOIN "Conselho" c ON c."idConselho" = aa."Conselho_idConselho"
@@ -578,6 +580,75 @@ router.get('/dados-pre-conselho/turma/:idTurma', async (req, res) => {
     return res.status(500).json({ sucesso: false, mensagem: 'Erro ao buscar dados do pré-conselho' });
   }
 });
+// ==========================================
+// PATCH: SALVAR SITUAÇÃO FINAL DO ALUNO (CONSELHO FINAL)
+// PATCH -> /api/conselho/situacao-final
+// ==========================================
+router.patch('/situacao-final', async (req, res) => {
+  try {
+    const { idAluno, idUsuario, situacaoFinal, contestacaoSituacaoFinal } = req.body;
+    let { semestre, ano } = req.body;
 
+    if (!idAluno || !idUsuario || !situacaoFinal) {
+      return res.status(400).json({ sucesso: false, mensagem: 'idAluno, idUsuario e situacaoFinal são obrigatórios' });
+    }
+
+    const valoresValidos = ['Aprovado', 'Aprovado pelo conselho', 'Reprovado'];
+    if (!valoresValidos.includes(situacaoFinal)) {
+      return res.status(400).json({ sucesso: false, mensagem: 'situacaoFinal inválido' });
+    }
+
+    if (!semestre || !ano) {
+      const ciclo = cicloAtual();
+      semestre = semestre || ciclo.semestre;
+      ano = ano || ciclo.ano;
+    }
+
+    // Busca o conselho Final do ciclo; cria se não existir
+    let conselhoFinal = await db`
+      SELECT "idConselho" FROM "Conselho"
+      WHERE "tipoConselho"       = 'Final'
+        AND "semestre"           = ${semestre}
+        AND "ano"                = ${ano}
+        AND "Usuario_idUsuario"  = ${idUsuario}
+      ORDER BY "idConselho" DESC
+      LIMIT 1
+    `;
+
+    let conselhoId;
+    if (conselhoFinal.length > 0) {
+      conselhoId = conselhoFinal[0].idConselho;
+    } else {
+      const novo = await db`
+        INSERT INTO "Conselho"
+          ("tipoConselho", "dataRealizacao", "status", "semestre", "ano", "Usuario_idUsuario")
+        VALUES
+          ('Final', NOW(), 'Em andamento', ${semestre}, ${ano}, ${idUsuario})
+        RETURNING "idConselho"
+      `;
+      conselhoId = novo[0].idConselho;
+    }
+
+    // Upsert: insere se não existe, atualiza se já existe
+    const result = await db`
+      INSERT INTO "Avaliacao_Aluno"
+        ("Conselho_idConselho", "tblAluno_idtblAluno", "Usuario_idUsuario",
+         "situacaoFinal", "contestacaoSituacaoFinal")
+      VALUES
+        (${conselhoId}, ${idAluno}, ${idUsuario},
+         ${situacaoFinal}, ${contestacaoSituacaoFinal || null})
+      ON CONFLICT ("tblAluno_idtblAluno", "Conselho_idConselho")
+      DO UPDATE SET
+        "situacaoFinal"            = EXCLUDED."situacaoFinal",
+        "contestacaoSituacaoFinal" = EXCLUDED."contestacaoSituacaoFinal"
+      RETURNING *
+    `;
+
+    return res.json({ sucesso: true, mensagem: 'Situação final salva com sucesso', avaliacao: result[0] });
+  } catch (erro) {
+    console.error('ERRO SALVAR SITUAÇÃO FINAL:', erro);
+    return res.status(500).json({ sucesso: false, mensagem: 'Erro ao salvar situação final' });
+  }
+});
 
 module.exports = router;

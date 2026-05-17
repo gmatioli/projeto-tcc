@@ -205,7 +205,7 @@ export function PreConselho() {
         if (!conselhoId || !idTurma || !idUsuario) return;
         setCarregandoConselho(true);
         try {
-            const resp = await fetch(`${API}/iniciar`, {
+            const resp = await fetch(`${API.conselho}/iniciar`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
