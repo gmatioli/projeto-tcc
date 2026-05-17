@@ -33,6 +33,47 @@ router.get('/turmas', async (req, res) => {
 });
 
 // ==========================================
+// BUSCAR TURMAS ATUAIS DO DOCENTE
+// ==========================================
+router.get('/docente/:id/turmas', async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const result = await db`
+      SELECT t."idTurma", t."codigo"
+      FROM "Turma" t
+      JOIN "Docente_Turma" dt ON t."idTurma" = dt."Turma_idTurma"
+      WHERE dt."Usuario_idUsuario" = ${id}
+    `;
+    
+    res.json(result);
+  } catch (erro) {
+    console.error('Erro ao buscar turmas atuais do docente:', erro);
+    res.status(500).json({ mensagem: 'Erro ao buscar turmas do docente' });
+  }
+});
+
+// ==========================================
+// EXCLUIR TURMA DO DOCENTE
+// ==========================================
+router.delete('/docente/:idDocente/turma/:idTurma', async (req, res) => {
+  const { idDocente, idTurma } = req.params;
+
+  try {
+    // Deleta a relação específica no banco de dados
+    await db`
+      DELETE FROM "Docente_Turma"
+      WHERE "Usuario_idUsuario" = ${idDocente} AND "Turma_idTurma" = ${idTurma}
+    `;
+
+    res.json({ sucesso: true, mensagem: 'Turma do docente removida' });
+  } catch (erro) {
+    console.error('Erro ao excluir turma do docente:', erro);
+    res.status(500).json({ sucesso: false, mensagem: 'Erro ao excluir a turma' });
+  }
+});
+
+// ==========================================
 // 3. SALVAR ATRIBUIÇÕES (MODO ADITIVO)
 // ==========================================
 router.post('/salvar', async (req, res) => {
