@@ -1,6 +1,8 @@
 
 import { useEffect, useState } from 'react';
 import { API } from '../../config/api';
+import { toast } from 'sonner';
+
 
 const CRITERIOS = ['Atende satisfatoriamente', 'Necessita de orientação'];
 
@@ -23,8 +25,24 @@ const ModalAvaliacaoTurma = ({
   avaliacaoExistente,
   onSaved
 }) => {
+
   const [form, setForm] = useState(initialState);
   const [salvando, setSalvando] = useState(false);
+
+  const validarForm = () => {
+    const erros = [];
+
+    if (!form.organizacao)                  erros.push('Organização');
+    if (!form.comportamental)               erros.push('Comportamental');
+    if (!form.assiduidade)                  erros.push('Assiduidade');
+    if (!form.disponibilidade_Aprendizado)  erros.push('Disponibilidade para aprendizagem');
+    if (!form.alcancou_Objetivos)           erros.push('Posição geral da turma');
+     // só obrigatória quando a turma NÃO alcançou os objetivos
+    if (form.alcancou_Objetivos === 'Não' && !form.acaoProposta.trim()) {
+      erros.push('Ação preventiva');
+    }
+    return erros;
+  };
 
   // Pré-carrega valores quando o modal abre com avaliação já existente
   useEffect(() => {
@@ -54,6 +72,12 @@ const ModalAvaliacaoTurma = ({
       alert('Conselho ou turma não identificados.');
       return;
     }
+    const erro = validarForm();
+
+    if(erro.length > 0) {
+      toast.error('Preencha os campos obrigatórios: ' + erro.join(', '));
+      return; 
+    }
     setSalvando(true);
     try {
       const resp = await fetch(`${API.conselho}/avaliacao-turma`, {
@@ -70,7 +94,8 @@ const ModalAvaliacaoTurma = ({
       onSaved && onSaved(dados.avaliacao);
     } catch (err) {
       console.error(err);
-      alert('Erro ao salvar avaliação da turma.');
+      toast.error('Erro ao salvar avaliação da turma: ' + err.message);
+     
     } finally {
       setSalvando(false);
     }

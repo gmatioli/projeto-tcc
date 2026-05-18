@@ -155,7 +155,7 @@ const ModalAvaliacaoAlunos = ({
 
     setRemovendo(true);
     try {
-      const resp = await fetch(`${API}/avaliacao-aluno/${conselhoId}/${idAluno}`, 
+      const resp = await fetch(`${API.conselho}/avaliacao-aluno/${conselhoId}/${idAluno}`, 
       { method: 'DELETE' }
       ).then(r => r.json());
 
@@ -165,6 +165,7 @@ const ModalAvaliacaoAlunos = ({
       onSaved && onSaved();
     } catch (err) {
       console.error(err);
+      toast.error('Erro ao remover restrição: ' + err.message);
     } finally {
       setRemovendo(false);
     }

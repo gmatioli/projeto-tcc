@@ -125,9 +125,10 @@ router.get('/ativo/:tipoConselho/:idUsuario', async (req, res) => {
       SELECT "idConselho", "status", "semestre", "ano"
         FROM "Conselho"
        WHERE "tipoConselho" = ${tipoConselho}
-         AND "semestre"     = ${semestre}
-         AND "ano"          = ${ano}
+         AND "semestre"     = ${Number(semestre)}
+         AND "ano"          = ${Number(ano)}
          AND "Usuario_idUsuario" = ${idUsuario}
+         AND "status" IN ('Iniciado', 'Em andamento')
        ORDER BY "idConselho" DESC
        LIMIT 1
     `;
