@@ -256,28 +256,28 @@ export function Sidebar() {
 
   return (
     <section className="h-[calc(100vh-8vh)]">
-      <div className="bg-gray-200 w-[20vw] h-full flex flex-col border-r border-[#ccc] overflow-hidden">
+      <div className="bg-gray-200 max-w-[20vw] h-full flex flex-col border-r border-[#ccc] overflow-hidden">
 
-        <div className="flex-1 overflow-y-auto pt-6 px-4 pb-4 custom-scrollbar">
+        <div className="flex-1 overflow-y-auto pt-6 px-[0.5vw] pb-4 custom-scrollbar">
 
           <button
             onClick={() => handleClick('/dashboard', 'dashboard')}
-            className={`flex items-center justify-center gap-4 w-full h-[10vh] px-10 mx-auto mt-0 bg-gray-100 rounded-[10px] font-bold border border-black text-[26px] shadow-[0px_3px_7px_rgb(117,117,117)] cursor-pointer transition-all ${
+            className={`flex items-center justify-center min-w-[18vw] min-h-[10vh] text-[1.625rem] max-px-[0.5vw] mx-auto mt-[2vh] bg-gray-100 rounded-[10px] border border-black font-bold shadow-[0px_3px_7px_rgb(117,117,117)] cursor-pointer transition-all sm:gap-[0.1vh] md:gap-[0.5vh] lg:gap-[1vh] xl:gap-[3vh] ${
               botaoSelecionado === 'dashboard' ? 'bg-[var(--button-selected)] text-white' : ''
             }`}>
             <img src={dashboardIcon} className={`w-6 h-6 ${botaoSelecionado === 'dashboard' ? 'brightness-0 invert' : 'brightness-0'}`} alt="Dashboard" />
-            <p className="flex-1 text-center ">Dashboard</p>
+            <p className="flex text-center ">Dashboard</p>
             <img src={arrowRightIcon} className={`w-6 h-6 ${botaoSelecionado === 'dashboard' ? 'brightness-0 invert' : 'brightness-0'}`} alt="Seta" />
           </button>
 
           {/* CONSELHOS */}
           <button
             onClick={toggleMenuConselho}
-            className={`flex items-center justify-center gap-4 w-full h-[10vh] px-10 mx-auto mt-4 bg-gray-100 rounded-[10px] font-bold border border-black text-[26px] shadow-[0px_3px_7px_rgb(117,117,117)] cursor-pointer transition-all ${
+            className={`flex items-center justify-center min-w-[18vw] min-h-[10vh] text-[1.625rem] max-px-[0.5vw] mx-auto mt-[2vh] bg-gray-100 rounded-[10px] border border-black font-bold shadow-[0px_3px_7px_rgb(117,117,117)] cursor-pointer transition-all sm:gap-[0.1vh] md:gap-[0.5vh] lg:gap-[1vh] xl:gap-[3vh] ${
               botaoSelecionado === 'conselhos' || menuConselhoAberto ? 'bg-[var(--button-selected)] text-white' : ''
             }`}>
             <img src={councilIcon} className={`w-7 h-7 ${botaoSelecionado === 'conselhos' || menuConselhoAberto ? 'brightness-0 invert' : 'brightness-0'}`} alt="Conselhos" />
-            <p className="flex-1 text-center">Conselhos</p>
+            <p className="flex text-center">Conselhos</p>
             <img
               src={arrowRightIcon}
               className={`w-6 h-6 ${botaoSelecionado === 'conselhos' || menuConselhoAberto ? 'brightness-0 invert' : 'brightness-0'} transition-transform duration-300 ${menuConselhoAberto ? '[transform:rotate(90deg)]' : '[transform:rotate(0deg)]'}`}
@@ -320,16 +320,16 @@ export function Sidebar() {
           {/* RELATÓRIOS */}
           <button
             onClick={toggleMenuRelatorio}
-            className={`flex items-center justify-center gap-4 w-full h-[10vh] px-10 mx-auto mt-4 bg-gray-100 rounded-[10px] border border-black font-bold text-[26px] shadow-[0px_3px_7px_rgb(117,117,117)] cursor-pointer transition-all ${
+            className={`flex items-center justify-center min-w-[18vw] min-h-[10vh] text-[1.625rem] max-px-[0.5vw] mx-auto mt-[2vh] bg-gray-100 rounded-[10px] border border-black font-bold shadow-[0px_3px_7px_rgb(117,117,117)] cursor-pointer transition-all sm:gap-[0.1vh] md:gap-[0.5vh] lg:gap-[1vh] xl:gap-[3vh] ${
               botaoSelecionado === 'relatorios' || menuRelatorioAberto ? 'bg-[var(--button-selected)] text-white' : ''
             }`}>
-            <img src={reportIcon} className={`w-7 h-7 ${botaoSelecionado === 'relatorios' || menuRelatorioAberto ? 'brightness-0 invert' : 'brightness-0'}`} alt="Relatórios" />
-            <p className="flex-1 text-center">Relatórios</p>
-            <img
-              src={arrowRightIcon}
-              className={`w-6 h-6 ${botaoSelecionado === 'relatorios' || menuRelatorioAberto ? 'brightness-0 invert' : 'brightness-0'} transition-transform duration-300 ${menuRelatorioAberto ? '[transform:rotate(90deg)]' : '[transform:rotate(0deg)]'}`}
-              alt="Seta"
-            />
+              <img src={reportIcon} className={`w-7 h-7 ${botaoSelecionado === 'relatorios' || menuRelatorioAberto ? 'brightness-0 invert' : 'brightness-0'}`} alt="Relatórios" />
+              <p className=" text-center">Relatórios</p>
+              <img
+                src={arrowRightIcon}
+                className={`w-6 h-6 ${botaoSelecionado === 'relatorios' || menuRelatorioAberto ? 'brightness-0 invert' : 'brightness-0'} transition-transform duration-300 ${menuRelatorioAberto ? '[transform:rotate(90deg)]' : '[transform:rotate(0deg)]'}`}
+                alt="Seta"
+              />
           </button>
 
           {/* SUBMENU RELATÓRIOS */}

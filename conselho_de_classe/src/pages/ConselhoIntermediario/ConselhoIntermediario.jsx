@@ -21,10 +21,10 @@ const cicloAtual = () => {
   };
 };
 
-const cardInfo = "flex flex-col justify-between  border rounded-[15px] h-auto w-[12vw] shadow-[2px_2px_5px_rgba(0,0,0,0.5)]";
-const cardNum = "text-3xl italic";
-const cardText = "mt-10 ml-4 text-lg font-bold";
-const cardIcon = "flex items-end justify-end m-[0_15px_15px_0]";
+  const cardInfo = "flex flex-col justify-between border-2 rounded-[15px] min-h-[22vh] w-[12vw] mx-[1.5vh] shadow-[2px_2px_8px_gray]";
+  const cardNum = "text-3xl italic";
+  const cardText = "mt-[4vh] mx-[1vw] text-xl font-bold";
+  const cardIcon = "flex items-end justify-end m-[0_1vh_1vh_0]";
   
 
 export function ConselhoIntermediario() {
@@ -382,8 +382,8 @@ export function ConselhoIntermediario() {
  
 
   return (
-      <section>
-        <nav className="mb-4">
+      <section className='flex flex-col h-auto h-[92vh] gap-[1vh] mx-[1vw]'>
+        <nav className="my-[1vh] ">
         <span className="text-sm text-gray-500">
           <button
             className="hover:underline text-gray-500"
@@ -395,8 +395,8 @@ export function ConselhoIntermediario() {
 
         </span>
       </nav>
-        <div className="flex flex-col min-w-[72vw] my-5 gap-5">
-        <div className="flex min-h-[5vh]  justify-around align-center ">
+        <div className="flex flex-col min-w-[72vw] gap-[1vh]">
+        <div className="flex justify-around align-center ">
           <div className={`${cardInfo} bg-[#FEFEFE] border border-black`}>
             <div className={`${cardText}`}>
               <h3 className={`${cardNum} text-2xl`}>{alunos.length}</h3>
@@ -435,7 +435,7 @@ export function ConselhoIntermediario() {
           </div>
 
           <div className="card_avaliacoes">
-            <div className="flex flex-col gap-3 mr-5 min-h-[220px]">
+            <div className="flex flex-col gap-3 min-h-[25vh]">
                 <button
                   onClick={handleAcaoBotaoPrincipal}
                   disabled={botaoPrincipalDesabilitado}
@@ -505,8 +505,8 @@ export function ConselhoIntermediario() {
               </div>
             </div>
             
-            <div className="flex flex-col mx-2 mr-6">
-                <div className="flex justify-between my-0 mx-[10px] text-xl ">
+            <div className="flex flex-col">
+                <div className="flex justify-between my-0 mx-[10px] text-xl my-[1vh]">
                     <div className="flex gap-2">
                         <input disabled={botoesDesabilitados} type="checkbox" id="checkbox_selecionar_tudo" className="w-5 h-5 cursor-pointer" 
                         onChange={handleSelecionarTudo} checked={alunos.length > 0 && alunosSelecionados.length === alunos.length}/>
@@ -521,7 +521,7 @@ export function ConselhoIntermediario() {
                     <p className="text-center text-gray-500 py-4">Carregando alunos...</p>
                 )}
 
-              <section className='h-[58vh] overflow-y-auto border border-gray-200 rounded-md'>
+              <section className='max-h-[50vh] overflow-y-auto border border-gray-200 rounded-md '>
                 {!carregando && (
                   <table className="w-full bg-[#FEFEFE] box-border border-separate border-spacing-0 shadow-[0_0_4px_gray]">
                     <thead>

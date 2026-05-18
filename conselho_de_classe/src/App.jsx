@@ -63,7 +63,7 @@ function LayoutDoSistema() {
         {nivel === 'admin' ? <Sidebar /> : <SidebarDocente /> }
         {/*<Sidebar />*/}
         
-        <main className="content-area grow overflow-y-auto p-[20px] bg-neutral-100">
+        <main className="content-area grow overflow-y-auto px-auto h-[100vh] w-full bg-gray-50">
           {/* A MÁGICA: O Outlet é o espaço onde as páginas vão aparecer! */}
           <Outlet /> 
         </main>
