@@ -121,97 +121,106 @@ const ModalAvaliacaoTurma = ({
 
   return (
     // Fundo escuro do modal
-    <div className="flex justify-center items-center fixed top-0 left-0 right-0 bottom-0 bg-black/50 z-[1000]" >
+    <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/50 p-4" >
+      
       {/* Caixa branca do formulário */}
-      <div className="flex flex-col bg-white text-xl p-5 rounded-[10px] ml-[18vw] mt-[8vh] w-[1200px] max-w-[90%] h-[800px] ">
-        <h2 className="text-center mt-5 mb-[10px] text-3xl font-bold">Posição do Conselho, com relação a Turma: {nomeTurma} </h2>
-        <hr className="border-none bg-gray-300 h-[1px] mx-20 py-[1px]"/>
+      <div className="flex flex-col bg-white text-xl ml-[18vw] mt-[8vh] p-4 sm:p-6 rounded-[10px] w-full max-w-[70vw] max-h-[90vh] shadow-xl overflow-hidden">
         
-        <form className="mx-20" onSubmit={handleSubmit}>
-          <div className="flex justify-between mt-8">
-            <label>1. Organização:</label>
-            {renderRadios('organizacao')}
+        <div className="shrink-0">
+          <h2 className="text-center mt-2 mb-2 text-2xl sm:text-3xl font-bold">Posição do Conselho, com relação a Turma: {nomeTurma} </h2>
+          <hr className="border-none bg-gray-300 h-[1px] my-4 mx-[3vw]"/>
+        </div>
+        
+        <div className="overflow-y-auto pr-2 pb-4 mx-[3vw] ">
+          <form className="flex flex-col gap-6" onSubmit={handleSubmit}>
+            <div className='flex flex-col gap-6'>
 
-          </div>
+              <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center">
+                <label className="mb-2 lg:mb-0 font-medium">1. Organização:</label>
+                {renderRadios('organizacao')}
+              </div>
 
-          <div className="flex justify-between mt-8">
-            <label>2. Comportamental:</label>
-            {renderRadios('comportamental')}
+              <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center">
+                <label className="mb-2 lg:mb-0 font-medium">2. Comportamental:</label>
+                {renderRadios('comportamental')}
+              </div>
 
-          </div>
+              <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center">
+                <label className="mb-2 lg:mb-0 font-medium">3. Assiduidade:</label>
+                {renderRadios('assiduidade')}
+              </div>
 
-          <div className="flex justify-between mt-8">
-            <label>3. Assiduidade:</label>
-            {renderRadios('assiduidade')}
+              <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center">
+                <label className="mb-2 lg:mb-0 font-medium">4. Disponibilidade para aprendizagem:</label>
+                {renderRadios('disponibilidade_Aprendizado')}
+              </div>
 
-          </div>
-
-          <div className="flex justify-between mt-8">
-            <label>4. Disponibilidade para aprendizagem:</label>
-            {renderRadios('disponibilidade_Aprendizado')}
-
-          </div>
-
-          <div className="flex flex-col mt-8">
-            <label>Outros - Citar:</label>
-            <input
-              type="text"
-              value={form.observacao}
-              onChange={(e) => setCampo('observacao', e.target.value)}
-              className="text-l py-3 mt-[5px] rounded-[18px] border border-[#bbb] px-4"
-            />
-          </div>
-
-          <div>
-            <h2 className="text-center mt-5 mb-[10px] text-3xl font-bold">De modo geral, os alunos matriculados na turma:</h2>
-            <div className="flex flex-col gap-6 mt-6">
-                <label className="flex gap-3 items-start">
+              <div className="flex flex-col">
+                <label className="font-medium">Outros - Citar:</label>
                 <input
-                  type="radio"
-                  name="alcancou_Objetivos"
-                  value="Sim"
-                  checked={form.alcancou_Objetivos === 'Sim'}
-                  onChange={(e) => setCampo('alcancou_Objetivos', e.target.value)}
+                  type="text"
+                  value={form.observacao}
+                  onChange={(e) => setCampo('observacao', e.target.value)}
+                  className="text-base sm:text-lg py-3 mt-2 rounded-[18px] border border-[#bbb] px-4 w-full"
                 />
-                <span>Alcançam os objetivos educacionais propostos, não necessitando de ações preventivas.</span>
-              </label>
-              <label className="flex gap-3 items-start">
-                <input
-                  type="radio"
-                  name="alcancou_Objetivos"
-                  value="Não"
-                  checked={form.alcancou_Objetivos === 'Não'}
-                  onChange={(e) => setCampo('alcancou_Objetivos', e.target.value)}
-                />
-                <span>Não alcançam os objetivos educacionais propostos, devendo ser adotada a seguinte ação preventiva.</span>
-              </label>
+              </div>
             </div>
-            <input
-              type="text"
-              placeholder="Descreva a ação preventiva..."
-              value={form.acaoPreventiva}
-              onChange={(e) => setCampo('acaoPreventiva', e.target.value)}
-              disabled={form.alcancou_Objetivos !== 'Não'}
-              className="text-l py-3 mt-4 w-full rounded-[18px] border border-[#bbb] px-4 disabled:bg-gray-100"
-            />
-          </div>
+
+            <div className='bg-gray-50 p-4 sm:p-6 rounded-xl border border-gray-100 mt-2'>
+              <h2 className="text-center mb-4 text-xl sm:text-2xl font-bold">De modo geral, os alunos matriculados na turma:</h2>
+              <div className="flex flex-col gap-4 mb-4">
+                  <label className="flex gap-3 items-start cursor-pointer">
+                  <input
+                    type="radio"
+                    name="alcancou_Objetivos"
+                    value="Sim"
+                    checked={form.alcancou_Objetivos === 'Sim'}
+                    onChange={(e) => setCampo('alcancou_Objetivos', e.target.value)}
+                    className="mt-1.5"
+                  />
+                  <span className="text-base sm:text-lg">Alcançam os objetivos educacionais propostos, não necessitando de ações preventivas.</span>
+                </label>
+                
+                <label className="flex gap-3 items-start cursor-pointer">
+                  <input
+                    type="radio"
+                    name="alcancou_Objetivos"
+                    value="Não"
+                    checked={form.alcancou_Objetivos === 'Não'}
+                    onChange={(e) => setCampo('alcancou_Objetivos', e.target.value)}
+                    className="mt-1.5"
+                  />
+                  <span className="text-base sm:text-lg">Não alcançam os objetivos educacionais propostos, devendo ser adotada a seguinte ação preventiva.</span>
+                </label>
+              </div>
+              
+              <input
+                type="text"
+                placeholder="Descreva a ação preventiva..."
+                value={form.acaoPreventiva}
+                onChange={(e) => setCampo('acaoPreventiva', e.target.value)}
+                disabled={form.alcancou_Objetivos !== 'Não'}
+                className="text-base sm:text-lg py-3 w-full rounded-[18px] border border-[#bbb] px-4 disabled:bg-gray-200"
+              />
+            </div>
           
-          <div className="flex justify-center items-end gap-[50px] mt-[40px]">
+            <div className="flex flex-col-reverse sm:flex-row justify-center items-center gap-4 mt-2">
+                <button
+                type="button"
+                onClick={onClose}
+                disabled={salvando}
+                className="w-full sm:w-auto py-3 px-12 rounded-[50px] text-lg sm:text-xl border border-black shadow-[0_0_3px_gray] cursor-pointer transition-all duration-200 active:scale-95 disabled:opacity-50 hover:bg-gray-100">
+                Cancelar
+              </button>
               <button
-              type="button"
-              onClick={onClose}
-              disabled={salvando}
-              className="py-2 px-[120px] rounded-[50px] text-xl border border-black shadow-[0_0_3px_gray] cursor-pointer transition-all duration-200 active:scale-95 disabled:opacity-50">
-              Cancelar
-            </button>
-            <button
-              type="submit"
-              disabled={salvando}
-              className="py-2 px-[120px] rounded-[50px] text-xl border border-black bg-[#E53935] shadow-[0_0_3px_gray] text-white cursor-pointer transition-all duration-200 active:scale-95 disabled:opacity-50">
-              {salvando ? 'Salvando...' : 'Salvar'}
-            </button>
-          </div>
-        </form>
+                type="submit"
+                disabled={salvando}
+                className="w-full sm:w-auto py-3 px-12 rounded-[50px] text-lg sm:text-xl border border-black bg-[#E53935] shadow-[0_0_3px_gray] text-white cursor-pointer transition-all duration-200 active:scale-95 disabled:opacity-50 hover:bg-red-700">
+                {salvando ? 'Salvando...' : 'Salvar'}
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   );

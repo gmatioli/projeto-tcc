@@ -21,10 +21,11 @@ const cicloAtual = () => {
     semestre: mes <= 6 ? 1 : 2
   };
 };
-const cardInfo = "flex flex-col justify-between border rounded-[15px] h-[26vh] w-[12vw] shadow-[2px_2px_5px_rgba(0,0,0,0.5)]";
-const cardNum = "text-3xl italic";
-const cardText = "mt-10 ml-4 text-lg font-bold";
-const cardIcon = "flex items-end justify-end m-[0_15px_15px_0]";
+
+  const cardInfo = "flex flex-col justify-between border-2 rounded-[15px] min-h-[22vh] w-[12vw] mx-[1.5vh] shadow-[2px_2px_8px_gray]";
+  const cardNum = "text-3xl italic";
+  const cardText = "mt-[4vh] mx-[1vw] text-xl font-bold";
+  const cardIcon = "flex items-end justify-end m-[0_1vh_1vh_0]";
 
 export function PreConselho() {
     const navigate = useNavigate();
@@ -325,8 +326,8 @@ export function PreConselho() {
     ]);
     const totalRestritos = idsRestritos.size;
 
-    const tableThClasses = "border border-[#ddd] p-[12px_15px] text-left font-bold bg-white";
-    const tableTdClasses = "border border-[#ddd] p-[12px_15px] text-left text-lg";
+    const tableThClasses = "border-b-2 border-t-2 border-r-2 first:border-l-2 border-gray-400 p-[12px_15px] font-bold bg-white sticky top-0 z-10";
+    const tableTdClasses = "border-b-2 border-r-2 first:border-l-2 border-gray-400 p-[12px_15px] text-lg";
 
     // Classes do botão principal baseadas no estado atual
     const classeBotaoPrincipal = botaoPrincipalDesabilitado
@@ -338,8 +339,8 @@ export function PreConselho() {
                 : 'bg-green-600 text-white cursor-pointer active:scale-95 hover:bg-green-700';
  
   return (
-      <section>
-      <nav className="mb-4">
+      <section className='h-auto h-[92vh] gap-[1vh] mx-[1vw]'>
+      <nav className="my-[1vh]">
         <span className="text-sm text-gray-500">
           <button
             onClick={() => navigate('/dashboard')}
@@ -352,10 +353,10 @@ export function PreConselho() {
         </span>
       </nav>
         <div className="flex flex-col min-w-[72vw] my-5 ">
-            <div className="flex justify-around">
-                <div className={`${cardInfo} bg-[#FEFEFE] border border-black`}>
+            <div className="flex justify-between">
+                <div className={`${cardInfo} bg-white border-gray-800`}>
                     <div className={`${cardText}`}>
-                        <h3 className={`${cardNum} text-2xl`}>{alunos.length}</h3>
+                        <h3 className={`${cardNum}`}>{alunos.length}</h3>
                         <p className="text_total_alunos">Total de Alunos</p>
                     </div>
                     <div className={`${cardIcon}`}>
@@ -371,7 +372,7 @@ export function PreConselho() {
                         <img src={situacaoNormalIcon} alt=""className="w-10" />
                     </div>
                 </div>
-                <div className={`${cardInfo} bg-yellow-50 border border-yellow-600`}>
+                <div className={`${cardInfo} bg-yellow-50 border-yellow-600`}>
                     <div className={`${cardText} text-yellow-600`}>
                         <h3 className={`${cardNum}`}>{totalRestritos}</h3>
                         <p className="text_restritos">Total Observações</p>
@@ -380,8 +381,8 @@ export function PreConselho() {
                         <img src={restritosIcon} alt="" className="w-10"/>
                     </div>
                 </div>
-                <div className={`${cardInfo} bg-red-50 border border-red-600`}>
-                    <div className={`${cardText} text-red-600`}>
+                <div className={`${cardInfo} bg-red-50 border-[var(--red-senai)]`}>
+                    <div className={`${cardText} text-[var(--red-senai)]`}>
                         <h3 className={`${cardNum}`}>{totalRestritos}</h3>
                         <p className="text_retidos">Alunos Restritos</p>
                     </div>
@@ -394,13 +395,13 @@ export function PreConselho() {
                 <button
                   onClick={handleAcaoBotaoPrincipal}
                   disabled={botaoPrincipalDesabilitado}
-                  className={`p-[10px] w-[350px] rounded-[15px] border border-black shadow-[0_0_3px_black] transition-all duration-200 font-bold text-lg
+                  className={`p-[10px] w-[350px] rounded-[15px] border-2 border-gray-600 shadow-[0_0_3px_black] transition-all duration-200 font-bold text-lg
                   ${classeBotaoPrincipal}`}>
                   {textoBotaoPrincipal}
               </button>
 
-                <button onClick={handleLimparSelecao}  disabled={botoesDesabilitados}  className={`limpar_selecao p-[10px] w-[350px] rounded-[15px] border border-black shadow-[0_0_3px_black] transition-all duration-200 
-                    ${botoesDesabilitados ? 'opacity-50 cursor-not-allowed bg-gray-100' : 'bg-[#FEFEFE] cursor-pointer active:scale-95'}`}>
+                <button onClick={handleLimparSelecao}  disabled={botoesDesabilitados}  className={`limpar_selecao p-[10px] w-[350px] rounded-[15px] border-2 border-gray-600 shadow-[0_0_3px_black] transition-all duration-200 
+                    ${botoesDesabilitados ? 'opacity-50 cursor-not-allowed bg-gray-100' : 'bg-white cursor-pointer active:scale-95'}`}>
                     Limpar Seleção
                 </button>
                 <button
@@ -413,7 +414,7 @@ export function PreConselho() {
                             ? 'Selecione ao menos um aluno'
                             : ''
                 }
-                className={`p-[10px] w-[350px] rounded-[15px] border border-black shadow-[0_0_3px_black] transition-all duration-200
+                className={`p-[10px] w-[350px] rounded-[15px] border-2 border-gray-600 shadow-[0_0_3px_black] transition-all duration-200
                 ${!podeAvaliarAlunos
                     ? 'opacity-50 cursor-not-allowed bg-gray-100'
                     : 'bg-red-600 text-white cursor-pointer active:scale-95'}`}>
@@ -437,8 +438,8 @@ export function PreConselho() {
             </div>
         </div>
         
-            <div className="flex flex-col mx-2 mr-6 ">
-                <div className="flex justify-between my-0 mx-[10px] text-xl ">
+            <div className="flex flex-col">
+                <div className="flex justify-between my-0 text-xl ">
                     <div className="flex gap-2">
                         <input onChange={handleSelecionarTudo} disabled={botoesDesabilitados} type="checkbox" id="checkbox_selecionar_tudo" className="w-5 h-5 cursor-pointer"
                         checked={alunos.length > 0 && alunosSelecionados.length === alunos.length} />
@@ -449,21 +450,21 @@ export function PreConselho() {
                     </div>
                 </div>
 
-                <section className='h-[54vh] overflow-y-auto border border-gray-200 rounded-md'>
+                <section className='max-h-[50vh] overflow-y-auto'>
                     {!carregando && (
                         
-                    <table className="w-full bg-[#FEFEFE] box-border border-separate border-spacing-0 shadow-[0_0_4px_gray]">
+                    <table className="w-full bg-white box-border border-separate border-spacing-0 shadow-[0_0_4px_gray]">
                         <thead>
                         <tr>
-                            <th className={`${tableThClasses} w-[44%] sticky top-0 z-10 bg-white shadow-[0_1px_0_0_#e5e7eb] p-2 text-left font-bold border-separate border-spacing-0 `}>Aluno</th>
-                            <th className={`${tableThClasses} w-[12%] text-center sticky top-0 z-10 bg-white shadow-[0_1px_0_0_#e5e7eb] p-2 text-left font-bold border-separate border-spacing-0`}>Observações</th>
-                            <th className={`${tableThClasses} w-[20%] text-center sticky top-0 z-10 bg-white shadow-[0_1px_0_0_#e5e7eb] p-2 text-left font-bold border-separate border-spacing-0`}>Empresa</th>
-                            <th className={`${tableThClasses} w-[14%] text-center sticky top-0 z-10 bg-white shadow-[0_1px_0_0_#e5e7eb] p-2 text-left font-bold border-separate border-spacing-0`}>1° Conselho</th>
-                            <th className={`${tableThClasses} w-[10%] text-center sticky top-0 z-10 bg-white shadow-[0_1px_0_0_#e5e7eb] p-2 text-left font-bold border-separate border-spacing-0`}>2° Conselho</th>
+                            <th className={`${tableThClasses} w-[40%]`}>Aluno</th>
+                            <th className={`${tableThClasses} w-[14%] text-center`}>Observações</th>
+                            <th className={`${tableThClasses} w-[22%] text-center`}>Empresa</th>
+                            <th className={`${tableThClasses} w-[12%] text-center`}>1° Conselho</th>
+                            <th className={`${tableThClasses} w-[12%] text-center`}>2° Conselho</th>
                         </tr>
                         </thead>
                     
-                        <tbody>
+                        <tbody className='divide-y divide-gray-200'>
                         {/* O map fica AQUI, apenas para gerar as linhas (tr) da tabela */}
                         {alunos.map((aluno) => {
                             const restritoAtual= !!alunosAvaliados[aluno.idtblAluno];

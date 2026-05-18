@@ -31,10 +31,10 @@ import retidosIcon from '../../assets/dashboard/retidos-icon.svg'
 
   const intObservacoes = 3
 
-  const cardInfo = "flex flex-col justify-between border rounded-[15px] h-[26vh] w-[12vw] shadow-[2px_2px_5px_rgba(0,0,0,0.5)]";
+  const cardInfo = "flex flex-col justify-between border-2 rounded-[15px] min-h-[28vh] w-[14vw] shadow-[2px_2px_8px_gray]";
   const cardNum = "text-3xl italic";
-  const cardText = "mt-10 ml-4 text-lg font-bold";
-  const cardIcon = "flex items-end justify-end m-[0_15px_15px_0]";
+  const cardText = "mt-[6vh] mx-[1vw] text-2xl font-bold";
+  const cardIcon = "flex items-end justify-end m-[0_1vh_1vh_0]";
 
 export function Dashboard() {
   const [TotalAlunos, setTotalAlunos] = useState(0)
@@ -174,10 +174,9 @@ export function Dashboard() {
   }, []);
   
   return (
-    <section className="flex flex-col pb-10">
-      
+    <section className="flex flex-col h-auto h-[92vh] gap-[1vh] mx-[1vw]">
       {/* Navegação alinhada com as margens */}
-      <nav className="mb-4 mx-5 mt-5">
+      <nav className="my-[1vh]">
         <span className="text-sm text-gray-500">
           {' / '}
           <span className="font-medium text-gray-700">Dashboard</span>
@@ -185,12 +184,12 @@ export function Dashboard() {
       </nav>
 
       {/* Contêiner principal */}
-      <div className="flex flex-col gap-[50px]">
+      <div className="flex flex-col gap-[6vh]">
         
         {/* CARDS SUPERIORES */}
-        <div className="mx-5">
-          <div className="flex justify-between gap-4">
-            <div className={`${cardInfo} bg-gray-150 border border-black`}>
+        <div>
+          <div className="flex justify-between ">
+            <div className={`${cardInfo} bg-gray-50 border-gray-800`}>
               <div className={`${cardText}`}>
                 <h3 className={`${cardNum} text-2xl`}>{TotalAlunos}</h3>
                 <p className="text_total_alunos">Total de Alunos</p>
@@ -199,7 +198,7 @@ export function Dashboard() {
                 <img src={totalAlunosIcon} alt="" className="w-10" />
               </div>
             </div>
-            <div className={`${cardInfo} bg-gray-150 border border-[#888]`}>
+            <div className={`${cardInfo} bg-gray-50 border-gray-800`}>
               <div className={`${cardText}`}>
                 <h3 className={`${cardNum}`}>{TotalTurmas}</h3>
                 <p className="text_total_alunos">Turmas Ativas</p>
@@ -220,7 +219,7 @@ export function Dashboard() {
             <div className={`${cardInfo} bg-yellow-50 border border-yellow-600`}>
               <div className={`${cardText} text-yellow-600`}>
                 <h3 className={`${cardNum}`}>{intObservacoes}</h3>
-                <p className="text_restritos">Total Observações (Quando estiver no banco de dados)</p>
+                <p className="text_restritos">Total Observações (BD)</p>
               </div>
               <div className={`${cardIcon}`}>
                 <img src={restritosIcon} alt="" className="w-10" />
@@ -239,10 +238,10 @@ export function Dashboard() {
         </div>
 
         {/* GRÁFICOS - Adicionado mb-10 para forçar o espaçamento com o final da página */}
-        <div className="flex flex-row gap-6 mx-5 mb-10 font-sans antialiased">
+        <div className="flex flex-row h-auto min-h-[25vh] gap-[2vh] w-full my-[1vh] mr-[1vw] font-sans antialiased">
           
           {/* 1. Gráfico de Rosca (Aproveitamento) */}
-          <div className="bg-white border border-black rounded-xl p-6 shadow-[0_0_2px_black] w-2/5 flex flex-col justify-center items-center min-h-[300px]">
+          <div className="bg-white border-2 border-gray-800 rounded-xl p-6 shadow-[0_0_2px_black] w-2/5 flex flex-col justify-center items-center min-h-[45vh] max-h-[45vh] ">
           {motivosData?.labels?.length > 0 ? ( // <-- ADICIONAMOS AS INTERROGAÇÕES AQUI
             <Doughnut data={motivosData} options={motivosOptions} />
           ) : (
@@ -251,10 +250,10 @@ export function Dashboard() {
           </div>
 
           {/* 2. Gráfico de Barras (Ranking Turmas) */}
-          <div className="bg-white border border-black rounded-xl shadow-[0_0_2px_black] p-6 w-3/5 flex flex-col justify-between min-h-[300px]">
+          <div className="bg-white border-2 border-gray-800 rounded-xl shadow-[0_0_2px_black] p-6 w-3/5 flex flex-col justify-between min-h-[45vh] max-h-[45vh] ">
             
             {/* Título */}
-            <div className="text-center mb-6">
+            <div className="text-center min-h-[5vh]">
               <h3 className="text-sm font-bold text-gray-800 uppercase tracking-wide">
                 RANKING - Turmas com Maior Índice de Retenção
               </h3>
@@ -264,12 +263,12 @@ export function Dashboard() {
             </div>
 
             {/* Container do Gráfico */}
-            <div className="relative w-full flex-1 min-h-[250px]">
+            <div className="relative w-full my-[0.5vh] flex h-[25vh]">
               <Bar data={rankingData} options={rankingOptions} />
             </div>
 
             {/* Legenda Customizada */}
-            <div className="flex flex-wrap justify-center gap-4 text-[11px] text-gray-600 mt-6 font-medium">
+            <div className="flex flex-wrap justify-center gap-4 text-sm text-gray-600 font-medium h-[5vh]">
               <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-[3px] bg-[#7c3aed]"></div> {'>'}50% Crítico</div>
               <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-[3px] bg-[#f97316]"></div> 25%-49% Alto</div>
               <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-[3px] bg-[#2dd4bf]"></div> 10%-24% Médio</div>
