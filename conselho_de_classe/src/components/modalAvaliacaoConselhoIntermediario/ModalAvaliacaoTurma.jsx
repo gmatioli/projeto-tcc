@@ -13,7 +13,7 @@ const initialState = {
   disponibilidade_Aprendizado: '',
   observacao: '',
   alcancou_Objetivos: '',
-  acaoProposta: ''
+  acaoPreventiva: ''
 };
 
 const ModalAvaliacaoTurma = ({
@@ -38,7 +38,7 @@ const ModalAvaliacaoTurma = ({
     if (!form.disponibilidade_Aprendizado)  erros.push('Disponibilidade para aprendizagem');
     if (!form.alcancou_Objetivos)           erros.push('Posição geral da turma');
      // só obrigatória quando a turma NÃO alcançou os objetivos
-    if (form.alcancou_Objetivos === 'Não' && !form.acaoProposta.trim()) {
+    if (form.alcancou_Objetivos === 'Não' && !form.acaoPreventiva.trim()) {
       erros.push('Ação preventiva');
     }
     return erros;
@@ -55,7 +55,7 @@ const ModalAvaliacaoTurma = ({
         disponibilidade_Aprendizado: avaliacaoExistente.disponibilidade_Aprendizado || '',
         observacao:                  avaliacaoExistente.observacao                  || '',
         alcancou_Objetivos:          avaliacaoExistente.alcancou_Objetivos          || '',
-        acaoProposta:                avaliacaoExistente.acaoProposta                || ''
+        acaoPreventiva:              avaliacaoExistente.acaoPreventiva                || ''
       });
     } else {
       setForm(initialState);
@@ -189,8 +189,8 @@ const ModalAvaliacaoTurma = ({
             <input
               type="text"
               placeholder="Descreva a ação preventiva..."
-              value={form.acaoProposta}
-              onChange={(e) => setCampo('acaoProposta', e.target.value)}
+              value={form.acaoPreventiva}
+              onChange={(e) => setCampo('acaoPreventiva', e.target.value)}
               disabled={form.alcancou_Objetivos !== 'Não'}
               className="text-l py-3 mt-4 w-full rounded-[18px] border border-[#bbb] px-4 disabled:bg-gray-100"
             />

@@ -276,7 +276,7 @@ router.post('/avaliacao-turma', async (req, res) => {
       disponibilidade_Aprendizado,
       observacao,
       alcancou_Objetivos, 
-      acaoProposta
+      acaoPreventiva
     } = req.body;
 
     if (!conselhoId || !idTurma) {
@@ -300,7 +300,7 @@ router.post('/avaliacao-turma', async (req, res) => {
             "assiduidade" = ${assiduidade},
             "disponibilidade_Aprendizado" = ${disponibilidade_Aprendizado},
             "observacao" = ${observacao},
-            "acaoProposta" = ${acaoProposta},
+            "acaoPreventiva" = ${acaoPreventiva},
             "alcancou_Objetivos" = ${alcancou_Objetivos}
         WHERE "Conselho_idConselho" = ${conselhoId} AND "Turma_idTurma" = ${idTurma}
         RETURNING *
@@ -310,11 +310,11 @@ router.post('/avaliacao-turma', async (req, res) => {
         INSERT INTO "Avaliacao_Turma"
           ("Conselho_idConselho", "Turma_idTurma", "organizacao", "comportamental",
            "assiduidade", "disponibilidade_Aprendizado", "observacao",
-           "acaoProposta", "alcancou_Objetivos")
+           "acaoPreventiva", "alcancou_Objetivos")
         VALUES
            (${conselhoId}, ${idTurma}, ${organizacao}, ${comportamental},
            ${assiduidade}, ${disponibilidade_Aprendizado}, ${observacao},
-           ${acaoProposta}, ${alcancou_Objetivos})
+           ${acaoPreventiva}, ${alcancou_Objetivos})
         RETURNING *
       `;
     }
@@ -391,11 +391,7 @@ router.post('/avaliacao-aluno', async (req, res) => {
       naturezaOcorrencia,
       restricao,
       acaoProposta,
-      acaoPropostaIntermediario,
-      acaoPropostaPreConselho,
       responsavel,
-      responsavelIntermediario,
-      responsavelPreConselho,
       justificativa,
       informacoesComplementares,
       situacaoFinal,
@@ -420,11 +416,7 @@ router.post('/avaliacao-aluno', async (req, res) => {
          SET "naturezaOcorrencia"        = ${naturezaOcorrencia},
             "restricao"                 = ${restricao},
             "acaoProposta"              = ${acaoProposta},
-            "acaoPropostaIntermediario" = ${acaoPropostaIntermediario},
-            "acaoPropostaPreConselho"   = ${acaoPropostaPreConselho},
             "responsavel"               = ${responsavel},
-            "responsavelIntermediario"  = ${responsavelIntermediario},
-            "responsavelPreConselho"    = ${responsavelPreConselho},
             "justificativa"             = ${justificativa},
             "informacoesComplementares" = ${informacoesComplementares},
             "situacaoFinal"             = ${situacaoFinal},
@@ -436,15 +428,13 @@ router.post('/avaliacao-aluno', async (req, res) => {
       result = await db`
         INSERT INTO "Avaliacao_Aluno"
           ("Conselho_idConselho", "naturezaOcorrencia", "restricao",
-           "acaoProposta", "acaoPropostaIntermediario", "acaoPropostaPreConselho",
-           "responsavel", "responsavelIntermediario", "responsavelPreConselho",
+           "acaoProposta", "responsavel", 
            "justificativa", "informacoesComplementares",
            "situacaoFinal", "contestacaoSituacaoFinal",
            "Usuario_idUsuario", "tblAluno_idtblAluno")
         VALUES
           (${conselhoId}, ${naturezaOcorrencia}, ${restricao},
-           ${acaoProposta}, ${acaoPropostaIntermediario}, ${acaoPropostaPreConselho},
-           ${responsavel}, ${responsavelIntermediario}, ${responsavelPreConselho},
+           ${acaoProposta}, ${responsavel}, 
            ${justificativa}, ${informacoesComplementares},
            ${situacaoFinal}, ${contestacaoSituacaoFinal},
            ${idUsuario}, ${idAluno})
@@ -553,7 +543,7 @@ router.get('/dados-pre-conselho/turma/:idTurma', async (req, res) => {
         a."idtblAluno",
         a."nome",
         a."matricula",
-        aa."acaoPropostaPreConselho",
+        aa."acaoProposta",
         aa."justificativa", 
         aa."situacaoFinal",
         aa."contestacaoSituacaoFinal"
@@ -568,7 +558,7 @@ router.get('/dados-pre-conselho/turma/:idTurma', async (req, res) => {
     `;
 
     const alunosComAcaoProposta = result.filter(
-      a => a.acaoPropostaPreConselho && a.acaoPropostaPreConselho.trim() !== ''
+      a => a.acaoProposta && a.acaoProposta.trim() !== ''
     );
 
     const alunosComJustificativa = result.filter(
