@@ -106,7 +106,7 @@ const ModalAvaliacaoTurma = ({
           <hr className="border-none bg-gray-300 h-[1px] my-4 mx-[3vw]"/>
         </div>
         
-        <div className="overflow-y-auto pr-2 pb-4 mx-[3vw]">
+        <div className="overflow-y-auto pr-2 pb-4 mx-[3vw] ">
           <form className="flex flex-col gap-6" onSubmit={handleSubmit}>
             <div className='flex flex-col gap-6'>
 

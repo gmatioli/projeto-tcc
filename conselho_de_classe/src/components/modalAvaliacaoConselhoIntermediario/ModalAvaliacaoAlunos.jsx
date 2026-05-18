@@ -174,56 +174,59 @@ const ModalAvaliacaoAlunos = ({
 
   return (
     // Fundo escuro do modal
-    <div className="flex justify-center items-center fixed top-0 left-0 right-0 bottom-0 bg-black/50 z-[1000]" >
+    <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/50 p-4" >
+      
       {/* Caixa branca do formulário */}
-      <div className="flex flex-col bg-white p-5 text-xl rounded-[10px] ml-[18vw] mt-[8vh] w-[1200px] max-w-[90%] h-[800px]">
-        <h2 className="text-center mt-5 mb-[10px] text-3xl font-bold">Avaliando Alunos Selecionados</h2>
+      <div className="flex flex-col bg-white text-xl ml-[18vw] mt-[8vh] rounded-[10px] w-full max-w-[70vw] max-h-[90vh] shadow-xl overflow-hidden">
         
-        <div className="flex flex-wrap justify-start gap-2 mb-2 mx-20 max-h-[80px] overflow-y-auto">
-           <p className="text-start text-gray-500">
-            Aluno(s):
-          </p>
-          {alunosSelecionados.map(a => (
-            <span
-              key={a.id}
-              className="px-2 py-1  text-black-800 rounded-full text-sm border border-gray-800">
-              {a.nome}
+        <div className="shrink-0 p-4 sm:p-6 border-b border-gray-200">
+          <h2 className="text-center text-2xl sm:text-3xl font-bold mb-4">Avaliando Alunos Selecionados</h2>
+          
+          <div className="flex flex-wrap items-center gap-2 max-h-[80px] overflow-y-auto">
+            <span className="text-gray-500 font-medium text-base sm:text-lg">
+              Aluno(s):
             </span>
-            
-          ))}
+            {alunosSelecionados.map(a => (
+              <span
+                key={a.id}
+                className="px-3 py-1 text-gray-800 rounded-full text-sm sm:text-base border border-gray-800 whitespace-nowrap">
+                {a.nome}
+              </span>
+            ))}
+          </div>
         </div>
-        <hr className="border-none bg-gray-300 h-[1px] mx-20 py-[1px]"/>
         
-        <div className="mx-20  overflow-y-auto flex-1">
+         <div className="flex-1 overflow-y-auto p-4 sm:p-8">
 
-          <div className="flex flex-col mt-[20px] mb-[15px]"
-          >
-            <label className="text-2xl">Restrição:</label>
+          <div className="flex flex-col mb-6">
+            <label className="text-xl sm:text-2xl font-medium mb-2">Restrição:</label>
             <input 
-            type="text" 
-            placeholder="Ex: Faltas Injustificadas..." 
-            value={form.restricao}
-            onChange={e => setCampo('restricao', e.target.value)}
-            className="p-1 py-4 mt-[5px] rounded-[18px] border border-[#bbb]" />
+              type="text" 
+              placeholder="Ex: Faltas Injustificadas..." 
+              value={form.restricao}
+              onChange={e => setCampo('restricao', e.target.value)}
+              className="text-base sm:text-lg w-full px-4 py-3 rounded-[18px] border border-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500" 
+            />
           </div>
 
-          <div className="flex flex-col mt-[20px] mb-[15px]">
-            <label className="text-2xl">Ação Proposta:</label>
+          <div className="flex flex-col mb-6">
+            <label className="text-xl sm:text-2xl font-medium mb-2">Ação Proposta:</label>
             <input 
-            type="text"
-            placeholder="Ex: Solicitar comparecimento..." 
-            value={form.acaoProposta}
-            onChange={e => setCampo('acaoProposta', e.target.value)}
-            className="p-1 py-4 mt-[5px] rounded-[18px] border border-[#bbb]" />
+              type="text"
+              placeholder="Ex: Solicitar comparecimento..." 
+              value={form.acaoProposta}
+              onChange={e => setCampo('acaoProposta', e.target.value)}
+              className="text-base sm:text-lg w-full px-4 py-3 rounded-[18px] border border-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500" 
+            />
           </div>
 
-          <div className="flex flex-col mt-[20px] mb-[15px]">
-            <label className="text-2xl">Responsável(*):</label>
+          <div className="flex flex-col mb-6">
+            <label className="text-xl sm:text-2xl font-medium mb-2">Responsável(*):</label>
             <select 
               value={form.responsavel}
               onChange={e => setCampo('responsavel', e.target.value)}
-              className="p-1 py-4 mt-[5px] rounded-[18px] border border-[#bbb]">
-              <option value="" hidden  >Selecione</option>
+              className="text-base sm:text-lg w-full px-4 py-3 rounded-[18px] border border-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 cursor-pointer bg-white">
+              <option value="" hidden>Selecione</option>
               <option value="docente">Docente</option>
               <option value="orientador_praticas_profissionais">Orientador Práticas Profissionais</option>
               <option value="coordenacao">Coordenação</option>
@@ -232,63 +235,70 @@ const ModalAvaliacaoAlunos = ({
             </select>
           </div>
 
-          <div className="flex flex-col text-xl mt-[40px] mb-[15px]">
-            <label className="text-2xl font-bold">Natureza da Ocorrência:</label>
-            <div className="flex justify-center items-center gap-[25px] mt-[25px]">
+          {/* NATUREZA DA OCORRENCIA */}
+          <div className="flex flex-col mt-8 mb-4 bg-gray-50 p-4 sm:p-6 rounded-xl border border-gray-200">
+            <label className="text-xl sm:text-2xl font-bold mb-4">Natureza da Ocorrência:</label>
+            
+            <div className="flex flex-wrap justify-between items-center gap-4 sm:gap-6">
                {NATUREZAS.map(n => (
-                <label key={n} className="flex items-center gap-2">
+                <label key={n} className="flex items-center gap-2 cursor-pointer">
                   <input
                     type="checkbox"
                     checked={form.naturezas.includes(n)}
                     onChange={() => toggleNatureza(n)}
-                  /> {n}
+                    className="w-4 h-4 cursor-pointer"
+                  /> 
+                  <span className="text-base sm:text-lg">{n}</span>
                 </label>
               ))}
-              <label className="flex items-center gap-2">
-                Outro:
+              
+              <label className="flex flex-col sm:flex-row sm:items-center gap-2 w-full sm:w-auto mt-2 sm:mt-0">
+                <span className="text-base sm:text-lg font-medium">Outro:</span>
                 <input
                   type="text"
                   value={form.naturezaOutro}
                   onChange={e => setCampo('naturezaOutro', e.target.value)}
-                  className="border border-[#bbb] ml-2 px-2 py-1"
+                  className="w-full sm:w-64 border border-gray-400 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-red-500"
                 />
               </label>
             </div>
           </div>
         </div>
-
-          <hr className="border-none bg-gray-300 h-[1px] mt-[50px] py-[1px]"/>
-          
-          <div className="flex justify-center items-end gap-[50px] mt-[50px]">
+        
+        <div className="shrink-0 p-4 sm:p-6 border-t border-gray-200 bg-gray-50 rounded-b-[10px]">
+          <div className="flex flex-col sm:flex-row justify-center items-center gap-4">
+            
             <button 
-            type="button" 
-            onClick={onClose} 
-            disabled={salvando || removendo}
-            className="py-2 px-[120px] rounded-[50px] text-xl border border-black shadow-[0_0_3px_gray] cursor-pointer trasition-all duration-200 active:scale-95">
+              type="button" 
+              onClick={onClose} 
+              disabled={salvando || removendo}
+              className="w-full sm:w-auto py-3 px-8 rounded-full text-lg border-2 border-gray-800 text-gray-800 hover:bg-gray-200 transition-all duration-200 active:scale-95 disabled:opacity-50 font-semibold">
               Cancelar
             </button>
 
             {alunoUnicoComAvaliacao && (
-              <button type="button"
-              onClick={handleRemoverRestricao}
-              disabled={salvando || removendo}
-              className="py-2 px-[40px] rounded-[50px] text-xl border-2 border-red-700 text-red-700 bg-white shadow-[0_0_3px_gray] cursor-pointer transition-all duration-200 active:scale-95 disabled:opacity-50 hover:bg-red-50">
-             {removendo ? 'Removendo...' : 'Remover Restrição'}
-
+              <button 
+                type="button"
+                onClick={handleRemoverRestricao}
+                disabled={salvando || removendo}
+                className="w-full sm:w-auto py-3 px-8 rounded-full text-lg border-2 border-red-700 text-red-700 bg-white hover:bg-red-50 transition-all duration-200 active:scale-95 disabled:opacity-50 font-semibold">
+                {removendo ? 'Removendo...' : 'Remover Restrição'}
               </button>
-              )}
+            )}
 
             <button 
-            type="submit" 
-            onClick={handleSalvarTodos}
-            disabled={salvando || removendo}
-            className="py-2 px-[80px] rounded-[50px] text-xl border border-black bg-[#E53935] shadow-[0_0_3px_gray] text-white cursor-pointer transition-all duration-200 active:scale-95 disabled:opacity-50">
-            {salvando
-              ? (alunoUnicoComAvaliacao ? 'Atualizando...' : 'Salvando...')
-              : (alunoUnicoComAvaliacao ? 'Atualizar Avaliação' : 'Salvar Avaliação')}
+              type="submit" 
+              onClick={handleSalvarTodos}
+              disabled={salvando || removendo}
+              className="w-full sm:w-auto py-3 px-8 rounded-full text-lg border-2 border-transparent bg-[#E53935] text-white hover:bg-red-700 transition-all duration-200 active:scale-95 disabled:opacity-50 font-semibold">
+              {salvando
+                ? (alunoUnicoComAvaliacao ? 'Atualizando...' : 'Salvando...')
+                : (alunoUnicoComAvaliacao ? 'Atualizar Avaliação' : 'Salvar Avaliação')}
             </button>
+
           </div>
         </div>
+      </div>
     </div>
   );
 }
