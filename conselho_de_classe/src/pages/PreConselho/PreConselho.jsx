@@ -14,13 +14,15 @@ import { API } from '../../config/api';
 // Calcula semestre/ano corrente (mês <= 6 => 1º semestre)
 const cicloAtual = () => {
   const hoje = new Date();
+  const mes = hoje.getMonth() + 1;       
+//   const mes = 8;
   return {
     ano: hoje.getFullYear(),
-    semestre: hoje.getMonth() + 1 <= 6 ? 1 : 2
+    semestre: mes <= 6 ? 1 : 2
   };
 };
 
-const cardInfo = "flex flex-col justify-between border-2 rounded-[15px] min-h-[22vh] w-[12vw] mx-[1.5vh] shadow-[2px_2px_8px_gray]";
+  const cardInfo = "flex flex-col justify-between border-2 rounded-[15px] min-h-[22vh] w-[12vw] mx-[1.5vh] shadow-[2px_2px_8px_gray]";
   const cardNum = "text-3xl italic";
   const cardText = "mt-[4vh] mx-[1vw] text-xl font-bold";
   const cardIcon = "flex items-end justify-end m-[0_1vh_1vh_0]";
@@ -262,7 +264,7 @@ export function PreConselho() {
         setCarregandoConselho(true);
 
         try {
-            const resp = await fetch(`${API}/finalizar`, {
+            const resp = await fetch(`${API.conselho}/finalizar`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ conselhoId })

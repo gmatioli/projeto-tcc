@@ -42,8 +42,8 @@ const ModalAvaliacaoAlunos = ({
         naturezas: naturezasMarcadas,
         naturezaOutro,
         restricao:    av.restricao                || '',
-        acaoProposta: av.acaoPropostaIntermediario || '',
-        responsavel:  av.responsavelIntermediario  || '',
+        acaoProposta: av.acaoProposta || '',
+        responsavel:  av.responsavel  || '',
       });
 
     } else {
@@ -108,8 +108,8 @@ const ModalAvaliacaoAlunos = ({
       conselhoId,
       naturezaOcorrencia: naturezasFinais,
       restricao: form.restricao,
-      acaoPropostaIntermediario: form.acaoProposta,
-      responsavelIntermediario: form.responsavel,
+      acaoProposta: form.acaoProposta,
+      responsavel: form.responsavel,
       idUsuario
     };
 
@@ -155,7 +155,7 @@ const ModalAvaliacaoAlunos = ({
 
     setRemovendo(true);
     try {
-      const resp = await fetch(`${API}/avaliacao-aluno/${conselhoId}/${idAluno}`, 
+      const resp = await fetch(`${API.conselho}/avaliacao-aluno/${conselhoId}/${idAluno}`, 
       { method: 'DELETE' }
       ).then(r => r.json());
 
@@ -165,6 +165,7 @@ const ModalAvaliacaoAlunos = ({
       onSaved && onSaved();
     } catch (err) {
       console.error(err);
+      toast.error('Erro ao remover restrição: ' + err.message);
     } finally {
       setRemovendo(false);
     }
@@ -226,12 +227,12 @@ const ModalAvaliacaoAlunos = ({
               value={form.responsavel}
               onChange={e => setCampo('responsavel', e.target.value)}
               className="text-base sm:text-lg w-full px-4 py-3 rounded-[18px] border border-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 cursor-pointer bg-white">
-              <option value="" hidden>Selecione</option>
-              <option value="docente">Docente</option>
-              <option value="orientador_praticas_profissionais">Orientador Práticas Profissionais</option>
-              <option value="coordenacao">Coordenação</option>
-              <option value="analista_qualidade_vida">Analista e Qualidade de Vida</option>
-              <option value="trabalho_em_conjunto">Trabalho em Conjunto</option>
+              <option value="" hidden  >Selecione</option>
+              <option value="Docente">Docente</option>
+              <option value="OPP">Orientador Práticas Profissionais</option>
+              <option value="Coordenação">Coordenação</option>
+              <option value="AQV">Analista e Qualidade de Vida</option>
+              <option value="Trabalho Conjunto">Trabalho em Conjunto</option>
             </select>
           </div>
 

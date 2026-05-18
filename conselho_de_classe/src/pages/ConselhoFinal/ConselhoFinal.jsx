@@ -102,6 +102,7 @@ const ConselhoFinal = () => {
 
          // Restaura situações finais já salvas no banco
         const situacoesRestauradas = {};
+        
         data.alunosComAcaoProposta.forEach(aluno => {
           if (aluno.situacaoFinal) {
             situacoesRestauradas[aluno.idtblAluno] = {
