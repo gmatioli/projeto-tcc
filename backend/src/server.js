@@ -20,6 +20,7 @@ app.use('/dashboard', require('./routes/dashboard'));
 app.use('/', require('./routes/termo'));
 app.use('/instrumento-acompanhamento', instrumentoRouter);
 app.use('/AtribuirTurma', require('./routes/AtribuirTurma'));
+app.use('/turmaDocente', require('./routes/turmaDocente'));
 
 
 // ==========================================

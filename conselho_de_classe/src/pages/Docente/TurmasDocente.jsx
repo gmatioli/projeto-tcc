@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { API } from '../../config/api';
-
+ 
 // ── Modal: Ver Observações ─────────────────────────────────────────────────
 function ModalObservacoes({ isOpen, onClose, aluno, onAdicionar }) {
   if (!isOpen) return null;
@@ -37,7 +37,6 @@ function ModalObservacoes({ isOpen, onClose, aluno, onAdicionar }) {
                     <td className="p-3 text-gray-700">{obs.data}</td>
                     <td className="p-3 text-gray-700">{obs.texto}</td>
                     <td className="p-3 flex gap-2 justify-center">
-                      {/* Lápis */}
                       <button
                         onClick={() => onAdicionar(aluno, obs)}
                         className="text-gray-500 hover:text-blue-600 transition-colors"
@@ -47,7 +46,6 @@ function ModalObservacoes({ isOpen, onClose, aluno, onAdicionar }) {
                           <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/>
                         </svg>
                       </button>
-                      {/* Lixeira */}
                       <button className="text-gray-400 hover:text-red-600 transition-colors" title="Excluir">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                           <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/>
@@ -85,7 +83,7 @@ function ModalNovaObservacao({ isOpen, onClose, aluno, obsEditando }) {
   if (!isOpen) return null;
  
   const [texto, setTexto] = useState(obsEditando?.texto || '');
-  const [data, setData] = useState(obsEditando?.data || '');
+  const [data, setData]   = useState(obsEditando?.data  || '');
  
   const handleSalvar = () => {
     if (!texto.trim() || !data) {
@@ -117,16 +115,12 @@ function ModalNovaObservacao({ isOpen, onClose, aluno, obsEditando }) {
  
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-1">DATA DO OCORRIDO:</label>
-            <select
+            <input
+              type="date"
               value={data}
               onChange={e => setData(e.target.value)}
               className="w-full border border-gray-300 rounded-lg p-3 text-sm focus:outline-none focus:ring-2 focus:ring-red-400"
-            >
-              <option value="">Selecione...</option>
-              <option value="18/03/2026">18/03/2026</option>
-              <option value="21/03/2026">21/03/2026</option>
-              <option value="25/03/2026">25/03/2026</option>
-            </select>
+            />
           </div>
         </div>
  
@@ -156,16 +150,11 @@ function GraficoRosca({ comObs, semObs }) {
  
   const pctCom = comObs / total;
   const pctSem = semObs / total;
-  const r = 50;
-  const cx = 70;
-  const cy = 70;
+  const r = 50, cx = 70, cy = 70;
   const circ = 2 * Math.PI * r;
  
-  // Segmento 1 (com observação - laranja)
-  const dash1 = circ * pctCom;
-  const gap1  = circ - dash1;
- 
-  // Segmento 2 (sem observação - azul) — começa após o 1º
+  const dash1   = circ * pctCom;
+  const gap1    = circ - dash1;
   const offset2 = circ - dash1;
   const dash2   = circ * pctSem;
  
@@ -173,24 +162,15 @@ function GraficoRosca({ comObs, semObs }) {
     <div className="flex flex-col items-center">
       <p className="text-sm font-bold text-gray-700 mb-2">Gráfico de Alunos</p>
       <svg width="140" height="140" viewBox="0 0 140 140">
-        {/* Anel base */}
         <circle cx={cx} cy={cy} r={r} fill="none" stroke="#e5e7eb" strokeWidth="22" />
-        {/* Segmento sem obs */}
-        <circle
-          cx={cx} cy={cy} r={r} fill="none"
-          stroke="#3b82f6" strokeWidth="22"
+        <circle cx={cx} cy={cy} r={r} fill="none" stroke="#3b82f6" strokeWidth="22"
           strokeDasharray={`${dash2} ${circ - dash2}`}
           strokeDashoffset={-offset2}
-          transform={`rotate(-90 ${cx} ${cy})`}
-        />
-        {/* Segmento com obs */}
-        <circle
-          cx={cx} cy={cy} r={r} fill="none"
-          stroke="#f97316" strokeWidth="22"
+          transform={`rotate(-90 ${cx} ${cy})`} />
+        <circle cx={cx} cy={cy} r={r} fill="none" stroke="#f97316" strokeWidth="22"
           strokeDasharray={`${dash1} ${gap1}`}
           strokeDashoffset={0}
-          transform={`rotate(-90 ${cx} ${cy})`}
-        />
+          transform={`rotate(-90 ${cx} ${cy})`} />
       </svg>
       <div className="flex flex-col gap-1 mt-1 text-xs">
         <span className="flex items-center gap-1">
@@ -206,42 +186,56 @@ function GraficoRosca({ comObs, semObs }) {
  
 // ── Página Principal ───────────────────────────────────────────────────────
 export function TurmasDocente() {
-  const navigate = useNavigate();
+  const navigate      = useNavigate();
+  const [searchParams] = useSearchParams();
  
-  const alunos = [
-    { id: 1, nome: 'Jorge Marques de Salves',  observacoes: [
-      { data: '18/03/2026', texto: 'Chegou Atrasado, 08:01.' },
-      { data: '21/03/2026', texto: 'Não entregou tarefa' },
-      { data: '21/03/2026', texto: 'Utilizou celular em sala mesmo após ter atenção chamada pelo docente' },
-    ]},
-    { id: 2, nome: 'Maria Silva do Céu',        observacoes: [
-      { data: '18/03/2026', texto: 'Saiu mais cedo sem justificativa.' },
-      { data: '20/03/2026', texto: 'Faltou à prova de recuperação.' },
-      { data: '22/03/2026', texto: 'Não realizou atividade em grupo.' },
-      { data: '25/03/2026', texto: 'Novamente sem uniforme.' },
-    ]},
-    { id: 3, nome: 'Lucas Almeida',             observacoes: [] },
-    { id: 4, nome: 'Beatriz Santos',            observacoes: [
-      { data: '19/03/2026', texto: 'Excelente participação em aula.' },
-      { data: '23/03/2026', texto: 'Entregou atividade com atraso.' },
-      { data: '26/03/2026', texto: 'Apresentou comportamento inadequado na prática.' },
-      { data: '28/03/2026', texto: 'Desrespeito com colega de turma.' },
-      { data: '30/03/2026', texto: 'Chegou atrasado na aula prática.' },
-      { data: '01/04/2026', texto: 'Saiu sem autorização.' },
-      { data: '03/04/2026', texto: 'Não trouxe material necessário.' },
-      { data: '05/04/2026', texto: 'Faltou a prova.' },
-    ]},
-  ];
+  // Parâmetros vindos da sidebar via navigate()
+  const idTurma    = searchParams.get('turma');      // ex: "4"
+  const nomeTurma  = searchParams.get('nomeTurma');  // ex: "DEV 1A"
+  const modo       = searchParams.get('modo');       // "pesquisa" quando vem da sidebar
  
-  const comObs = alunos.filter(a => a.observacoes.length > 0).length;
-  const semObs = alunos.filter(a => a.observacoes.length === 0).length;
+  // ── Estado da lista de alunos ──────────────────────────────────────────
+  const [alunos,     setAlunos]     = useState([]);
+  const [carregando, setCarregando] = useState(false);
+  const [erro,       setErro]       = useState('');
+ 
+  // ── Busca alunos sempre que o idTurma mudar ────────────────────────────
+  useEffect(() => {
+    if (!idTurma) {
+      // Nenhuma turma selecionada ainda — limpa a lista
+      setAlunos([]);
+      setErro('');
+      return;
+    }
+ 
+    setCarregando(true);
+    setErro('');
+ 
+    fetch(`${API.alunos}/${idTurma}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.sucesso && Array.isArray(data.alunos)) {
+          // Adiciona campo "observacoes" vazio para compatibilidade com os modais
+          setAlunos(data.alunos.map(a => ({ ...a, id: a.idtblAluno, observacoes: [] })));
+        } else {
+          setErro('Não foi possível carregar os alunos.');
+        }
+      })
+      .catch(() => setErro('Erro de conexão ao buscar alunos.'))
+      .finally(() => setCarregando(false));
+  }, [idTurma]);
+ 
+  // ── Métricas para os cards (calculadas sobre a lista atual) ───────────
+  const comObs   = alunos.filter(a => a.observacoes.length > 0).length;
+  const semObs   = alunos.filter(a => a.observacoes.length === 0).length;
   const totalObs = alunos.reduce((acc, a) => acc + a.observacoes.length, 0);
  
-  const [modalObs, setModalObs]         = useState({ open: false, aluno: null });
-  const [modalNova, setModalNova]       = useState({ open: false, aluno: null, obsEditando: null });
+  // ── Modais ─────────────────────────────────────────────────────────────
+  const [modalObs,  setModalObs]  = useState({ open: false, aluno: null });
+  const [modalNova, setModalNova] = useState({ open: false, aluno: null, obsEditando: null });
  
   const abrirObs  = (aluno) => setModalObs({ open: true, aluno });
-  const fecharObs = ()       => setModalObs({ open: false, aluno: null });
+  const fecharObs = ()      => setModalObs({ open: false, aluno: null });
  
   const abrirNova = (aluno, obsEditando = null) => {
     setModalObs({ open: false, aluno: null });
@@ -249,114 +243,150 @@ export function TurmasDocente() {
   };
   const fecharNova = () => setModalNova({ open: false, aluno: null, obsEditando: null });
  
+  // ── Render ─────────────────────────────────────────────────────────────
   return (
     <div className="flex flex-col h-full bg-gray-100 p-5 overflow-auto">
  
       {/* Breadcrumb */}
       <nav className="mb-4 text-sm text-gray-500">
         <span>Turmas/ </span>
-        <span className="font-semibold text-gray-800">Suas Turmas</span>
+        <span className="font-semibold text-gray-800">
+          {nomeTurma ? nomeTurma : 'Suas Turmas'}
+        </span>
       </nav>
  
-      {/* Cards de resumo + Gráfico */}
-      <div className="flex gap-4 mb-5">
- 
-        {/* Card Total */}
-        <div className="flex-1 bg-white border border-gray-200 rounded-xl p-4 flex flex-col justify-between shadow-sm">
-          <div>
-            <p className="text-4xl font-bold text-gray-800">{alunos.length}</p>
-            <p className="text-sm text-gray-600 mt-1 font-medium">Total de Alunos</p>
-          </div>
-          <div className="flex justify-end">
-            <svg width="32" height="32" fill="none" viewBox="0 0 41 41" xmlns="http://www.w3.org/2000/svg">
-              <rect width="40" height="40" rx="12" fill="#F0F0F0"/>
-              <path d="M4.6 9.6L13.8 6.3l9.2 3.3-4.2 2.5v2.5s-1.1-.8-5-.8-5 .8-5 .8V12.1L4.6 9.6zm0 0v6.7" stroke="black" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
-              <path d="M18.8 13.8v1.5c0 2.87-2.24 5.2-5 5.2s-5-2.33-5-5.2v-1.5"  stroke="black" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-          </div>
+      {/* Estado: nenhuma turma selecionada */}
+      {!idTurma && (
+        <div className="flex-1 flex flex-col items-center justify-center text-gray-400 gap-3">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/>
+            <path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/>
+          </svg>
+          <p className="text-base italic">Selecione uma turma na barra lateral para visualizar os alunos.</p>
         </div>
+      )}
  
-        {/* Card Alunos c/ Obs */}
-        <div className="flex-1 bg-amber-50 border border-amber-200 rounded-xl p-4 flex flex-col justify-between shadow-sm">
-          <div>
-            <p className="text-4xl font-bold text-amber-600">{comObs}</p>
-            <p className="text-sm text-amber-700 mt-1 font-medium">Alunos com Observações</p>
-          </div>
-          <div className="flex justify-end">
-            <svg width="32" height="32" viewBox="0 0 41 41" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M20 37C29.3 37 37 29.3 37 20S29.3 3 20 3 3 10.7 3 20s7.7 17 17 17z" stroke="#D26900" strokeWidth="3.3" strokeLinejoin="round"/>
-              <path fillRule="evenodd" clipRule="evenodd" d="M20 31a2.1 2.1 0 100-4.2A2.1 2.1 0 0020 31z" fill="#D26900"/>
-              <path d="M20 10v13.4" stroke="#D26900" strokeWidth="3.3" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-          </div>
+      {/* Estado: carregando */}
+      {idTurma && carregando && (
+        <div className="flex-1 flex items-center justify-center text-gray-400 italic">
+          Carregando alunos da turma...
         </div>
+      )}
  
-        {/* Card Total Obs */}
-        <div className="flex-1 bg-amber-50 border border-amber-200 rounded-xl p-4 flex flex-col justify-between shadow-sm">
-          <div>
-            <p className="text-4xl font-bold text-amber-600">{totalObs}</p>
-            <p className="text-sm text-amber-700 mt-1 font-medium">Total de Observações Lançadas</p>
-          </div>
-          <div className="flex justify-end">
-            <svg width="32" height="32" viewBox="0 0 41 41" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M20 37C29.3 37 37 29.3 37 20S29.3 3 20 3 3 10.7 3 20s7.7 17 17 17z" stroke="#D26900" strokeWidth="3.3" strokeLinejoin="round"/>
-              <path fillRule="evenodd" clipRule="evenodd" d="M20 31a2.1 2.1 0 100-4.2A2.1 2.1 0 0020 31z" fill="#D26900"/>
-              <path d="M20 10v13.4" stroke="#D26900" strokeWidth="3.3" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-          </div>
+      {/* Estado: erro */}
+      {idTurma && !carregando && erro && (
+        <div className="flex-1 flex items-center justify-center text-red-500 italic">
+          {erro}
         </div>
+      )}
  
-        {/* Gráfico */}
-        <div className="bg-white border border-gray-200 rounded-xl px-6 py-4 shadow-sm flex items-center justify-center">
-          <GraficoRosca comObs={comObs} semObs={semObs} />
-        </div>
+      {/* Conteúdo principal — só exibe quando há dados */}
+      {idTurma && !carregando && !erro && (
+        <>
+          {/* Cards de resumo + Gráfico */}
+          <div className="flex gap-4 mb-5">
  
-      </div>
- 
-      {/* Lista de Alunos */}
-      <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
-        {alunos.map((aluno, idx) => (
-          <div
-            key={aluno.id}
-            className={`flex items-center justify-between px-5 py-4 ${idx < alunos.length - 1 ? 'border-b border-gray-100' : ''}`}
-          >
-            {/* Ícone + Nome + (Ver Observações) */}
-            <div className="flex items-center gap-3">
-              {/* Avatar */}
-              <div className="w-9 h-9 rounded-full bg-gray-200 flex items-center justify-center shrink-0">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/>
+            {/* Card Total */}
+            <div className="flex-1 bg-white border border-gray-200 rounded-xl p-4 flex flex-col justify-between shadow-sm">
+              <div>
+                <p className="text-4xl font-bold text-gray-800">{alunos.length}</p>
+                <p className="text-sm text-gray-600 mt-1 font-medium">Total de Alunos</p>
+              </div>
+              <div className="flex justify-end">
+                <svg width="32" height="32" fill="none" viewBox="0 0 41 41" xmlns="http://www.w3.org/2000/svg">
+                  <rect width="40" height="40" rx="12" fill="#F0F0F0"/>
+                  <path d="M4.6 9.6L13.8 6.3l9.2 3.3-4.2 2.5v2.5s-1.1-.8-5-.8-5 .8-5 .8V12.1L4.6 9.6zm0 0v6.7" stroke="black" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M18.8 13.8v1.5c0 2.87-2.24 5.2-5 5.2s-5-2.33-5-5.2v-1.5" stroke="black" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
               </div>
- 
-              <span className="text-sm font-medium text-gray-800">{aluno.nome}</span>
- 
-              {/* Link Ver Observações */}
-              {aluno.observacoes.length > 0 && (
-                <button
-                  onClick={() => abrirObs(aluno)}
-                  className="flex items-center gap-1 text-xs text-amber-600 hover:text-amber-800 transition ml-2"
-                >
-                  {/* Sino */}
-                  <svg width="14" height="14" viewBox="0 0 32 29" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M19.6 19.6c2.5-.3 4.9-.9 7.3-1.75C24.9 15.6 23.8 12.8 23.8 9.8V8.8c0-2.1-.8-4.2-2.3-5.7C20 1.6 18 .75 15.8.75c-2.1 0-4.1.85-5.6 2.35-1.5 1.5-2.3 3.6-2.3 5.7v1c.004 2.98-1.095 5.85-3.08 8.06 2.31.857 4.746 1.453 7.273 1.754M19.6 19.6c-2.53.3-5.087.3-7.614 0M19.6 19.6c.192.603.24 1.242.14 1.867-.1.624-.346 1.216-.717 1.727-.371.511-.857.927-1.419 1.213-.561.287-1.182.436-1.812.436-.63 0-1.25-.149-1.812-.436a3.64 3.64 0 01-1.419-1.213 3.64 3.64 0 01-.717-1.727 3.64 3.64 0 01.14-1.867" stroke="#D26900" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
-                  <span className="underline">Ver Observações ({aluno.observacoes.length})</span>
-                </button>
-              )}
             </div>
  
-            {/* Botão + (nova obs) */}
-            <button
-              onClick={() => abrirNova(aluno)}
-              className="w-7 h-7 flex items-center justify-center text-gray-400 hover:text-red-600 transition text-xl font-light"
-              title="Adicionar Observação"
-            >
-              +
-            </button>
+            {/* Card Alunos c/ Obs */}
+            <div className="flex-1 bg-amber-50 border border-amber-200 rounded-xl p-4 flex flex-col justify-between shadow-sm">
+              <div>
+                <p className="text-4xl font-bold text-amber-600">{comObs}</p>
+                <p className="text-sm text-amber-700 mt-1 font-medium">Alunos com Observações</p>
+              </div>
+              <div className="flex justify-end">
+                <svg width="32" height="32" viewBox="0 0 41 41" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M20 37C29.3 37 37 29.3 37 20S29.3 3 20 3 3 10.7 3 20s7.7 17 17 17z" stroke="#D26900" strokeWidth="3.3" strokeLinejoin="round"/>
+                  <path fillRule="evenodd" clipRule="evenodd" d="M20 31a2.1 2.1 0 100-4.2A2.1 2.1 0 0020 31z" fill="#D26900"/>
+                  <path d="M20 10v13.4" stroke="#D26900" strokeWidth="3.3" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </div>
+            </div>
+ 
+            {/* Card Total Obs */}
+            <div className="flex-1 bg-amber-50 border border-amber-200 rounded-xl p-4 flex flex-col justify-between shadow-sm">
+              <div>
+                <p className="text-4xl font-bold text-amber-600">{totalObs}</p>
+                <p className="text-sm text-amber-700 mt-1 font-medium">Total de Observações Lançadas</p>
+              </div>
+              <div className="flex justify-end">
+                <svg width="32" height="32" viewBox="0 0 41 41" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M20 37C29.3 37 37 29.3 37 20S29.3 3 20 3 3 10.7 3 20s7.7 17 17 17z" stroke="#D26900" strokeWidth="3.3" strokeLinejoin="round"/>
+                  <path fillRule="evenodd" clipRule="evenodd" d="M20 31a2.1 2.1 0 100-4.2A2.1 2.1 0 0020 31z" fill="#D26900"/>
+                  <path d="M20 10v13.4" stroke="#D26900" strokeWidth="3.3" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </div>
+            </div>
+ 
+            {/* Gráfico */}
+            <div className="bg-white border border-gray-200 rounded-xl px-6 py-4 shadow-sm flex items-center justify-center">
+              <GraficoRosca comObs={comObs} semObs={semObs} />
+            </div>
+ 
           </div>
-        ))}
-      </div>
+ 
+          {/* Lista de Alunos */}
+          {alunos.length === 0 ? (
+            <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-8 text-center text-gray-400 italic">
+              Nenhum aluno encontrado para esta turma.
+            </div>
+          ) : (
+            <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-y-auto min-h-[300px] max-h-[300px]">
+              {alunos.map((aluno, idx) => (
+                <div
+                  key={aluno.id}
+                  className={`flex items-center justify-between px-5 py-4 ${idx < alunos.length - 1 ? 'border-b border-gray-100' : ''}`}
+                >
+                  {/* Avatar + Nome + (Ver Observações) */}
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-full bg-gray-200 flex items-center justify-center shrink-0">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/>
+                      </svg>
+                    </div>
+ 
+                    <span className="text-sm font-medium text-gray-800">{aluno.nome}</span>
+ 
+                    {aluno.observacoes.length > 0 && (
+                      <button
+                        onClick={() => abrirObs(aluno)}
+                        className="flex items-center gap-1 text-xs text-amber-600 hover:text-amber-800 transition ml-2"
+                      >
+                        <svg width="14" height="14" viewBox="0 0 32 29" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M19.6 19.6c2.5-.3 4.9-.9 7.3-1.75C24.9 15.6 23.8 12.8 23.8 9.8V8.8c0-2.1-.8-4.2-2.3-5.7C20 1.6 18 .75 15.8.75c-2.1 0-4.1.85-5.6 2.35-1.5 1.5-2.3 3.6-2.3 5.7v1c.004 2.98-1.095 5.85-3.08 8.06 2.31.857 4.746 1.453 7.273 1.754M19.6 19.6c-2.53.3-5.087.3-7.614 0M19.6 19.6c.192.603.24 1.242.14 1.867-.1.624-.346 1.216-.717 1.727-.371.511-.857.927-1.419 1.213-.561.287-1.182.436-1.812.436-.63 0-1.25-.149-1.812-.436a3.64 3.64 0 01-1.419-1.213 3.64 3.64 0 01-.717-1.727 3.64 3.64 0 01.14-1.867" stroke="#D26900" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                        <span className="underline">Ver Observações ({aluno.observacoes.length})</span>
+                      </button>
+                    )}
+                  </div>
+ 
+                  {/* Botão + (nova obs) */}
+                  <button
+                    onClick={() => abrirNova(aluno)}
+                    className="w-7 h-7 flex items-center justify-center text-gray-400 hover:text-red-600 transition text-xl font-light"
+                    title="Adicionar Observação"
+                  >
+                    +
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </>
+      )}
  
       {/* Modais */}
       <ModalObservacoes
@@ -374,3 +404,4 @@ export function TurmasDocente() {
     </div>
   );
 }
+ 
