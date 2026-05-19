@@ -3,10 +3,42 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { API } from '../../config/api';
  
 // ── Modal: Ver Observações ─────────────────────────────────────────────────
-function ModalObservacoes({ isOpen, onClose, aluno, onAdicionar }) {
+function ModalObservacoes({ isOpen, onClose, aluno, onAdicionar, onSuccess }) { // <-- Adicionado onSuccess
   if (!isOpen) return null;
  
   const observacoes = aluno?.observacoes || [];
+
+  const docentesUnicos = [...new Set(observacoes.map(obs => obs.docente))];
+  
+  const nomesDosDocentes = docentesUnicos.length > 0 
+    ? docentesUnicos.join(', ') 
+    : 'Nenhuma observação';
+
+  // Função que será chamada ao clicar na lixeira
+  const handleExcluir = async (idObservacao) => {
+    // Pede confirmação antes de apagar
+    if (!window.confirm("Tem certeza que deseja excluir esta observação?")) {
+      return;
+    }
+
+    try {
+      const res = await fetch(`${API.observacoes}/${idObservacao}`, {
+        method: 'DELETE'
+      });
+      const data = await res.json();
+
+      if (res.ok && data.sucesso) {
+        alert('Observação excluída com sucesso!');
+        onClose(); // Fecha o modal para não mostrar dados desatualizados
+        if (onSuccess) onSuccess(); // Atualiza os dados da tela (gráficos e botão) nos bastidores
+      } else {
+        alert(`Erro ao excluir: ${data.mensagem || 'Tente novamente.'}`);
+      }
+    } catch (error) {
+      console.error("Erro ao excluir:", error);
+      alert('Erro de conexão com o servidor ao tentar excluir.');
+    }
+  };
  
   return (
     <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50">
@@ -17,7 +49,9 @@ function ModalObservacoes({ isOpen, onClose, aluno, onAdicionar }) {
         </h2>
  
         <div className="flex justify-between text-sm text-gray-600 my-3">
-          <span>Docente(s): <strong className="text-gray-800">{aluno?.docente || 'Lincoln Bezerra Souza'}</strong></span>
+          <span>
+            Docente(s): <strong className="text-gray-800">{nomesDosDocentes}</strong>
+          </span>
           <span>Aluno: <strong className="text-gray-800">{aluno?.nome}</strong></span>
         </div>
  
@@ -46,7 +80,11 @@ function ModalObservacoes({ isOpen, onClose, aluno, onAdicionar }) {
                           <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/>
                         </svg>
                       </button>
-                      <button className="text-gray-400 hover:text-red-600 transition-colors" title="Excluir">
+                      <button 
+                        onClick={() => handleExcluir(obs.id)}
+                        className="text-gray-400 hover:text-red-600 transition-colors" 
+                        title="Excluir"
+                      >
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                           <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/>
                         </svg>
@@ -79,18 +117,71 @@ function ModalObservacoes({ isOpen, onClose, aluno, onAdicionar }) {
 }
  
 // ── Modal: Adicionar / Editar Observação ───────────────────────────────────
-function ModalNovaObservacao({ isOpen, onClose, aluno, obsEditando }) {
+function ModalNovaObservacao({ isOpen, onClose, aluno, obsEditando, onSuccess }) {
   if (!isOpen) return null;
  
   const [texto, setTexto] = useState(obsEditando?.texto || '');
-  const [data, setData]   = useState(obsEditando?.data  || '');
+  const [data, setData]   = useState(obsEditando?.dataRaw  || '');
  
-  const handleSalvar = () => {
+  const handleSalvar = async () => {
     if (!texto.trim() || !data) {
       alert('Preencha a observação e a data.');
       return;
     }
-    onClose();
+
+    try {
+      // 1. Pegando o email do localStorage (mesma lógica do seu Header.jsx)
+      const logado = localStorage.getItem('usuarioLogado');
+      if (!logado) {
+        alert('Erro: Usuário não identificado. Faça login novamente.');
+        return;
+      }
+      
+      const { email } = JSON.parse(logado); 
+
+      let response;
+
+      // Verifica se estamos EDITANDO uma observação existente
+      if (obsEditando && obsEditando.id) {
+        // Faz requisição PUT para atualizar
+        response = await fetch(`${API.observacoes}/${obsEditando.id}`, { 
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            descricao: texto,
+            dataObservacao: data
+          })
+        });
+      } else {
+        // É UMA NOVA OBSERVAÇÃO, faz requisição POST para salvar
+        const payload = {
+          idAluno: aluno.id,
+          emailUsuario: email, 
+          descricao: texto,
+          dataObservacao: data,
+          categoria: 'Geral'
+        };
+
+        response = await fetch(`${API.observacoes}/salvar`, { 
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+      }
+
+      if (response.ok) {
+        alert(obsEditando ? 'Observação atualizada com sucesso!' : 'Observação salva com sucesso!');
+        onClose();
+        if (onSuccess) onSuccess(); 
+      } else {
+        const errorData = await response.json();
+        alert(`Erro ao salvar: ${errorData.mensagem || 'Tente novamente.'}`);
+      }
+
+    } catch (error) {
+      console.error("Erro ao salvar observação:", error);
+      alert('Erro de conexão com o servidor.');
+    }
   };
  
   return (
@@ -153,31 +244,61 @@ function GraficoRosca({ comObs, semObs }) {
   const r = 50, cx = 70, cy = 70;
   const circ = 2 * Math.PI * r;
  
-  const dash1   = circ * pctCom;
-  const gap1    = circ - dash1;
-  const offset2 = circ - dash1;
-  const dash2   = circ * pctSem;
+  // Cálculos precisos para a parte Vermelha (Com Obs)
+  const dashCom = circ * pctCom;
+  const gapCom = circ - dashCom;
+
+  // Cálculos precisos para a parte Azul (Sem Obs)
+  const dashSem = circ * pctSem;
+  const gapSem = circ - dashSem;
+  
+  // O offset faz a parte azul começar exatamente onde a vermelha termina
+  const offsetSem = -dashCom;
  
   return (
     <div className="flex flex-col items-center">
       <p className="text-sm font-bold text-gray-700 mb-2">Gráfico de Alunos</p>
+      
       <svg width="140" height="140" viewBox="0 0 140 140">
+        {/* Fundo Cinza Base */}
         <circle cx={cx} cy={cy} r={r} fill="none" stroke="#e5e7eb" strokeWidth="22" />
-        <circle cx={cx} cy={cy} r={r} fill="none" stroke="#3b82f6" strokeWidth="22"
-          strokeDasharray={`${dash2} ${circ - dash2}`}
-          strokeDashoffset={-offset2}
-          transform={`rotate(-90 ${cx} ${cy})`} />
-        <circle cx={cx} cy={cy} r={r} fill="none" stroke="#f97316" strokeWidth="22"
-          strokeDasharray={`${dash1} ${gap1}`}
+        
+        {/* Círculo Azul (Sem Observação) */}
+        <circle 
+          cx={cx} cy={cy} r={r} 
+          fill="none" 
+          stroke="#bdd2f3ff" 
+          strokeWidth="22"
+          strokeDasharray={`${dashSem} ${gapSem}`}
+          strokeDashoffset={offsetSem}
+          transform={`rotate(-90 ${cx} ${cy})`} 
+          className="cursor-pointer transition-opacity hover:opacity-75"
+        >
+          {/* A tag title gera o tooltip nativo ao passar o mouse */}
+          <title>Sem observação: {semObs} aluno(s)</title>
+        </circle>
+
+        {/* Círculo Vermelho (Com Observação) */}
+        <circle 
+          cx={cx} cy={cy} r={r} 
+          fill="none" 
+          stroke="#f91616ff" 
+          strokeWidth="22"
+          strokeDasharray={`${dashCom} ${gapCom}`}
           strokeDashoffset={0}
-          transform={`rotate(-90 ${cx} ${cy})`} />
+          transform={`rotate(-90 ${cx} ${cy})`} 
+          className="cursor-pointer transition-opacity hover:opacity-75"
+        >
+          <title>Com observação: {comObs} aluno(s)</title>
+        </circle>
       </svg>
+
       <div className="flex flex-col gap-1 mt-1 text-xs">
         <span className="flex items-center gap-1">
-          <span className="w-3 h-3 rounded-full bg-blue-500 inline-block"/> Sem Observação
+          <span className="w-3 h-3 rounded-full bg-[#bdd2f3ff] inline-block"/> Sem Observação
         </span>
         <span className="flex items-center gap-1">
-          <span className="w-3 h-3 rounded-full bg-orange-400 inline-block"/> Com Observação
+          <span className="w-3 h-3 rounded-full bg-[#f91616ff] inline-block"/> Com Observação
         </span>
       </div>
     </div>
@@ -199,10 +320,9 @@ export function TurmasDocente() {
   const [carregando, setCarregando] = useState(false);
   const [erro,       setErro]       = useState('');
  
-  // ── Busca alunos sempre que o idTurma mudar ────────────────────────────
-  useEffect(() => {
+  // ── Busca alunos sempre que o idTurma mudar (Transformado em função) ──
+  const buscarAlunos = async () => {
     if (!idTurma) {
-      // Nenhuma turma selecionada ainda — limpa a lista
       setAlunos([]);
       setErro('');
       return;
@@ -211,18 +331,64 @@ export function TurmasDocente() {
     setCarregando(true);
     setErro('');
  
-    fetch(`${API.alunos}/${idTurma}`)
-      .then(res => res.json())
-      .then(data => {
-        if (data.sucesso && Array.isArray(data.alunos)) {
-          // Adiciona campo "observacoes" vazio para compatibilidade com os modais
-          setAlunos(data.alunos.map(a => ({ ...a, id: a.idtblAluno, observacoes: [] })));
-        } else {
-          setErro('Não foi possível carregar os alunos.');
-        }
-      })
-      .catch(() => setErro('Erro de conexão ao buscar alunos.'))
-      .finally(() => setCarregando(false));
+    try {
+      // 1. Busca os alunos da turma
+      const resAlunos = await fetch(`${API.alunos}/${idTurma}`);
+      const dataAlunos = await resAlunos.json();
+
+      if (!dataAlunos.sucesso || !Array.isArray(dataAlunos.alunos)) {
+        throw new Error('Não foi possível carregar os alunos.');
+      }
+
+      // 2. Busca as observações dessa turma
+      const resObs = await fetch(`${API.observacoes}/turma/${idTurma}`);
+      const dataObs = await resObs.json();
+      
+      const listaObservacoes = dataObs.sucesso ? dataObs.observacoes : [];
+
+      // 3. Mescla os alunos com suas respectivas observações
+      const alunosComObs = dataAlunos.alunos.map(aluno => {
+        // Filtra para pegar apenas as observações que pertencem a este aluno
+        const obsDoAluno = listaObservacoes.filter(
+          obs => obs.tblAluno_idtblAluno === aluno.idtblAluno
+        );
+
+        return {
+          ...aluno,
+          id: aluno.idtblAluno, 
+          observacoes: obsDoAluno.map(o => {
+            // Cria um objeto de data para pegar ano, mês e dia separados
+            const dataObj = new Date(o.dataObservacao);
+            const ano = dataObj.getUTCFullYear();
+            const mes = String(dataObj.getUTCMonth() + 1).padStart(2, '0');
+            const dia = String(dataObj.getUTCDate()).padStart(2, '0');
+
+            return {
+              id: o.idObservacao_Docente,
+              texto: o.descricao,
+              // Data formatada para mostrar na tabela (DD/MM/YYYY)
+              data: dataObj.toLocaleDateString('pt-BR', { timeZone: 'UTC' }),
+              // Data bruta para o input type="date" (YYYY-MM-DD)
+              dataRaw: `${ano}-${mes}-${dia}`,
+              docente: o.docente
+            };
+          })
+        };
+      });
+
+      // Atualiza o estado: agora os alunos possuem suas observações preenchidas!
+      setAlunos(alunosComObs);
+
+    } catch (error) {
+      console.error(error);
+      setErro('Erro de conexão ao buscar alunos e observações.');
+    } finally {
+      setCarregando(false);
+    }
+  };
+
+  useEffect(() => {
+    buscarAlunos();
   }, [idTurma]);
  
   // ── Métricas para os cards (calculadas sobre a lista atual) ───────────
@@ -344,7 +510,7 @@ export function TurmasDocente() {
               Nenhum aluno encontrado para esta turma.
             </div>
           ) : (
-            <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-y-auto min-h-[300px] max-h-[300px]">
+            <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-y-auto min-h-[45vh] max-h-[45vh]">
               {alunos.map((aluno, idx) => (
                 <div
                   key={aluno.id}
@@ -394,12 +560,14 @@ export function TurmasDocente() {
         onClose={fecharObs}
         aluno={modalObs.aluno}
         onAdicionar={abrirNova}
+        onSuccess={buscarAlunos}
       />
       <ModalNovaObservacao
         isOpen={modalNova.open}
         onClose={fecharNova}
         aluno={modalNova.aluno}
         obsEditando={modalNova.obsEditando}
+        onSuccess={buscarAlunos}
       />
     </div>
   );

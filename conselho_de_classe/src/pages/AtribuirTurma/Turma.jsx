@@ -221,10 +221,6 @@ export function Turma() {
                 setDocenteSelecionado('');
                 setTipoCurso('');
                 
-                // Nota: O setDocenteSelecionado('') vai acionar o nosso useEffect,
-                // que automaticamente vai limpar o estado turmasAtuais, 
-                // deixando a tela 100% zerada para o próximo uso!
-                
             } else {
                 alert('Erro ao salvar: ' + (data.mensagem || 'Erro desconhecido'));
             }

@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
-const instrumentoRouter = require('./routes/instrumentoAcompanhamento');
+
+
 
 const app = express();
 
@@ -18,9 +19,10 @@ app.use('/relatorio', require('./routes/relatorio'));
 app.use('/conselho', require('./routes/conselho'));
 app.use('/dashboard', require('./routes/dashboard')); 
 app.use('/', require('./routes/termo'));
-app.use('/instrumento-acompanhamento', instrumentoRouter);
+app.use('/instrumento-acompanhamento', require('./routes/instrumentoAcompanhamento'));
 app.use('/AtribuirTurma', require('./routes/AtribuirTurma'));
 app.use('/turmaDocente', require('./routes/turmaDocente'));
+app.use('/observacoes', require('./routes/observacoes'));
 
 
 // ==========================================

@@ -17,4 +17,5 @@ export const API = {
     uploadPlanilha: `${API_BASE}/upload-planilha`,
     atribuirTurma: `${API_BASE}/atribuirTurma`,
     turmaDocente: `${API_BASE}/turmaDocente`,
+    observacoes: `${API_BASE}/observacoes`,
 };
