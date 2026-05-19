@@ -177,11 +177,15 @@ export function ConselhoIntermediario() {
 
         let cancelado = false;
         (async () => {
-            // Reset visual ao mudar de turma (cada turma re-pede "Editar" para mexer)
+            // Reset apenas dos dados da TURMA (avaliações pertencem ao par
+            // turma+conselho). NÃO reseta modoEdicao aqui — uma vez iniciado
+            // o conselho, o usuário continua em modo de edição ao navegar
+            // entre as próprias turmas. O reset acontece só nos dois lugares
+            // certos: (a) quando /ativo retorna null (nada começado);
+            // (b) quando o usuário Finaliza.
             setAvaliacaoTurma(null);
             setAlunosAvaliados({});
             setAlunosSelecionados([]);
-            setModoEdicao(false);
 
             try {
                 // 1. Read-only: existe conselho do ciclo para esta turma?
@@ -195,6 +199,7 @@ export function ConselhoIntermediario() {
                 if (!d1?.sucesso || !d1.conselho) {
                     setConselhoId(null);
                     setDonoConselho(null);
+                    setModoEdicao(false);
                     return;
                 }
 
@@ -223,6 +228,14 @@ export function ConselhoIntermediario() {
 
                 setConselhoId(cidFinal);
                 setDonoConselho(dono);
+
+                // Se o usuário logado é o dono deste conselho, entra automaticamente
+                // em modo de edição (continuação natural da sessão dele, incluindo
+                // após F5/relogin). Para conselho de outro usuário, NÃO força edit
+                // mode — ele precisa clicar "Editar" explicitamente (safety).
+                if (dono && dono.idUsuario === idUsuario) {
+                    setModoEdicao(true);
+                }
 
                 // 3. Carrega avaliações dessa turma neste conselho.
                 await recarregarConselho(cidFinal, idTurma);

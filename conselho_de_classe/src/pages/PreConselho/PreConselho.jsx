@@ -149,10 +149,12 @@ export function PreConselho() {
 
         let cancelado = false;
         (async () => {
-            // Reset visual ao mudar de turma
+            // Reset apenas dos dados da TURMA. NÃO reseta modoEdicao — uma
+            // vez iniciado o pré-conselho, o usuário continua em edit mode
+            // ao navegar entre as próprias turmas. O reset acontece só
+            // quando /ativo não acha conselho ou quando o usuário Finaliza.
             setAlunosAvaliados({});
             setAlunosSelecionados([]);
-            setModoEdicao(false);
 
             try {
                 // 1. Existe pré-conselho do ciclo para esta turma?
@@ -166,6 +168,7 @@ export function PreConselho() {
                 if (!d1?.sucesso || !d1.conselho) {
                     setConselhoId(null);
                     setDonoConselho(null);
+                    setModoEdicao(false);
                     return;
                 }
 
@@ -192,6 +195,13 @@ export function PreConselho() {
 
                 setConselhoId(cidFinal);
                 setDonoConselho(dono);
+
+                // Se o usuário logado é o dono, retoma o modo de edição
+                // automaticamente. Para conselho de outro, exige Editar
+                // explícito (safety contra finalizar acidentalmente).
+                if (dono && dono.idUsuario === idUsuario) {
+                    setModoEdicao(true);
+                }
 
                 // 3. Carrega avaliações.
                 await recarregarConselho(cidFinal, idTurma);
