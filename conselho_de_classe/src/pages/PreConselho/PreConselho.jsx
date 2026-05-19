@@ -316,14 +316,13 @@ export function PreConselho() {
             });
 
             const dados = await resp.json();
-
             if (!dados.sucesso) throw new Error(dados.mensagem);
-            setConselhoId(null);
-            setDonoConselho(null);
+
+            // Sai do modo de edição mas mantém conselhoId/dono/avaliações
+            // na tela. O botão vira "Editar Conselho" — se precisar mexer
+            // em algum aluno depois, clica em Editar e o /iniciar reabre.
             setModoEdicao(false);
-            setAlunosAvaliados({});
             toast.success('Conselho finalizado com sucesso!');
-            navigate('/dashboard')
 
         } catch (e) {
             console.error(e);

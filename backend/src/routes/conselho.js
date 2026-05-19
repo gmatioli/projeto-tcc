@@ -139,17 +139,22 @@ router.post('/iniciar', async (req, res) => {
 });
 
 // ==========================================
-// GET: BUSCAR CONSELHO ATIVO PARA UMA TURMA NO CICLO
+// GET: BUSCAR CONSELHO DO CICLO PARA UMA TURMA
 // GET -> /api/conselho/ativo/:tipoConselho/turma/:idTurma?idUsuario=X&semestre=1&ano=2026
 //
-// Read-only. Faz o mesmo lookup em duas etapas do POST /iniciar,
-// mas só considera conselhos NÃO finalizados ('Iniciado' ou 'Em andamento'):
+// Read-only. Faz o mesmo lookup em duas etapas do POST /iniciar, sem
+// filtrar por status — inclui também conselhos 'Finalizado' para
+// permitir REABRIR um conselho fechado (cenário "aluno esquecido"):
 //   1) Conselho do ciclo vinculado a essa turma (qualquer dono).
-//   2) Sessão ativa do usuário no ciclo (se idUsuario for informado).
+//   2) Sessão do usuário no ciclo (se idUsuario for informado).
 //
-// Retorna { conselho: { idConselho, status, Usuario_idUsuario, nomeUsuario, ... } | null }
-// para o frontend decidir se mostra "Iniciar" ou "Editar Conselho" e
-// para exibir o aviso "Iniciado por <nome>" quando o logado não é o dono.
+// O frontend decide o que mostrar com base no resultado:
+//   - sem conselho   -> "Iniciar Conselho"
+//   - com conselho   -> "Editar Conselho" (mesmo se finalizado)
+//   - usuário clicou -> "Finalizar Conselho"
+//
+// Quando o usuário clica em Editar de um conselho finalizado, o
+// POST /iniciar reabre via UPDATE status -> 'Em andamento'.
 // ==========================================
 router.get('/ativo/:tipoConselho/turma/:idTurma', async (req, res) => {
   try {
@@ -163,7 +168,7 @@ router.get('/ativo/:tipoConselho/turma/:idTurma', async (req, res) => {
       ano = ano || ciclo.ano;
     }
 
-    // Etapa 1: por turma (cross-user)
+    // Etapa 1: por turma (cross-user). Inclui finalizado.
     let result = await db`
       SELECT c."idConselho", c."status", c."semestre", c."ano",
              c."Usuario_idUsuario", u."nomeUsuario"
@@ -174,12 +179,11 @@ router.get('/ativo/:tipoConselho/turma/:idTurma', async (req, res) => {
          AND c."semestre"        = ${Number(semestre)}
          AND c."ano"             = ${Number(ano)}
          AND thc."Turma_idTurma" = ${idTurma}
-         AND c."status" IN ('Iniciado', 'Em andamento')
        ORDER BY c."idConselho" DESC
        LIMIT 1
     `;
 
-    // Etapa 2: sessão ativa do usuário no ciclo (turma ainda não vinculada).
+    // Etapa 2: sessão do usuário no ciclo (turma ainda não vinculada). Inclui finalizado.
     if (result.length === 0 && idUsuario) {
       result = await db`
         SELECT c."idConselho", c."status", c."semestre", c."ano",
@@ -190,7 +194,6 @@ router.get('/ativo/:tipoConselho/turma/:idTurma', async (req, res) => {
            AND c."semestre"          = ${Number(semestre)}
            AND c."ano"               = ${Number(ano)}
            AND c."Usuario_idUsuario" = ${idUsuario}
-           AND c."status" IN ('Iniciado', 'Em andamento')
          ORDER BY c."idConselho" DESC
          LIMIT 1
       `;

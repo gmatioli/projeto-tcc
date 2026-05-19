@@ -360,13 +360,12 @@ export function ConselhoIntermediario() {
             const dados = await resp.json();
             if (!dados.sucesso) throw new Error(dados.mensagem);
 
-            setConselhoId(null);
-            setDonoConselho(null);
+            // Sai do modo de edição mas mantém conselhoId/dono/avaliações
+            // na tela. O botão vira "Editar Conselho" — se o usuário lembrar
+            // de algum aluno esquecido, clica em Editar e o /iniciar reabre
+            // o conselho automaticamente (status volta para 'Em andamento').
             setModoEdicao(false);
-            setAvaliacaoTurma(null);
-            setAlunosAvaliados({});
             toast.success('Conselho finalizado com sucesso!');
-            navigate('/dashboard')
 
         } catch (e) {
             console.error(e);
