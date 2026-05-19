@@ -47,6 +47,50 @@ export function InstrumentoAcompanhamento() {
   const [turma,    setTurma]    = useState('');
   const [aluno,    setAluno]    = useState('');
   const [componente, setComponente] = useState('');
+
+  // ── Estados Dropdown ─────────────────────────────────────────
+  const [turmasDisponiveis, setTurmasDisponiveis] = useState([]);
+  const [alunosDisponiveis, setAlunosDisponiveis] = useState([]);
+
+  // 1. Busca as turmas do docente ao carregar a página
+  useEffect(() => {
+    const logado = localStorage.getItem('usuarioLogado');
+    if (logado) {
+      const { idUsuario } = JSON.parse(logado);
+      
+      if (idUsuario) {
+        fetch(`${API.turmaDocente}/docente/${idUsuario}/sidebar-filtros`)
+          .then(res => res.json())
+          .then(data => {
+            // Verifica o formato da resposta (igual na sidebar)
+            if (data.sucesso && Array.isArray(data.dados)) {
+              setTurmasDisponiveis(data.dados);
+            } else if (Array.isArray(data)) {
+              setTurmasDisponiveis(data);
+            }
+          })
+          .catch(err => console.error('Erro ao buscar turmas:', err));
+      }
+    }
+  }, []);
+
+  // 2. Busca os alunos sempre que uma turma for selecionada
+  useEffect(() => {
+    if (!turma) {
+      setAlunosDisponiveis([]);
+      setAluno(''); // Limpa o aluno se trocar de turma
+      return;
+    }
+
+    fetch(`${API.alunos}/${turma}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.sucesso && Array.isArray(data.alunos)) {
+          setAlunosDisponiveis(data.alunos);
+        }
+      })
+      .catch(err => console.error('Erro ao buscar alunos:', err));
+  }, [turma]);
  
   // ── Dificuldades: Execução do Trabalho ──────────────────────────────────
   const [exec, setExec] = useState({
@@ -120,9 +164,12 @@ export function InstrumentoAcompanhamento() {
       alert('Por favor, selecione a Turma e o Aluno.');
       return;
     }
+
+    const turmaObj = turmasDisponiveis.find(t => t.idTurma.toString() === turma.toString());
+    const nomeDaTurma = turmaObj ? turmaObj.turma : '';
  
     const payload = {
-      turma, aluno, componente,
+      turma: nomeDaTurma, aluno, componente,
       exec, hig, qual,
       sugAluno, sugResp, encaminhar,
       criterios, prov, obsEscola, plano, docente: formatarNome(docenteNome)
@@ -203,25 +250,28 @@ export function InstrumentoAcompanhamento() {
                 className="w-full border border-gray-300 rounded px-2 py-1.5 text-base focus:outline-none focus:ring-1 focus:ring-red-400"
               >
                 <option value="">Selecione...</option>
-                <option value="DEV 3N">DEV 3N</option>
-                <option value="ADM 1M">ADM 1M</option>
-                <option value="T2D">T2D</option>
-                <option value="MECA 1M">MECA 1M</option>
+                {turmasDisponiveis.map(t => (
+                  <option key={t.idTurma} value={t.idTurma}>{t.turma}</option>
+                ))}
               </select>
             </div>
+            
             {/* Aluno */}
             <div className="flex-1">
-              <label className="block text-lg font-semibold text-gray-700 mb-1">Aluno(*):</label>
+              <label className={`block text-lg font-semibold mb-1 ${!turma ? 'text-gray-400' : 'text-gray-700'}`}>
+                Aluno(*):
+              </label>
               <select
                 value={aluno}
                 onChange={e => setAluno(e.target.value)}
-                className="w-full border border-gray-300 rounded px-2 py-1.5 text-base focus:outline-none focus:ring-1 focus:ring-red-400"
+                disabled={!turma} // Desabilita se não tiver turma selecionada
+                className={`w-full border rounded px-2 py-1.5 text-base focus:outline-none focus:ring-1 focus:ring-red-400 ${!turma ? 'bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed' : 'border-gray-300'}`}
               >
                 <option value="">Selecione...</option>
-                <option value="Jorge Marques de Salves">Jorge Marques de Salves</option>
-                <option value="Maria Silva do Céu">Maria Silva do Céu</option>
-                <option value="Lucas Almeida">Lucas Almeida</option>
-                <option value="Beatriz Santos">Beatriz Santos</option>
+                {alunosDisponiveis.map(a => (
+                  // Guardamos o NOME no value, pois o Word precisa do nome
+                  <option key={a.idtblAluno} value={a.nome}>{a.nome}</option>
+                ))}
               </select>
             </div>
             {/* Componente Curricular */}
