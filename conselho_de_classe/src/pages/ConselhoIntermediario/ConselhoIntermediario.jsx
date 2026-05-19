@@ -229,13 +229,12 @@ export function ConselhoIntermediario() {
                 setConselhoId(cidFinal);
                 setDonoConselho(dono);
 
-                // Se o usuário logado é o dono deste conselho, entra automaticamente
-                // em modo de edição (continuação natural da sessão dele, incluindo
-                // após F5/relogin). Para conselho de outro usuário, NÃO força edit
-                // mode — ele precisa clicar "Editar" explicitamente (safety).
-                if (dono && dono.idUsuario === idUsuario) {
-                    setModoEdicao(true);
-                }
+                // modoEdicao só é setado por clique do usuário (Iniciar/Editar).
+                // Aqui não forçamos: se o usuário entrou agora ou deu F5, ele
+                // verá "Editar Conselho" (porque conselhoAtivo=true e
+                // modoEdicao=false) e precisa clicar explicitamente para mexer.
+                // Uma vez clicado, modoEdicao persiste entre trocas de turma
+                // (não resetamos aqui em cima).
 
                 // 3. Carrega avaliações dessa turma neste conselho.
                 await recarregarConselho(cidFinal, idTurma);

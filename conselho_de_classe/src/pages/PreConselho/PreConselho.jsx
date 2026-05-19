@@ -196,12 +196,10 @@ export function PreConselho() {
                 setConselhoId(cidFinal);
                 setDonoConselho(dono);
 
-                // Se o usuário logado é o dono, retoma o modo de edição
-                // automaticamente. Para conselho de outro, exige Editar
-                // explícito (safety contra finalizar acidentalmente).
-                if (dono && dono.idUsuario === idUsuario) {
-                    setModoEdicao(true);
-                }
+                // modoEdicao só é setado por clique do usuário (Iniciar/Editar).
+                // Não forçamos aqui: após F5/relogin, o usuário vê "Editar
+                // Conselho" e clica para entrar em modo edição. Dentro da
+                // sessão, modoEdicao persiste entre trocas de turma.
 
                 // 3. Carrega avaliações.
                 await recarregarConselho(cidFinal, idTurma);
