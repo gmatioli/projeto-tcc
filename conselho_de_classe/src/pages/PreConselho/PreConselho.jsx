@@ -360,15 +360,8 @@ export function PreConselho() {
         await recarregarConselho(conselhoId, idTurma);
     };
 
-    // const totalRestritos = Object.keys(alunosAvaliados).length;
+    const totalRestritos = Object.keys(alunosAvaliados).length;
 
-    // Aluno é considerado "restrito" no Pré-Conselho se já tem avaliação aqui
-    // OU se tinha avaliação no Conselho Intermediário do mesmo ciclo.
-    const idsRestritos = new Set([
-        ...Object.keys(alunosAvaliados),
-        ...Object.keys(historicoIntermediario)
-    ]);
-    const totalRestritos = idsRestritos.size;
 
     const tableThClasses = "border-b-2 border-t-2 border-r-2 first:border-l-2 border-gray-400 p-[12px_15px] font-bold bg-white sticky top-0 z-10";
     const tableTdClasses = "border-b-2 border-r-2 first:border-l-2 border-gray-400 p-[12px_15px] text-lg";
