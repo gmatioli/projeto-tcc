@@ -94,10 +94,10 @@ export function ConselhoIntermediario() {
     const textoBotaoPrincipal = carregandoConselho
         ? 'Carregando...'
         : modoEdicao
-            ? 'Finalizar Turma'
+            ? 'Finalizar Conselho'
             : conselhoAtivo
-                ? 'Editar Turma'
-                : 'Iniciar Turma';
+                ? 'Editar Conselho'
+                : 'Iniciar Conselho';
 
     const textoBotaoAvaliar = !modoEdicao
     ? (conselhoAtivo ? 'Clique em Editar Conselho' : 'Inicie o conselho')
@@ -177,11 +177,15 @@ export function ConselhoIntermediario() {
 
       let cancelado = false;
       (async () => {
-          // Reset visual ao mudar de turma (cada turma re-pede "Editar" para mexer)
+          // Reset apenas dos dados da TURMA (avaliações pertencem ao par
+          // turma+conselho). NÃO reseta modoEdicao aqui — uma vez iniciado
+          // o conselho, o usuário continua em modo de edição ao navegar
+          // entre as próprias turmas. O reset acontece só nos dois lugares
+          // certos: (a) quando /ativo retorna null (nada começado);
+          // (b) quando o usuário Finaliza.
           setAvaliacaoTurma(null);
           setAlunosAvaliados({});
           setAlunosSelecionados([]);
-          setModoEdicao(false);
 
           try {
             // 1. Read-only: existe conselho do ciclo para esta turma?
@@ -195,6 +199,7 @@ export function ConselhoIntermediario() {
             if (!d1?.sucesso || !d1.conselho) {
                 setConselhoId(null);
                 setDonoConselho(null);
+                setModoEdicao(false);
                 return;
             }
             // 2. Vincula a turma ao conselho (idempotente, ON CONFLICT DO NOTHING).
@@ -341,13 +346,13 @@ export function ConselhoIntermediario() {
             });
             const dados = await resp.json();
             if (!dados.sucesso) throw new Error(dados.mensagem);
-            setConselhoId(null);
-            setDonoConselho(null);
+            // setConselhoId(null);
+            // setDonoConselho(null);
             setModoEdicao(false);
-            setAvaliacaoTurma(null);
-            setAlunosAvaliados({});
+            // setAvaliacaoTurma(null);
+            // setAlunosAvaliados({});
             toast.success('Conselho finalizado com sucesso!');
-            navigate('/dashboard')
+            // navigate('/dashboard')
 
         } catch (e) {
             console.error(e);

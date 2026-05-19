@@ -153,6 +153,7 @@ router.post('/iniciar', async (req, res) => {
 router.get('/ativo/:tipoConselho/turma/:idTurma', async (req, res) => {
   try {
     const { tipoConselho, idTurma } = req.params;
+    const { idUsuario } = req.query;
     let { semestre, ano } = req.query;
 
     if (!semestre || !ano) {
@@ -172,7 +173,6 @@ router.get('/ativo/:tipoConselho/turma/:idTurma', async (req, res) => {
          AND c."semestre"        = ${Number(semestre)}
          AND c."ano"             = ${Number(ano)}
          AND thc."Turma_idTurma" = ${idTurma}
-         AND c."status" IN ('Iniciado', 'Em andamento')
        ORDER BY c."idConselho" DESC
        LIMIT 1
     `;
@@ -188,7 +188,6 @@ router.get('/ativo/:tipoConselho/turma/:idTurma', async (req, res) => {
            AND c."semestre"          = ${Number(semestre)}
            AND c."ano"               = ${Number(ano)}
            AND c."Usuario_idUsuario" = ${idUsuario}
-           AND c."status" IN ('Iniciado', 'Em andamento')
          ORDER BY c."idConselho" DESC
          LIMIT 1
       `;
