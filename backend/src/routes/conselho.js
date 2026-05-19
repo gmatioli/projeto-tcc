@@ -612,7 +612,7 @@ router.get('/dados-pre-conselho/turma/:idTurma', async (req, res) => {
         a."idtblAluno",
         a."nome",
         a."matricula",
-        aa."acaoProposta" AS "acaoPropostaPreConselho",
+        aa."acaoProposta",
         aa."justificativa",
         aa."situacaoFinal",
         aa."contestacaoSituacaoFinal"
@@ -627,7 +627,7 @@ router.get('/dados-pre-conselho/turma/:idTurma', async (req, res) => {
     `;
 
     const alunosComAcaoProposta = result.filter(
-      a => a.acaoPropostaPreConselho && a.acaoPropostaPreConselho.trim() !== ''
+      a => a.acaoProposta && a.acaoProposta.trim() !== ''
     );
 
     const alunosComJustificativa = result.filter(

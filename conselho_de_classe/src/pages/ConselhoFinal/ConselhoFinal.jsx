@@ -611,7 +611,7 @@ const ConselhoFinal = () => {
                     <td className={`${tableTdClasses} `}>{aluno.nome}</td>
 
                   <td className={`${tableTdClasses} `}>
-                    <p>{aluno.acaoPropostaPreConselho}</p>
+                    <p>{aluno.acaoProposta}</p>
 
                     <button className="text-gray-500 text-xs mt-[5px] hover:underline">
                       <div className="flex items-center my-0 mx-1 gap-1">
