@@ -147,12 +147,7 @@ export function ConselhoIntermediario() {
           });
           setAlunosAvaliados(mapa);
 
-          
-          if (!avaliacao) {
-            setIsModalTurmaOpen(true); // auto-abre se ainda não tem avaliação da turma
-          }
-
-          return avaliacao; // pro handleIniciarConselho decidir se abre modal
+          return avaliacao;
       } catch (e) {
           console.error('Erro ao recarregar conselho:', e);
           return null;
@@ -164,6 +159,7 @@ export function ConselhoIntermediario() {
       if(!idTurma) return;
       setAlunosAvaliados({});
       setAlunosSelecionados([]);
+      setIsModalTurmaOpen(false); // Fecha modal ao trocar de turma
 
       setCarregando(true);
       fetch(`${API.alunos}/empresa/${idTurma}`)
