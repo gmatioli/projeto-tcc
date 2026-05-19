@@ -21,6 +21,7 @@ const ModalAvaliacaoTurma = ({
   onClose,
   conselhoId,
   idTurma,
+  idUsuario,
   nomeTurma,
   avaliacaoExistente,
   onSaved
@@ -86,6 +87,7 @@ const ModalAvaliacaoTurma = ({
         body: JSON.stringify({
           conselhoId,
           idTurma,
+          idUsuario,
           ...form
         })
       });

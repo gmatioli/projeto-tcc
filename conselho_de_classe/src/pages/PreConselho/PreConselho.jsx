@@ -38,12 +38,12 @@ export function PreConselho() {
     // Usuário logado vindo do localStorage (para registrar quem iniciou)
     const usuario = JSON.parse(localStorage.getItem('usuarioLogado') || '{}');
     const idUsuario = usuario.idUsuario;
-    
-    const [conselhoId, setConselhoId] = useState(() => {
-            const v = localStorage.getItem('preConselhoAtivo');
-            return v ? Number(v) : null;
-        });
-    
+
+    // conselhoId vem do backend (lookup por turma com fallback para sessão
+    // do usuário). Sem localStorage — evita "vazamento" entre usuários.
+    const [conselhoId, setConselhoId] = useState(null);
+    const [donoConselho, setDonoConselho] = useState(null);
+
     const [modoEdicao, setModoEdicao] = useState(false);
         
     // Ciclo (semestre/ano) corrente — usado para reusar/abrir conselho no mesmo período
@@ -63,11 +63,15 @@ export function PreConselho() {
     // Existe um conselho rodando?
     const conselhoAtivo = !!conselhoId;
 
+    // O usuário logado é o dono deste conselho? Quando não é, mostramos aviso
+    // e o botão de finalizar pede confirmação reforçada.
+    const naoEhDono = !!(donoConselho && donoConselho.idUsuario && donoConselho.idUsuario !== idUsuario);
+
     // Regras de habilitação (centralizadas aqui pra ficar fácil de manter):
     //  - botoesDesabilitados: bloqueia tudo enquanto o conselho não for iniciado
     //  - podeAvaliarAlunos: precisa ter conselho +  alunos marcados
     const botoesDesabilitados = !modoEdicao;
-    
+
     const podeAvaliarAlunos =
         modoEdicao && alunosSelecionados.length > 0;
 
@@ -138,36 +142,66 @@ export function PreConselho() {
             .catch(err => console.error('Erro ao buscar histórico do intermediário:', err));
     }, [idTurma, ciclo.semestre, ciclo.ano]);
 
-    // 1b) Ao montar: se não há conselho em localStorage, busca um do ciclo atual.
+    // 1b) Ao trocar de turma: localiza o conselho do ciclo (turma primeiro,
+    // depois sessão do usuário) e vincula a turma de forma idempotente.
     useEffect(() => {
-        if (conselhoId || !idUsuario) return;
-        fetch(`${API.conselho}/ativo/${encodeURIComponent('Pré-Conselho')}/${idUsuario}?semestre=${ciclo.semestre}&ano=${ciclo.ano}`)
-            .then(r => r.json())
-            .then(d => {
-                if (d?.sucesso && d.conselho?.idConselho) {
-                    setConselhoId(d.conselho.idConselho);
-                    localStorage.setItem('preConselhoAtivo', String(d.conselho.idConselho));
+        if (!idTurma || !idUsuario) return;
+
+        let cancelado = false;
+        (async () => {
+            // Reset visual ao mudar de turma
+            setAlunosAvaliados({});
+            setAlunosSelecionados([]);
+            setModoEdicao(false);
+
+            try {
+                // 1. Existe pré-conselho do ciclo para esta turma?
+                const r1 = await fetch(
+                    `${API.conselho}/ativo/${encodeURIComponent('Pré-Conselho')}/turma/${idTurma}` +
+                    `?idUsuario=${idUsuario}&semestre=${ciclo.semestre}&ano=${ciclo.ano}`
+                );
+                const d1 = await r1.json();
+                if (cancelado) return;
+
+                if (!d1?.sucesso || !d1.conselho) {
+                    setConselhoId(null);
+                    setDonoConselho(null);
+                    return;
                 }
-            })
-            .catch(err => console.error('Erro ao buscar pré-conselho ativo do ciclo:', err));
-    }, [conselhoId, idUsuario, ciclo.semestre, ciclo.ano]);
 
+                // 2. Vincula a turma de forma idempotente (parâmetros completos).
+                const r2 = await fetch(`${API.conselho}/iniciar`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        tipoConselho: 'Pré-Conselho',
+                        idTurma,
+                        idUsuario,
+                        semestre: ciclo.semestre,
+                        ano: ciclo.ano,
+                    }),
+                });
+                const d2 = await r2.json();
+                if (cancelado) return;
 
+                const cidFinal = (d2?.sucesso && d2.conselhoId) || d1.conselho.idConselho;
+                const dono = d2?.dono || (d1.conselho.Usuario_idUsuario ? {
+                    idUsuario: d1.conselho.Usuario_idUsuario,
+                    nomeUsuario: d1.conselho.nomeUsuario,
+                } : null);
 
-     // 2) Ao trocar de turma, se já existe conselho ativo, vincula a turma a ele
-    useEffect(() => {
-        if (!idTurma || !conselhoId) return;
-        fetch(`${API.conselho}/iniciar`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ idTurma, conselhoId })
-        })
-            .then(() => recarregarConselho(conselhoId, idTurma))
+                setConselhoId(cidFinal);
+                setDonoConselho(dono);
 
-            .catch(err => console.error('Erro ao adicionar turma ao conselho:', err));
-        setAlunosSelecionados([]);
+                // 3. Carrega avaliações.
+                await recarregarConselho(cidFinal, idTurma);
+            } catch (err) {
+                console.error('Erro ao localizar/vincular pré-conselho:', err);
+            }
+        })();
 
-    }, [idTurma, conselhoId, recarregarConselho]);
+        return () => { cancelado = true; };
+    }, [idTurma, idUsuario, ciclo.semestre, ciclo.ano, recarregarConselho]);
 
     // Iniciar / Finalizar conselho
     const handleIniciarConselho = async () => {
@@ -191,9 +225,8 @@ export function PreConselho() {
             const dados = await resp.json();
             if (!dados.sucesso) throw new Error(dados.mensagem);
             setConselhoId(dados.conselhoId);
-            localStorage.setItem('preConselhoAtivo', String(dados.conselhoId));
+            setDonoConselho(dados.dono || null);
             setModoEdicao(true);
-
 
         } catch (e) {
             console.error(e);
@@ -201,7 +234,7 @@ export function PreConselho() {
         } finally {
             setCarregandoConselho(false);
         }
-    };  
+    };
 
     const handleEditarConselho = async () => {
         if (!conselhoId || !idTurma || !idUsuario) return;
@@ -220,14 +253,14 @@ export function PreConselho() {
             });
             const dados = await resp.json();
             if (!dados.sucesso) throw new Error(dados.mensagem);
- 
+
             // Garante consistência do ID local com o retorno do backend
             const idFinal = dados.conselhoId || conselhoId;
             if (idFinal !== conselhoId) {
                 setConselhoId(idFinal);
-                localStorage.setItem('preConselhoAtivo', String(idFinal));
             }
- 
+            if (dados.dono) setDonoConselho(dados.dono);
+
             await recarregarConselho(idFinal, idTurma);
             setModoEdicao(true);
         } catch (e) {
@@ -243,7 +276,11 @@ export function PreConselho() {
 
         setAguardandoConfirmacao(true);
 
-        toast('Deseja finalizar o conselho?', {
+        const mensagem = naoEhDono
+            ? `Você não é o dono deste pré-conselho (iniciado por ${donoConselho?.nomeUsuario || 'outro usuário'}). Finalizar mesmo assim?`
+            : 'Deseja finalizar o conselho?';
+
+        toast(mensagem, {
           action: {
               label: "FINALIZAR",
               onClick: () => executarFinalizacao(),
@@ -254,13 +291,13 @@ export function PreConselho() {
           },
           onDismiss: () => setAguardandoConfirmacao(false),    // ← libera se fechar
           onAutoClose: () => setAguardandoConfirmacao(false),  // ← libera se expirar
-          duration: 5000,
+          duration: 8000,
 
         });
       };
 
     const executarFinalizacao = async () => {
-        setAguardandoConfirmacao(false);   
+        setAguardandoConfirmacao(false);
         setCarregandoConselho(true);
 
         try {
@@ -269,12 +306,12 @@ export function PreConselho() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ conselhoId })
             });
-            
+
             const dados = await resp.json();
 
             if (!dados.sucesso) throw new Error(dados.mensagem);
-            localStorage.removeItem('preConselhoAtivo');
             setConselhoId(null);
+            setDonoConselho(null);
             setModoEdicao(false);
             setAlunosAvaliados({});
             toast.success('Conselho finalizado com sucesso!');
@@ -352,6 +389,14 @@ export function PreConselho() {
           <span className="font-medium text-gray-700">Pré-Conselho / {nomeTurma}</span>
         </span>
       </nav>
+
+      {naoEhDono && (
+        <div className="bg-amber-50 border border-amber-300 text-amber-900 rounded-md px-4 py-2 text-sm mx-[1vw] mb-2">
+          <strong>Iniciado por {donoConselho?.nomeUsuario || 'outro usuário'}.</strong>{' '}
+          Você está visualizando o pré-conselho de outro responsável. Alterações
+          serão registradas em seu nome. Evite finalizar sem combinar com o dono.
+        </div>
+      )}
         <div className="flex flex-col min-w-[72vw] my-5 ">
             <div className="flex justify-between">
                 <div className={`${cardInfo} bg-white border-gray-800`}>

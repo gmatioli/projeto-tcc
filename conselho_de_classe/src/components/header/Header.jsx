@@ -11,8 +11,12 @@ export function Header() {
 
   // 2. Função de Logout (Sair)
   const handleLogout = () => {
-    localStorage.removeItem('usuarioLogado'); 
-    navigate('/'); 
+    localStorage.removeItem('usuarioLogado');
+    // Limpa chaves antigas de conselho — em versões anteriores o conselhoId
+    // ficava no localStorage e contaminava o próximo usuário que logasse.
+    localStorage.removeItem('conselhoIntermediarioAtivo');
+    localStorage.removeItem('preConselhoAtivo');
+    navigate('/');
   };
 
    const [dadosUsuario, setDadosUsuario] = useState({

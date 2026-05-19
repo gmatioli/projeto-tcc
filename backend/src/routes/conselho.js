@@ -13,74 +13,107 @@ function cicloAtual() {
 }
 
 // ==========================================
-// POST: INICIAR CONSELHO
+// POST: INICIAR / LOCALIZAR CONSELHO + VINCULAR TURMA
 // POST -> /api/conselho/iniciar
-// body:{ tipoConselho, idTurma, idUsuario, conselhoId?, semestre?, ano? }
-//   - sem conselhoId  -> tenta reaproveitar conselho do MESMO ciclo (tipo+semestre+ano+usuário).
-//                        Se existir (mesmo finalizado), retorna o id existente
-//                        e reabre como "Em andamento". Senão cria um novo.
-//   - com conselhoId  -> apenas vincula a turma ao conselho existente
+// body: { tipoConselho, idTurma, idUsuario, semestre?, ano? }
+//
+// Lookup em duas etapas, antes de criar um novo:
+//   1) Conselho do ciclo já vinculado a esta TURMA (qualquer dono).
+//      Permite que o usuário B "encontre" o conselho criado pelo A
+//      ao abrir uma turma que A já trabalhou.
+//   2) Sessão ativa do usuário no mesmo ciclo (sem turma ainda).
+//      Permite que A continue na mesma sessão ao navegar para outra
+//      turma dele que ainda não foi vinculada.
+//   3) Nenhum encontrado -> cria um novo Conselho com o usuário logado
+//      como dono. O dono fica registrado apenas para auditoria.
+//
+// Em qualquer caminho, a turma é inserida em Turma_has_Conselho de
+// forma idempotente (ON CONFLICT DO NOTHING).
 // ==========================================
 router.post('/iniciar', async (req, res) => {
   try {
-    const { tipoConselho, idTurma, idUsuario, conselhoId } = req.body;
+    const { tipoConselho, idTurma, idUsuario } = req.body;
     let { semestre, ano } = req.body;
 
-    if (!idTurma ) {
+    if (!idTurma) {
       return res.status(400).json({
         sucesso: false,
         mensagem: 'Id Turma é obrigatório'
       });
     }
-
-    let conselhoIdFinal = conselhoId;
-
-    if (!conselhoIdFinal) {
-      if (!tipoConselho || !idUsuario) {
-        return res.status(400).json({
-          sucesso: false,
-          mensagem: 'tipoConselho e idUsuario são obrigatórios para criar um novo conselho'
-        });
+    if (!tipoConselho || !idUsuario) {
+      return res.status(400).json({
+        sucesso: false,
+        mensagem: 'tipoConselho e idUsuario são obrigatórios'
+      });
     }
 
-     if (!semestre || !ano) {
-        const ciclo = cicloAtual();
-        semestre = semestre || ciclo.semestre;
-        ano = ano || ciclo.ano;
-      }
+    if (!semestre || !ano) {
+      const ciclo = cicloAtual();
+      semestre = semestre || ciclo.semestre;
+      ano = ano || ciclo.ano;
+    }
 
-      // 1. Procurar conselho existente no mesmo ciclo (mesmo tipo, semestre, ano e usuário)
-      const existente = await db`
-        SELECT "idConselho", "status"
-          FROM "Conselho"
-         WHERE "tipoConselho" = ${tipoConselho}
-           AND "semestre"     = ${semestre}
-           AND "ano"          = ${ano}
-           AND "Usuario_idUsuario" = ${idUsuario}
-         ORDER BY "idConselho" DESC
-         LIMIT 1`;
+    // Etapa 1: existe conselho do ciclo vinculado a essa turma?
+    let existente = await db`
+      SELECT c."idConselho", c."status", c."Usuario_idUsuario", u."nomeUsuario"
+        FROM "Conselho" c
+        INNER JOIN "Turma_has_Conselho" thc ON thc."Conselho_idConselho" = c."idConselho"
+        LEFT JOIN "Usuario" u ON u."idUsuario" = c."Usuario_idUsuario"
+       WHERE c."tipoConselho"    = ${tipoConselho}
+         AND c."semestre"        = ${semestre}
+         AND c."ano"             = ${ano}
+         AND thc."Turma_idTurma" = ${idTurma}
+       ORDER BY c."idConselho" DESC
+       LIMIT 1
+    `;
 
-      if (existente.length > 0) {
-        conselhoIdFinal = existente[0].idConselho;
-        // Se estava finalizado, reabre para permitir editar/avaliar aluno esquecido
-        if (existente[0].status === 'Finalizado') {
-          await db`
-            UPDATE "Conselho"
-               SET "status" = ${'Em andamento'}
-             WHERE "idConselho" = ${conselhoIdFinal}
-          `;
-        }
-      } else {
-        // 2. Inserir Conselho novo no ciclo informado
-        const novoConselho = await db`
-          INSERT INTO "Conselho"
-            ("tipoConselho", "dataRealizacao", "status", "semestre", "ano", "Usuario_idUsuario")
-          VALUES
-            (${tipoConselho}, NOW(), ${'Iniciado'}, ${semestre}, ${ano}, ${idUsuario})
-          RETURNING "idConselho"
+    // Etapa 2: fallback pela sessão ativa do próprio usuário no ciclo.
+    if (existente.length === 0) {
+      existente = await db`
+        SELECT c."idConselho", c."status", c."Usuario_idUsuario", u."nomeUsuario"
+          FROM "Conselho" c
+          LEFT JOIN "Usuario" u ON u."idUsuario" = c."Usuario_idUsuario"
+         WHERE c."tipoConselho"      = ${tipoConselho}
+           AND c."semestre"          = ${semestre}
+           AND c."ano"               = ${ano}
+           AND c."Usuario_idUsuario" = ${idUsuario}
+         ORDER BY c."idConselho" DESC
+         LIMIT 1
+      `;
+    }
+
+    let conselhoIdFinal;
+    let donoInfo = null;
+
+    if (existente.length > 0) {
+      conselhoIdFinal = existente[0].idConselho;
+      donoInfo = {
+        idUsuario: existente[0].Usuario_idUsuario,
+        nomeUsuario: existente[0].nomeUsuario,
+      };
+      // Se estava finalizado, reabre para permitir editar/avaliar aluno esquecido
+      if (existente[0].status === 'Finalizado') {
+        await db`
+          UPDATE "Conselho"
+             SET "status" = ${'Em andamento'}
+           WHERE "idConselho" = ${conselhoIdFinal}
         `;
-        conselhoIdFinal = novoConselho[0].idConselho;
       }
+    } else {
+      // Etapa 3: cria novo conselho (o idUsuario informado vira o dono).
+      const novoConselho = await db`
+        INSERT INTO "Conselho"
+          ("tipoConselho", "dataRealizacao", "status", "semestre", "ano", "Usuario_idUsuario")
+        VALUES
+          (${tipoConselho}, NOW(), ${'Iniciado'}, ${semestre}, ${ano}, ${idUsuario})
+        RETURNING "idConselho"
+      `;
+      conselhoIdFinal = novoConselho[0].idConselho;
+      const dono = await db`
+        SELECT "idUsuario", "nomeUsuario" FROM "Usuario" WHERE "idUsuario" = ${idUsuario}
+      `;
+      donoInfo = dono[0] || null;
     }
 
     await db`
@@ -94,7 +127,8 @@ router.post('/iniciar', async (req, res) => {
     return res.json({
       sucesso: true,
       conselhoId: conselhoIdFinal,
-      mensagem: conselhoId ? 'Turma adicionada ao conselho' : 'Conselho iniciado com sucesso'
+      dono: donoInfo,
+      mensagem: existente.length > 0 ? 'Conselho localizado' : 'Conselho iniciado com sucesso'
     });
 
   } catch (erro) {
@@ -105,14 +139,22 @@ router.post('/iniciar', async (req, res) => {
 });
 
 // ==========================================
-// GET: BUSCAR CONSELHO ATIVO DO CICLO ATUAL
-// GET -> /api/conselho/ativo/:tipoConselho/:idUsuario?semestre=1&ano=2026
-// Retorna o conselho do tipo informado do ciclo atual (ou do ciclo informado)
-// para o usuário. Útil para retomar conselho ao reabrir a página.
+// GET: BUSCAR CONSELHO ATIVO PARA UMA TURMA NO CICLO
+// GET -> /api/conselho/ativo/:tipoConselho/turma/:idTurma?idUsuario=X&semestre=1&ano=2026
+//
+// Read-only. Faz o mesmo lookup em duas etapas do POST /iniciar,
+// mas só considera conselhos NÃO finalizados ('Iniciado' ou 'Em andamento'):
+//   1) Conselho do ciclo vinculado a essa turma (qualquer dono).
+//   2) Sessão ativa do usuário no ciclo (se idUsuario for informado).
+//
+// Retorna { conselho: { idConselho, status, Usuario_idUsuario, nomeUsuario, ... } | null }
+// para o frontend decidir se mostra "Iniciar" ou "Editar Conselho" e
+// para exibir o aviso "Iniciado por <nome>" quando o logado não é o dono.
 // ==========================================
-router.get('/ativo/:tipoConselho/:idUsuario', async (req, res) => {
+router.get('/ativo/:tipoConselho/turma/:idTurma', async (req, res) => {
   try {
-    const { tipoConselho, idUsuario } = req.params;
+    const { tipoConselho, idTurma } = req.params;
+    const { idUsuario } = req.query;
     let { semestre, ano } = req.query;
 
     if (!semestre || !ano) {
@@ -121,17 +163,38 @@ router.get('/ativo/:tipoConselho/:idUsuario', async (req, res) => {
       ano = ano || ciclo.ano;
     }
 
-    const result = await db`
-      SELECT "idConselho", "status", "semestre", "ano"
-        FROM "Conselho"
-       WHERE "tipoConselho" = ${tipoConselho}
-         AND "semestre"     = ${Number(semestre)}
-         AND "ano"          = ${Number(ano)}
-         AND "Usuario_idUsuario" = ${idUsuario}
-         AND "status" IN ('Iniciado', 'Em andamento')
-       ORDER BY "idConselho" DESC
+    // Etapa 1: por turma (cross-user)
+    let result = await db`
+      SELECT c."idConselho", c."status", c."semestre", c."ano",
+             c."Usuario_idUsuario", u."nomeUsuario"
+        FROM "Conselho" c
+        INNER JOIN "Turma_has_Conselho" thc ON thc."Conselho_idConselho" = c."idConselho"
+        LEFT JOIN "Usuario" u ON u."idUsuario" = c."Usuario_idUsuario"
+       WHERE c."tipoConselho"    = ${tipoConselho}
+         AND c."semestre"        = ${Number(semestre)}
+         AND c."ano"             = ${Number(ano)}
+         AND thc."Turma_idTurma" = ${idTurma}
+         AND c."status" IN ('Iniciado', 'Em andamento')
+       ORDER BY c."idConselho" DESC
        LIMIT 1
     `;
+
+    // Etapa 2: sessão ativa do usuário no ciclo (turma ainda não vinculada).
+    if (result.length === 0 && idUsuario) {
+      result = await db`
+        SELECT c."idConselho", c."status", c."semestre", c."ano",
+               c."Usuario_idUsuario", u."nomeUsuario"
+          FROM "Conselho" c
+          LEFT JOIN "Usuario" u ON u."idUsuario" = c."Usuario_idUsuario"
+         WHERE c."tipoConselho"      = ${tipoConselho}
+           AND c."semestre"          = ${Number(semestre)}
+           AND c."ano"               = ${Number(ano)}
+           AND c."Usuario_idUsuario" = ${idUsuario}
+           AND c."status" IN ('Iniciado', 'Em andamento')
+         ORDER BY c."idConselho" DESC
+         LIMIT 1
+      `;
+    }
 
     return res.json({
       sucesso: true,
@@ -270,12 +333,13 @@ router.post('/avaliacao-turma', async (req, res) => {
     const {
       conselhoId,
       idTurma,
+      idUsuario,
       organizacao,
       comportamental,
       assiduidade,
       disponibilidade_Aprendizado,
       observacao,
-      alcancou_Objetivos, 
+      alcancou_Objetivos,
       acaoPreventiva
     } = req.body;
 
@@ -293,6 +357,7 @@ router.post('/avaliacao-turma', async (req, res) => {
 
     let result;
     if (existente.length > 0) {
+      // Atualiza o Usuario_idUsuario para registrar quem foi o último editor.
       result = await db`
         UPDATE "Avaliacao_Turma"
          SET "organizacao" = ${organizacao},
@@ -301,7 +366,8 @@ router.post('/avaliacao-turma', async (req, res) => {
             "disponibilidade_Aprendizado" = ${disponibilidade_Aprendizado},
             "observacao" = ${observacao},
             "acaoPreventiva" = ${acaoPreventiva},
-            "alcancou_Objetivos" = ${alcancou_Objetivos}
+            "alcancou_Objetivos" = ${alcancou_Objetivos},
+            "Usuario_idUsuario" = ${idUsuario || null}
         WHERE "Conselho_idConselho" = ${conselhoId} AND "Turma_idTurma" = ${idTurma}
         RETURNING *
       `;
@@ -310,11 +376,11 @@ router.post('/avaliacao-turma', async (req, res) => {
         INSERT INTO "Avaliacao_Turma"
           ("Conselho_idConselho", "Turma_idTurma", "organizacao", "comportamental",
            "assiduidade", "disponibilidade_Aprendizado", "observacao",
-           "acaoPreventiva", "alcancou_Objetivos")
+           "acaoPreventiva", "alcancou_Objetivos", "Usuario_idUsuario")
         VALUES
            (${conselhoId}, ${idTurma}, ${organizacao}, ${comportamental},
            ${assiduidade}, ${disponibilidade_Aprendizado}, ${observacao},
-           ${acaoPreventiva}, ${alcancou_Objetivos})
+           ${acaoPreventiva}, ${alcancou_Objetivos}, ${idUsuario || null})
         RETURNING *
       `;
     }
