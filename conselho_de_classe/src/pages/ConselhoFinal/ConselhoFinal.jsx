@@ -8,8 +8,8 @@ import ModalJustificativa from '../../components/modalJustificativa/ModalJustifi
 const intObservacoes = 3
 
 // Variável para evitar repetição nas células de tabela padronizadas
-const tableThClasses = "border border-[#ddd] p-[12px_15px] text-left font-bold bg-white sticky top-0 z-10";
-const tableTdClasses = "border border-[#ddd] p-[12px_15px] text-left text-lg";
+const tableThClasses = "border-b-2 border-r-2 last:border-r-0 border-gray-400 p-[1vh_1.2vw] font-bold bg-white sticky top-0 z-10";
+const tableTdClasses = "border-b-2 border-r-2 last:border-r-0 border-gray-400 p-[1vh_1.2vw] text-lg";
 const btnClasses = "border border-black shadow-[3px_3px_5px_gray]"
 
 const ConselhoFinal = () => {
@@ -226,11 +226,11 @@ const ConselhoFinal = () => {
   const getSituacaoAluno = (idtblAluno) => situacoesFinais[idtblAluno] || null;
 
   return (
-    <div id="conselho-tables-container" className="flex flex-col gap-2">
+    <div id="conselho-tables-container" className="flex flex-col mx-[2vh]">
 
       {/* Barra subtitulo */}
-      <nav>
-        <span className="text-sm text-gray-500">
+      <nav className='my-[1vw]'>
+        <span className="text-sm text-gray-500 ">
           <button
             onClick={() => navigate('/dashboard')}
             className="hover:underline text-gray-500"
@@ -243,11 +243,11 @@ const ConselhoFinal = () => {
       </nav>
 
       {/* SEÇÃO SUPERIOR: TURMAS + JUSTIFICATIVAS LADO A LADO */}
-      <section className="flex gap-[15px] items-start w-full mb-6">
+      <section className="flex gap-[1vw] items-start w-full mb-[2vh]">
         
         {/* Tabela de Turmas  */}
-        <div className="flex-1 max-h-[180px] overflow-y-auto">
-          <table className="w-full border-collapse bg-white text-sm">
+        <div className="flex-1 max-h-[20vh] overflow-y-auto border-2 border-gray-400">
+          <table className="w-full bg-white text-sm box-border border-separate border-spacing-0 [&_tbody_tr:last-child_td]:!border-b-0">
             <thead>
               <tr>
                 <th className={`${tableThClasses}`}>Turma(s)</th>
@@ -293,8 +293,8 @@ const ConselhoFinal = () => {
 
         {/* Tabela de Justificativas - Renderiza somente após selecionar turma */}
         {mostrarTabelaAlunos && (
-          <div className="flex-1 max-h-[180px] overflow-y-auto">
-            <table className="w-full border-collapse bg-white text-sm">
+          <div className="flex-1 max-h-[20vh] overflow-y-auto border-2 border-gray-400 shadow-[0_0_4px_gray]">
+            <table className="w-full bg-white text-sm box-border border-separate border-spacing-0 [&_tbody_tr:last-child_td]:!border-b-0">
               <thead>
                 <tr>
                   <th className={`${tableThClasses} w-[40%]`}>Aluno</th>
@@ -305,10 +305,10 @@ const ConselhoFinal = () => {
                 {alunosComJustificativa.length > 0 ? (
                   alunosComJustificativa.map(aluno => (
                     <tr key={`just-${aluno.idtblAluno}`}>
-                      <td className={`${tableTdClasses}  text-[16px]`}>
+                      <td className={`${tableTdClasses}  text-[1rem]`}>
                         {aluno.nome}
                       </td>
-                      <td className={`${tableTdClasses} text-[#555] italic text-[16px]`}>
+                      <td className={`${tableTdClasses} text-[#555] italic text-[1rem]`}>
                         {aluno.justificativa}
                       </td>
                     </tr>
@@ -325,11 +325,11 @@ const ConselhoFinal = () => {
           </div>
         )}
         
-        <div className="flex flex-col justify-center gap-[15px] w-[150px] shrink-0 h-[110px] ">
+        <div className="flex flex-col justify-center my-auto gap-[2vh] w-[8vw] shrink-0 max-h-[1vh] ">
           <button 
             onClick={handleAvaliarTurma}
             disabled={!turmaSelecionada || carregando}
-            className={`${btnClasses} p-[10px] rounded-[20px] font-bold text-center transition-all ${
+            className={`${btnClasses} p-[0.8vh] rounded-[20px] font-bold text-center transition-all ${
               !turmaSelecionada || carregando 
                 ? 'opacity-50 cursor-not-allowed bg-gray-400 text-white' 
                 : 'bg-red-500 text-white cursor-pointer hover:bg-red-600'
@@ -339,7 +339,7 @@ const ConselhoFinal = () => {
           <button
             onClick={handleSalvarTudo}
             disabled={salvando || !mostrarTabelaAlunos}
-            className={`${btnClasses} p-[10px] rounded-[20px] font-bold text-center transition-all ${
+            className={`${btnClasses} p-[0.8vh] rounded-[20px] font-bold text-center transition-all ${
               salvando || !mostrarTabelaAlunos
                 ? 'bg-gray-400 text-white opacity-50 cursor-not-allowed'
                 : 'bg-green-500 text-white cursor-pointer hover:bg-green-600'
@@ -358,14 +358,14 @@ const ConselhoFinal = () => {
             </div>
           </section>
         ) : ( 
-        <section className='h-[64vh] overflow-y-auto'>
-        <table className="w-full border-collapse bg-white text-sm">
+        <section className='flex-1 max-h-[62vh] overflow-y-auto border-2 border-gray-400'>
+        <table className="w-full bg-white text-sm box-border border-separate border-spacing-0 [&_tbody_tr:last-child_td]:!border-b-0">
           <thead>
             <tr>
-              <th className={`${tableThClasses}`}>Alunos</th>
-              <th className={`${tableThClasses}`}>Pré Conselho</th>
-              <th className={`${tableThClasses}`}>Conselho final</th>
-              <th className={`${tableThClasses}`}>Avaliação Situação Final</th>
+              <th className={`${tableThClasses} w-[40%]`}>Alunos</th>
+              <th className={`${tableThClasses} w-[10%]`}>Pré Conselho</th>
+              <th className={`${tableThClasses} w-[10%]`}>Conselho final</th>
+              <th className={`${tableThClasses} w-[20%]`}>Avaliação Situação Final</th>
               
             </tr>
              
@@ -382,14 +382,13 @@ const ConselhoFinal = () => {
                   <td className={`${tableTdClasses} `}>
                     <p>{aluno.acaoPropostaPreConselho}</p>
 
-                    <button className="text-gray-500 text-xs mt-[5px] hover:underline">
+                    <button className='text-gray-500 text-xs mt-[5px] hover:underline'>
                       <div className="flex items-center my-0 mx-1 gap-1">
-                        <img src={notificationIcon} alt="" className="w-6 h-6 border border-yellow-600 rounded-full p-[1px]"/>
+                        <img src={notificationIcon} alt="" className="w-6 h-6 p-[1px]"/>
                         <div className='flex'>
-                            <p className="text-m underline">Ver Observações</p>
-                            <p className="text-m underline">({intObservacoes})</p>
+                          <p className="text-m underline text-orange-700">Ver Observações</p>
                         </div>
-                    </div>
+                      </div>
                     </button>
                   </td>
 
@@ -405,7 +404,7 @@ const ConselhoFinal = () => {
                     <button
                         onClick={() => handleAprovado(aluno)}
                         disabled={salvando}
-                        className={`${btnClasses} w-full max-w-[250px] p-[6px] rounded-[15px] font-bold text-[17px] text-white transition-colors ${
+                        className={`${btnClasses} w-full max-w-[250px] p-[6px] rounded-[15px] font-bold text-[1rem] text-white transition-colors ${
                           statusSalvo === 'Aprovado' ? 'bg-green-500' : 'bg-gray-400 hover:bg-green-400'
                         }`}
                       >
@@ -414,7 +413,7 @@ const ConselhoFinal = () => {
                       <button
                         onClick={() => handleAbrirModal(aluno, 'Aprovado pelo conselho')}
                         disabled={salvando}
-                        className={`${btnClasses} w-full max-w-[250px] p-[6px] rounded-[15px] font-bold text-[17px] text-white transition-colors ${
+                        className={`${btnClasses} w-full max-w-[250px] p-[6px] rounded-[15px] font-bold text-[1rem] text-white transition-colors ${
                           statusSalvo === 'Aprovado pelo conselho' ? 'bg-yellow-500' : 'bg-gray-400 hover:bg-yellow-400'
                         }`}
                       >
@@ -423,7 +422,7 @@ const ConselhoFinal = () => {
                       <button
                         onClick={() => handleAbrirModal(aluno, 'Reprovado')}
                         disabled={salvando}
-                        className={`${btnClasses} w-full max-w-[250px] p-[6px] rounded-[15px] font-bold text-[17px] text-white transition-colors ${
+                        className={`${btnClasses} w-full max-w-[250px] p-[6px] rounded-[15px] font-bold text-[1rem] text-white transition-colors ${
                           statusSalvo === 'Reprovado' ? 'bg-red-500' : 'bg-gray-400 hover:bg-red-400'
                         }`}
                       >

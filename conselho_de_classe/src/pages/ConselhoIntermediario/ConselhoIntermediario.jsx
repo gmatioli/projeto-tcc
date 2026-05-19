@@ -368,8 +368,8 @@ export function ConselhoIntermediario() {
 
     const totalRestritos = Object.keys(alunosAvaliados).length;
 
-    const tableThClasses = "border-b-2 border-t-2 border-r-2 first:border-l-2 border-gray-400 p-[12px_15px] font-bold bg-white sticky top-0 z-10";
-    const tableTdClasses = "border-b-2 border-r-2 first:border-l-2 border-gray-400 p-[12px_15px] text-lg";
+    const tableThClasses = "border-b-2 border-r-2 last:border-r-0 border-gray-400 p-[1vh_1.2vw] font-bold bg-white sticky top-0 z-10";
+    const tableTdClasses = "border-b-2 border-r-2 last:border-r-0 border-gray-400 p-[1vh_1.2vw] text-lg";
 
     const botaoPrincipalDesabilitado = carregandoConselho || aguardandoConfirmacao || (!conselhoAtivo && (!idTurma || !idUsuario));
 
@@ -377,9 +377,9 @@ export function ConselhoIntermediario() {
     const classeBotaoPrincipal = botaoPrincipalDesabilitado
         ? 'opacity-50 cursor-not-allowed bg-gray-400 text-white'
         : modoEdicao
-            ? 'bg-red-900 text-white cursor-pointer active:scale-95 hover:bg-red-700'
+            ? 'bg-[var(--red-senai)] text-white cursor-pointer active:scale-95 hover:bg-red-800'
             : conselhoAtivo
-                ? 'bg-red-700 text-white cursor-pointer active:scale-95 hover:bg-red-800'
+                ? 'bg-[var(--red-senai)] text-white cursor-pointer active:scale-95 hover:bg-red-800'
                 : 'bg-green-600 text-white cursor-pointer active:scale-95 hover:bg-green-700';
  
 
@@ -437,11 +437,11 @@ export function ConselhoIntermediario() {
           </div>
 
           <div className="card_avaliacoes">
-            <div className="flex flex-col gap-3 min-h-[25vh]">
+            <div className="flex flex-col gap-[2vh] min-h-[28vh]">
                 <button
                   onClick={handleAcaoBotaoPrincipal}
                   disabled={botaoPrincipalDesabilitado}
-                  className={`p-[10px] w-[350px] rounded-[15px] border border-black shadow-[0_0_3px_black] transition-all duration-200 font-bold text-lg ${classeBotaoPrincipal}`}>
+                  className={`p-[1.2vh] w-[22vw] rounded-[15px] border-2 border-gray-600 shadow-[0_0_3px_black] transition-all duration-200 font-bold text-lg ${classeBotaoPrincipal}`}>
                   {textoBotaoPrincipal}
               </button>
 
@@ -457,7 +457,7 @@ export function ConselhoIntermediario() {
                               ? 'Avaliação da turma já foi registrada'
                               : ''
                   }                  
-                  className={`avaliar_toda_turma p-[10px] w-[350px] rounded-[15px] border border-black shadow-[0_0_3px_black] transition-all duration-200
+                  className={`avaliar_toda_turma p-[1.2vh] w-[22vw] rounded-[15px] border-2 border-gray-600 shadow-[0_0_3px_black] transition-all duration-200
                   ${!modoEdicao
                       ? 'opacity-50 cursor-not-allowed bg-gray-100'
                       : 'bg-[#FEFEFE] cursor-pointer active:scale-95'}`}>
@@ -467,7 +467,7 @@ export function ConselhoIntermediario() {
               <button
                 onClick={handleLimparSelecao}
                 disabled={botoesDesabilitados}
-                className={`limpar_selecao p-[10px] w-[350px] rounded-[15px] border border-black shadow-[0_0_3px_black] transition-all duration-200
+                className={`limpar_selecao p-[1.2vh] w-[22vw] rounded-[15px] border-2 border-gray-600 shadow-[0_0_3px_black] transition-all duration-200
                 ${botoesDesabilitados ? 'opacity-50 cursor-not-allowed bg-gray-100' : 'bg-[#FEFEFE] cursor-pointer active:scale-95'}`}>
                 Limpar Seleção
               </button>
@@ -475,7 +475,7 @@ export function ConselhoIntermediario() {
               <button
                 onClick={handleOpenModalAlunos}
                 disabled={!podeAvaliarAlunos}
-                className={`p-[10px] w-[350px] rounded-[15px] border border-black shadow-[0_0_3px_black] transition-all duration-200
+                className={`p-[1.2vh] w-[22vw] rounded-[15px] border-2 border-gray-600 shadow-[0_0_3px_black] transition-all duration-200
                 ${!podeAvaliarAlunos
                     ? 'opacity-50 cursor-not-allowed bg-gray-100'  
                     : 'bg-red-600 text-white cursor-pointer active:scale-95'}`}>
@@ -508,13 +508,13 @@ export function ConselhoIntermediario() {
             </div>
             
             <div className="flex flex-col">
-                <div className="flex justify-between my-0 mx-[10px] text-xl my-[1vh]">
-                    <div className="flex gap-2">
+                <div className="flex justify-between my-[1vh] text-xl mx-[1.4vw]">
+                    <div className="flex gap-2 items-center">
                         <input disabled={botoesDesabilitados} type="checkbox" id="checkbox_selecionar_tudo" className="w-5 h-5 cursor-pointer" 
                         onChange={handleSelecionarTudo} checked={alunos.length > 0 && alunosSelecionados.length === alunos.length}/>
                         <p>Selecionar Tudo</p>
                     </div>
-                    <div className="quatidade_alunos_selecionados">
+                    <div className="quatidade_alunos_selecionados items-center">
                         <p>Alunos Selecionados: {alunosSelecionados.length}</p>
                     </div>
                 </div>
@@ -523,9 +523,9 @@ export function ConselhoIntermediario() {
                     <p className="text-center text-gray-500 py-4">Carregando alunos...</p>
                 )}
 
-                <section className='max-h-[50vh] overflow-y-auto '>
+                <section className='max-h-[48vh] overflow-y-auto border-2 border-gray-400 shadow-[0_0_2px_gray]'>
                 {!carregando && (
-                  <table className="w-full bg-white box-border border-separate border-spacing-0 shadow-[0_0_4px_gray]">
+                  <table className="w-full bg-white text-sm box-border border-separate border-spacing-0 [&_tbody_tr:last-child_td]:!border-b-0">
                     <thead>
                       <tr>
                         {/* Adicionado text-left aqui */}
