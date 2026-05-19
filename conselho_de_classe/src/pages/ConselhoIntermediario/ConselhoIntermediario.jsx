@@ -1,5 +1,5 @@
 import React, { useState,  useEffect, useCallback  } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom'
+import { useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner'
 import totalAlunosIcon from '../../assets/conselho-intermediario/total-alunos-icon.svg'
 import situacaoNormalIcon from '../../assets/conselho-intermediario/situacao-normal-icon.svg'
@@ -30,7 +30,6 @@ const cicloAtual = () => {
   
 
 export function ConselhoIntermediario() {
-    const navigate = useNavigate();
 
     // Pegamos apenas a turma e o nome da turma da URL.
     const [searchParams] = useSearchParams();

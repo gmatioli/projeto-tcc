@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom'
+import { toast } from 'sonner';
 import { API } from '../../config/api';
 
 import notificationIcon from '../../assets/conselho-intermediario/notification-icon.svg';
@@ -12,16 +13,26 @@ const tableThClasses = "border border-[#ddd] p-[12px_15px] text-left font-bold b
 const tableTdClasses = "border border-[#ddd] p-[12px_15px] text-left text-lg";
 const btnClasses = "border border-black shadow-[3px_3px_5px_gray]"
 
+// Calcula semestre/ano corrente (mês <= 6 => 1º semestre)
+const cicloAtual = () => {
+  const hoje = new Date();
+  const mes = hoje.getMonth() + 1;
+  return {
+    ano: hoje.getFullYear(),
+    semestre: mes <= 6 ? 1 : 2,
+  };
+};
+
 const ConselhoFinal = () => {
 
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  
+
   // Parâmetros vindos da Sidebar (FormConselhoFinal)
   const areaSelecionada = searchParams.get('area');
   const cursoSelecionado = searchParams.get('curso');
-  
-  // Estados
+
+  // Estados de tela
   const [turmas, setTurmas] = useState([]);
   const [turmaSelecionada, setTurmaSelecionada] = useState(null);
   const [alunosComAcaoProposta, setAlunosComAcaoProposta] = useState([]);
@@ -30,11 +41,37 @@ const ConselhoFinal = () => {
   const [mostrarTabelaAlunos, setMostrarTabelaAlunos] = useState(false);
   const [salvando, setSalvando] = useState(false);
   const [situacoesFinais, setSituacoesFinais] = useState({});
-  
+
+  // Estados do Conselho Final (sessão única por usuário+ciclo, abrange várias turmas)
+  const [conselhoId, setConselhoId] = useState(null);
+  const [donoConselho, setDonoConselho] = useState(null);
+  const [modoEdicao, setModoEdicao] = useState(false);
+  const [carregandoConselho, setCarregandoConselho] = useState(false);
+  const [aguardandoConfirmacao, setAguardandoConfirmacao] = useState(false);
+
+  // Ciclo corrente (semestre/ano) — chave da sessão
+  const ciclo = useState(cicloAtual)[0];
+
   // Usuário logado vindo do localStorage (para registrar quem iniciou)
   const usuario = JSON.parse(localStorage.getItem('usuarioLogado') || '{}');
   const idUsuario = usuario.idUsuario;
 
+  // FLAGS DERIVADAS
+  const conselhoAtivo = !!conselhoId;
+  const naoEhDono = !!(donoConselho && donoConselho.idUsuario && donoConselho.idUsuario !== idUsuario);
+
+  const textoBotaoPrincipal = carregandoConselho
+    ? 'Carregando...'
+    : modoEdicao
+      ? 'Finalizar Conselho'
+      : conselhoAtivo
+        ? 'Editar Conselho'
+        : 'Iniciar Conselho';
+
+  // Botão principal desabilita quando: carregando, esperando confirmação,
+  // OU ainda não existe conselho e nenhuma turma foi escolhida.
+  const botaoPrincipalDesabilitado =
+    carregandoConselho || aguardandoConfirmacao || (!conselhoAtivo && !turmaSelecionada);
 
   // Modal Justificativa
   const [modalAberto, setModalAberto] = useState(false);
@@ -71,57 +108,238 @@ const ConselhoFinal = () => {
       .finally(() => setCarregando(false));
   }, [areaSelecionada, cursoSelecionado]);
 
-  // 2) Carrega alunos e restaura situações finais salvas
-  const handleAvaliarTurma = async () => {
-    if (!turmaSelecionada) return;
+  // Carrega alunos da turma (ação proposta e justificativa do Pré-Conselho)
+  // E, se houver um Conselho Final ativo, restaura as situações finais já salvas.
+  // Recebe o cancelado para abortar atualizações se a turma trocou no meio.
+  const carregarAlunos = async (idTurma, conselhoIdFinal, estaCancelado) => {
+    try {
+      const resP = await fetch(`${API.conselho}/dados-pre-conselho/turma/${idTurma}`);
+      const dataP = await resP.json();
+      if (estaCancelado && estaCancelado()) return;
 
-    setCarregando(true);
-     try {
-      // Vincula a turma ao Conselho Final (cria o conselho se não existir)
-      const resIniciar = await fetch(`${API.conselho}/iniciar`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          tipoConselho: 'Conselho-Final',
-          idTurma: turmaSelecionada,
-          idUsuario,
-        }),
-      });
-      const dataIniciar = await resIniciar.json();
-      if (!dataIniciar.sucesso) {
-        alert('Erro ao vincular turma ao Conselho Final.');
+      if (!dataP.sucesso) {
+        toast.error('Erro ao carregar alunos da turma.');
         return;
       }
 
-      const res = await fetch(`${API.conselho}/dados-pre-conselho/turma/${turmaSelecionada}`);
-      const data = await res.json();
-      if (data.sucesso) {
-        setAlunosComAcaoProposta(data.alunosComAcaoProposta);
-        setAlunosComJustificativa(data.alunosComJustificativa);
-        setMostrarTabelaAlunos(true);
+      setAlunosComAcaoProposta(dataP.alunosComAcaoProposta);
+      setAlunosComJustificativa(dataP.alunosComJustificativa);
+      setMostrarTabelaAlunos(true);
 
-         // Restaura situações finais já salvas no banco
-        const situacoesRestauradas = {};
-        
-        data.alunosComAcaoProposta.forEach(aluno => {
-          if (aluno.situacaoFinal) {
-            situacoesRestauradas[aluno.idtblAluno] = {
-              situacaoFinal: aluno.situacaoFinal,
-              contestacao: aluno.contestacaoSituacaoFinal || '',
+      // Situações finais vivem em Avaliacao_Aluno do Conselho FINAL, não do Pré.
+      // Só consulta se já existe um conselho final para o ciclo.
+      if (!conselhoIdFinal) {
+        setSituacoesFinais({});
+        return;
+      }
+
+      const resF = await fetch(`${API.conselho}/${conselhoIdFinal}/turma/${idTurma}/avaliacoes-alunos`);
+      const dataF = await resF.json();
+      if (estaCancelado && estaCancelado()) return;
+
+      if (dataF.sucesso) {
+        const situacoes = {};
+        (dataF.avaliacoes || []).forEach(av => {
+          if (av.situacaoFinal) {
+            situacoes[av.tblAluno_idtblAluno] = {
+              situacaoFinal: av.situacaoFinal,
+              contestacao: av.contestacaoSituacaoFinal || '',
             };
           }
         });
-        setSituacoesFinais(situacoesRestauradas);
-
-      } else {
-        alert('Erro ao carregar alunos da turma.');
+        setSituacoesFinais(situacoes);
       }
     } catch (err) {
       console.error('Erro ao carregar alunos:', err);
-      alert('Erro ao carregar alunos da turma.');
-    } finally {
-      setCarregando(false);
+      toast.error('Erro ao carregar alunos da turma.');
     }
+  };
+
+  // Ao trocar de turma na tabela: localiza o Conselho Final do ciclo
+  // (etapa 1 pela turma, etapa 2 pela sessão do usuário), vincula a turma
+  // idempotente e carrega os alunos. NÃO cria conselho aqui — criação só
+  // acontece no clique explícito de "Iniciar Conselho".
+  useEffect(() => {
+    if (!turmaSelecionada || !idUsuario) return;
+
+    let cancelado = false;
+    const isCancelado = () => cancelado;
+
+    (async () => {
+      // Reset visual ao trocar de turma (mantém modoEdicao — uma vez iniciado
+      // o Conselho Final, o botão permanece em "Finalizar" ao trocar turmas).
+      setAlunosComAcaoProposta([]);
+      setAlunosComJustificativa([]);
+      setSituacoesFinais({});
+
+      try {
+        const r1 = await fetch(
+          `${API.conselho}/ativo/${encodeURIComponent('Final')}/turma/${turmaSelecionada}` +
+          `?idUsuario=${idUsuario}&semestre=${ciclo.semestre}&ano=${ciclo.ano}`
+        );
+        const d1 = await r1.json();
+        if (cancelado) return;
+
+        if (!d1?.sucesso || !d1.conselho) {
+          // Sem conselho do ciclo e sem sessão — botão fica "Iniciar".
+          setConselhoId(null);
+          setDonoConselho(null);
+          setModoEdicao(false);
+          await carregarAlunos(turmaSelecionada, null, isCancelado);
+          return;
+        }
+
+        // Vincula a turma de forma idempotente (ON CONFLICT DO NOTHING).
+        // Mandamos parâmetros completos — backend decide pelo lookup em duas etapas.
+        const r2 = await fetch(`${API.conselho}/iniciar`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            tipoConselho: 'Final',
+            idTurma: turmaSelecionada,
+            idUsuario,
+            semestre: ciclo.semestre,
+            ano: ciclo.ano,
+          }),
+        });
+        const d2 = await r2.json();
+        if (cancelado) return;
+
+        const cidFinal = (d2?.sucesso && d2.conselhoId) || d1.conselho.idConselho;
+        const dono = d2?.dono || (d1.conselho.Usuario_idUsuario ? {
+          idUsuario: d1.conselho.Usuario_idUsuario,
+          nomeUsuario: d1.conselho.nomeUsuario,
+        } : null);
+
+        setConselhoId(cidFinal);
+        setDonoConselho(dono);
+
+        await carregarAlunos(turmaSelecionada, cidFinal, isCancelado);
+      } catch (err) {
+        console.error('Erro ao localizar/vincular conselho final:', err);
+      }
+    })();
+
+    return () => { cancelado = true; };
+  }, [turmaSelecionada, idUsuario, ciclo.semestre, ciclo.ano]);
+
+  // Iniciar / Editar / Finalizar Conselho Final
+  const handleIniciarConselho = async () => {
+    if (!turmaSelecionada || !idUsuario) {
+      toast.warning('Selecione uma turma para iniciar o conselho.');
+      return;
+    }
+    setCarregandoConselho(true);
+    try {
+      const resp = await fetch(`${API.conselho}/iniciar`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          tipoConselho: 'Final',
+          idTurma: turmaSelecionada,
+          idUsuario,
+          semestre: ciclo.semestre,
+          ano: ciclo.ano,
+        }),
+      });
+      const dados = await resp.json();
+      if (!dados.sucesso) throw new Error(dados.mensagem);
+
+      setConselhoId(dados.conselhoId);
+      setDonoConselho(dados.dono || null);
+      await carregarAlunos(turmaSelecionada, dados.conselhoId);
+      setModoEdicao(true);
+    } catch (e) {
+      console.error(e);
+      toast.error('Erro ao iniciar conselho.');
+    } finally {
+      setCarregandoConselho(false);
+    }
+  };
+
+  const handleEditarConselho = async () => {
+    if (!conselhoId || !turmaSelecionada || !idUsuario) return;
+    setCarregandoConselho(true);
+    try {
+      const resp = await fetch(`${API.conselho}/iniciar`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          tipoConselho: 'Final',
+          idTurma: turmaSelecionada,
+          idUsuario,
+          semestre: ciclo.semestre,
+          ano: ciclo.ano,
+        }),
+      });
+      const dados = await resp.json();
+      if (!dados.sucesso) throw new Error(dados.mensagem);
+
+      const idFinal = dados.conselhoId || conselhoId;
+      if (idFinal !== conselhoId) setConselhoId(idFinal);
+      if (dados.dono) setDonoConselho(dados.dono);
+
+      await carregarAlunos(turmaSelecionada, idFinal);
+      setModoEdicao(true);
+    } catch (e) {
+      console.error(e);
+      toast.error('Erro ao editar conselho.');
+    } finally {
+      setCarregandoConselho(false);
+    }
+  };
+
+  const handleFinalizarConselho = () => {
+    if (!conselhoId) return;
+    setAguardandoConfirmacao(true);
+
+    const mensagem = naoEhDono
+      ? `Você não é o dono deste conselho (iniciado por ${donoConselho?.nomeUsuario || 'outro usuário'}). Finalizar mesmo assim?`
+      : 'Deseja finalizar o conselho?';
+
+    toast(mensagem, {
+      action: {
+        label: 'FINALIZAR',
+        onClick: () => executarFinalizacao(),
+      },
+      cancel: {
+        label: 'CANCELAR',
+        onClick: () => setAguardandoConfirmacao(false),
+      },
+      onDismiss: () => setAguardandoConfirmacao(false),
+      onAutoClose: () => setAguardandoConfirmacao(false),
+      duration: 8000,
+    });
+  };
+
+  const executarFinalizacao = async () => {
+    setAguardandoConfirmacao(false);
+    setCarregandoConselho(true);
+    try {
+      const resp = await fetch(`${API.conselho}/finalizar`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ conselhoId }),
+      });
+      const dados = await resp.json();
+      if (!dados.sucesso) throw new Error(dados.mensagem);
+
+      // Mantém conselhoId/dono/alunos na tela. Só sai do modo edição —
+      // o botão passa a mostrar "Editar Conselho" para reabrir se precisar.
+      setModoEdicao(false);
+      toast.success('Conselho finalizado com sucesso!');
+    } catch (e) {
+      console.error(e);
+      toast.error('Erro ao finalizar conselho.');
+    } finally {
+      setCarregandoConselho(false);
+    }
+  };
+
+  const handleAcaoBotaoPrincipal = () => {
+    if (modoEdicao) return handleFinalizarConselho();
+    if (conselhoAtivo) return handleEditarConselho();
+    return handleIniciarConselho();
   };
 
   const salvarSituacaoFinal = async (idAluno, novaSituacao, contestacao = null) => {
@@ -242,6 +460,15 @@ const ConselhoFinal = () => {
         </span>
       </nav>
 
+      {naoEhDono && (
+        <div className="bg-amber-50 border border-amber-300 text-amber-900 rounded-md px-4 py-2 text-sm">
+          <strong>Iniciado por {donoConselho?.nomeUsuario || 'outro usuário'}.</strong>{' '}
+          Você está visualizando o conselho final de outro responsável.
+          Alterações serão registradas em seu nome. Evite finalizar sem
+          combinar com o dono do conselho.
+        </div>
+      )}
+
       {/* SEÇÃO SUPERIOR: TURMAS + JUSTIFICATIVAS LADO A LADO */}
       <section className="flex gap-[15px] items-start w-full mb-6">
         
@@ -326,21 +553,25 @@ const ConselhoFinal = () => {
         )}
         
         <div className="flex flex-col justify-center gap-[15px] w-[150px] shrink-0 h-[110px] ">
-          <button 
-            onClick={handleAvaliarTurma}
-            disabled={!turmaSelecionada || carregando}
+          <button
+            onClick={handleAcaoBotaoPrincipal}
+            disabled={botaoPrincipalDesabilitado}
             className={`${btnClasses} p-[10px] rounded-[20px] font-bold text-center transition-all ${
-              !turmaSelecionada || carregando 
-                ? 'opacity-50 cursor-not-allowed bg-gray-400 text-white' 
-                : 'bg-red-500 text-white cursor-pointer hover:bg-red-600'
+              botaoPrincipalDesabilitado
+                ? 'opacity-50 cursor-not-allowed bg-gray-400 text-white'
+                : modoEdicao
+                  ? 'bg-red-700 text-white cursor-pointer hover:bg-red-800'
+                  : conselhoAtivo
+                    ? 'bg-red-500 text-white cursor-pointer hover:bg-red-600'
+                    : 'bg-green-600 text-white cursor-pointer hover:bg-green-700'
             }`}>
-            {carregando ? 'Carregando...' : 'Avaliar turma'}
+            {textoBotaoPrincipal}
           </button>
           <button
             onClick={handleSalvarTudo}
-            disabled={salvando || !mostrarTabelaAlunos}
+            disabled={salvando || !mostrarTabelaAlunos || !modoEdicao}
             className={`${btnClasses} p-[10px] rounded-[20px] font-bold text-center transition-all ${
-              salvando || !mostrarTabelaAlunos
+              salvando || !mostrarTabelaAlunos || !modoEdicao
                 ? 'bg-gray-400 text-white opacity-50 cursor-not-allowed'
                 : 'bg-green-500 text-white cursor-pointer hover:bg-green-600'
             }`}>
@@ -354,10 +585,10 @@ const ConselhoFinal = () => {
       {!mostrarTabelaAlunos ? (
           <section className='h-[64vh] flex items-center justify-center'>
             <div className="text-center text-gray-500">
-              <p className="text-xl font-medium">Selecione uma turma e clique em "Avaliar turma" para iniciar avaliação dos alunos.</p>
+              <p className="text-xl font-medium">Selecione uma turma na tabela acima para ver os alunos. Em seguida clique em "Iniciar Conselho" para começar a avaliar.</p>
             </div>
           </section>
-        ) : ( 
+        ) : (
         <section className='h-[64vh] overflow-y-auto'>
         <table className="w-full border-collapse bg-white text-sm">
           <thead>
@@ -404,8 +635,10 @@ const ConselhoFinal = () => {
                   <td className={`${tableTdClasses} flex flex-col gap-2 items-center p-2`}>
                     <button
                         onClick={() => handleAprovado(aluno)}
-                        disabled={salvando}
+                        disabled={salvando || !modoEdicao}
+                        title={!modoEdicao ? 'Clique em "Iniciar Conselho" para avaliar' : ''}
                         className={`${btnClasses} w-full max-w-[250px] p-[6px] rounded-[15px] font-bold text-[17px] text-white transition-colors ${
+                          !modoEdicao ? 'opacity-60 cursor-not-allowed bg-gray-400' :
                           statusSalvo === 'Aprovado' ? 'bg-green-500' : 'bg-gray-400 hover:bg-green-400'
                         }`}
                       >
@@ -413,8 +646,10 @@ const ConselhoFinal = () => {
                       </button>
                       <button
                         onClick={() => handleAbrirModal(aluno, 'Aprovado pelo conselho')}
-                        disabled={salvando}
+                        disabled={salvando || !modoEdicao}
+                        title={!modoEdicao ? 'Clique em "Iniciar Conselho" para avaliar' : ''}
                         className={`${btnClasses} w-full max-w-[250px] p-[6px] rounded-[15px] font-bold text-[17px] text-white transition-colors ${
+                          !modoEdicao ? 'opacity-60 cursor-not-allowed bg-gray-400' :
                           statusSalvo === 'Aprovado pelo conselho' ? 'bg-yellow-500' : 'bg-gray-400 hover:bg-yellow-400'
                         }`}
                       >
@@ -422,8 +657,10 @@ const ConselhoFinal = () => {
                       </button>
                       <button
                         onClick={() => handleAbrirModal(aluno, 'Reprovado')}
-                        disabled={salvando}
+                        disabled={salvando || !modoEdicao}
+                        title={!modoEdicao ? 'Clique em "Iniciar Conselho" para avaliar' : ''}
                         className={`${btnClasses} w-full max-w-[250px] p-[6px] rounded-[15px] font-bold text-[17px] text-white transition-colors ${
+                          !modoEdicao ? 'opacity-60 cursor-not-allowed bg-gray-400' :
                           statusSalvo === 'Reprovado' ? 'bg-red-500' : 'bg-gray-400 hover:bg-red-400'
                         }`}
                       >
