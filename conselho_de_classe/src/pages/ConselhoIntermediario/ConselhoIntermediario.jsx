@@ -81,7 +81,7 @@ export function ConselhoIntermediario() {
     // Regras de habilitação (centralizadas aqui pra ficar fácil de manter):
     //  - botoesDesabilitados: bloqueia tudo enquanto o conselho não for iniciado
     //  - podeAvaliarAlunos: precisa ter conselho + avaliação da turma + alunos marcados
-    const botoesDesabilitados = !modoEdicao 
+    const botoesDesabilitados = !modoEdicao || !turmaJaAvaliada
     // && !conselhoAtivo; // modoEdição libera os botões mesmo sem conselho, para permitir edição posterior
 
     const podeAvaliarAlunos =
@@ -146,6 +146,11 @@ export function ConselhoIntermediario() {
               mapa[a.tblAluno_idtblAluno] = a;
           });
           setAlunosAvaliados(mapa);
+
+          
+          if (!avaliacao) {
+            setIsModalTurmaOpen(true); // auto-abre se ainda não tem avaliação da turma
+          }
 
           return avaliacao; // pro handleIniciarConselho decidir se abre modal
       } catch (e) {
@@ -299,8 +304,13 @@ export function ConselhoIntermediario() {
                 setConselhoId(idFinal);
             }
             if (dados.dono) setDonoConselho(dados.dono);
-            await recarregarConselho(idFinal, idTurma);
+
+            const avaliacao = await recarregarConselho(dados.conselhoId, idTurma);
             setModoEdicao(true);
+
+            if (!avaliacao) {
+              setIsModalTurmaOpen(true); // auto-abre se ainda não tem avaliação da turma
+            }
         } catch (e) {
             console.error(e);
             alert('Erro ao editar conselho.');
