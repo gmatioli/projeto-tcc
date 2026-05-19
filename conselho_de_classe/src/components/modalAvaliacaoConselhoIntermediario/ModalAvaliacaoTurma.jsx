@@ -1,6 +1,8 @@
 
 import { useEffect, useState } from 'react';
 import { API } from '../../config/api';
+import { toast } from 'sonner';
+
 
 const CRITERIOS = ['Atende satisfatoriamente', 'Necessita de orientação'];
 
@@ -11,7 +13,7 @@ const initialState = {
   disponibilidade_Aprendizado: '',
   observacao: '',
   alcancou_Objetivos: '',
-  acaoProposta: ''
+  acaoPreventiva: ''
 };
 
 const ModalAvaliacaoTurma = ({
@@ -23,8 +25,24 @@ const ModalAvaliacaoTurma = ({
   avaliacaoExistente,
   onSaved
 }) => {
+
   const [form, setForm] = useState(initialState);
   const [salvando, setSalvando] = useState(false);
+
+  const validarForm = () => {
+    const erros = [];
+
+    if (!form.organizacao)                  erros.push('Organização');
+    if (!form.comportamental)               erros.push('Comportamental');
+    if (!form.assiduidade)                  erros.push('Assiduidade');
+    if (!form.disponibilidade_Aprendizado)  erros.push('Disponibilidade para aprendizagem');
+    if (!form.alcancou_Objetivos)           erros.push('Posição geral da turma');
+     // só obrigatória quando a turma NÃO alcançou os objetivos
+    if (form.alcancou_Objetivos === 'Não' && !form.acaoPreventiva.trim()) {
+      erros.push('Ação preventiva');
+    }
+    return erros;
+  };
 
   // Pré-carrega valores quando o modal abre com avaliação já existente
   useEffect(() => {
@@ -37,7 +55,7 @@ const ModalAvaliacaoTurma = ({
         disponibilidade_Aprendizado: avaliacaoExistente.disponibilidade_Aprendizado || '',
         observacao:                  avaliacaoExistente.observacao                  || '',
         alcancou_Objetivos:          avaliacaoExistente.alcancou_Objetivos          || '',
-        acaoProposta:                avaliacaoExistente.acaoProposta                || ''
+        acaoPreventiva:              avaliacaoExistente.acaoPreventiva                || ''
       });
     } else {
       setForm(initialState);
@@ -53,6 +71,12 @@ const ModalAvaliacaoTurma = ({
     if (!conselhoId || !idTurma) {
       alert('Conselho ou turma não identificados.');
       return;
+    }
+    const erro = validarForm();
+
+    if(erro.length > 0) {
+      toast.error('Preencha os campos obrigatórios: ' + erro.join(', '));
+      return; 
     }
     setSalvando(true);
     try {
@@ -70,7 +94,8 @@ const ModalAvaliacaoTurma = ({
       onSaved && onSaved(dados.avaliacao);
     } catch (err) {
       console.error(err);
-      alert('Erro ao salvar avaliação da turma.');
+      toast.error('Erro ao salvar avaliação da turma: ' + err.message);
+     
     } finally {
       setSalvando(false);
     }
@@ -172,8 +197,8 @@ const ModalAvaliacaoTurma = ({
               <input
                 type="text"
                 placeholder="Descreva a ação preventiva..."
-                value={form.acaoProposta}
-                onChange={(e) => setCampo('acaoProposta', e.target.value)}
+                value={form.acaoPreventiva}
+                onChange={(e) => setCampo('acaoPreventiva', e.target.value)}
                 disabled={form.alcancou_Objetivos !== 'Não'}
                 className="text-base sm:text-lg py-3 w-full rounded-[18px] border border-[#bbb] px-4 disabled:bg-gray-200"
               />

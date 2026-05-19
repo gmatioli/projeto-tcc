@@ -15,9 +15,11 @@ import { API } from '../../config/api';
 // Calcula semestre/ano corrente (mês <= 6 => 1º semestre)
 const cicloAtual = () => {
   const hoje = new Date();
+  const mes = hoje.getMonth() + 1;       
+  // const mes = 8;
   return {
     ano: hoje.getFullYear(),
-    semestre: hoje.getMonth() + 1 <= 6 ? 1 : 2
+    semestre: mes <= 6 ? 1 : 2
   };
 };
 

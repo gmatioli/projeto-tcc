@@ -41,8 +41,8 @@ const ModalAvaliacao = ({
           naturezas: naturezasMarcadas,
           naturezaOutro,
           justificativa:    av.justificativa                || '',
-          acaoProposta: av.acaoPropostaPreConselho || '',
-          responsavel:  av.responsavelPreConselho  || '',
+          acaoProposta: av.acaoProposta || '',
+          responsavel:  av.responsavel || '',
         });
       } else {
         setForm(initialState);
@@ -109,8 +109,8 @@ const ModalAvaliacao = ({
       naturezaOcorrencia: naturezasFinais,
       justificativa: form.justificativa,
       informacoesComplementares: form.informacoesComplementares,
-      acaoPropostaPreConselho: form.acaoProposta,
-      responsavelPreConselho: form.responsavel,
+      acaoProposta: form.acaoProposta,
+      responsavel: form.responsavel,
       idUsuario
     };
 
@@ -154,7 +154,7 @@ const ModalAvaliacao = ({
 
     setRemovendo(true);
     try {
-      const resp = await fetch(`${API}/avaliacao-aluno/${conselhoId}/${idAluno}`, 
+      const resp = await fetch(`${API.conselho}/avaliacao-aluno/${conselhoId}/${idAluno}`, 
       { method: 'DELETE' }
       ).then(r => r.json());
 
@@ -164,6 +164,7 @@ const ModalAvaliacao = ({
       onSaved && onSaved();
     } catch (err) {
       console.error(err);
+      toast.error('Erro ao remover restrição: ' + err.message);
     } finally {
       setRemovendo(false);
     }
@@ -205,8 +206,8 @@ const ModalAvaliacao = ({
             {historicoUnico ? (
               <ul className="mt-1 list-disc list-inside text-yellow-900">
                 {historicoUnico.restricao && (<li><strong>Restrição:</strong> {historicoUnico.restricao}</li>)}
-                {historicoUnico.acaoPropostaIntermediario && (<li><strong>Ação Proposta:</strong> {historicoUnico.acaoPropostaIntermediario}</li>)}
-                {historicoUnico.responsavelIntermediario && (<li><strong>Responsável:</strong> {historicoUnico.responsavelIntermediario}</li>)}
+                {historicoUnico.acaoProposta && (<li><strong>Ação Proposta:</strong> {historicoUnico.acaoProposta}</li>)}
+                {historicoUnico.responsavel && (<li><strong>Responsável:</strong> {historicoUnico.responsavel}</li>)}
                 {Array.isArray(historicoUnico.naturezaOcorrencia) && historicoUnico.naturezaOcorrencia.length > 0 && (
                   <li><strong>Natureza:</strong> {historicoUnico.naturezaOcorrencia.join(', ')}</li>
                 )}
