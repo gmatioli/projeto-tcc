@@ -100,13 +100,13 @@ function FormFiltros({ rotaDestino, onFechar }) {
       </div>
 
       <div className="flex gap-[10px] mt-[5px]">
-        <button onClick={handleLimparFiltro} className="flex-1 p-[10px] bg-[var(--button-selected)] text-white rounded-[5px] text-lg font-semibold hover:brightness-90 transition-all">
+        <button onClick={handleLimparFiltro} className="flex-1 p-[10px] border-2 border-gray-500 bg-[var(--button-selected)] text-white rounded-xl text-lg font-semibold hover:brightness-90 transition-all">
           Limpar ⟲
         </button>
         <button
           onClick={handlePesquisar}
           disabled={formIncompleto}
-          className={`flex-1 p-[10px] rounded-[5px] text-lg font-semibold transition-all
+          className={`flex-1 p-[10px] border-2 border-gray-500 rounded-xl text-lg font-semibold transition-all
             ${formIncompleto ? 'opacity-50 cursor-not-allowed bg-gray-400 text-gray-200' : 'bg-[var(--button-selected)] text-white cursor-pointer hover:brightness-90'}`}>
           Pesquisar
         </button>
@@ -290,8 +290,8 @@ export function Sidebar() {
             <div className="flex flex-col w-full mx-auto mt-[10px] gap-2">
               <button
                 onClick={() => toggleAba('intermediario')}
-                className={`w-full py-3 px-2 rounded-[8px] border-2 border-gray-500 text-xl font-medium transition-all shadow-lg text-center whitespace-nowrap ${
-                  abaAberta === 'intermediario' ? 'bg-[var(--button-selected)] text-white border-2 border-gray-500 shadow-xl' : 'bg-gray-100 border-gray-300 hover:bg-gray-300'
+                className={`w-full py-3 px-2 rounded-[8px] border-2 border-gray-600 text-xl font-medium transition-all shadow-lg text-center whitespace-nowrap ${
+                  abaAberta === 'intermediario' ? 'bg-[var(--button-selected)] text-white border-2 border-gray-600 shadow-xl' : 'bg-gray-100 border-gray-300 hover:bg-gray-300'
                 }`}>
                 Conselho Intermediário
               </button>
@@ -299,8 +299,8 @@ export function Sidebar() {
 
               <button
                 onClick={() => toggleAba('pre')}
-                className={`w-full py-3 px-4 rounded-[8px] border-2 border-gray-500 text-xl font-medium transition-all shadow-lg text-center whitespace-nowrap ${
-                  abaAberta === 'pre' ? 'bg-[var(--button-selected)] text-white border-2 border-gray-500 shadow-lg' : 'bg-gray-100 border-gray-300 hover:bg-gray-300'
+                className={`w-full py-3 px-4 rounded-[8px] border-2 border-gray-600 text-xl font-medium transition-all shadow-lg text-center whitespace-nowrap ${
+                  abaAberta === 'pre' ? 'bg-[var(--button-selected)] text-white border-2 border-gray-600 shadow-lg' : 'bg-gray-100 border-gray-300 hover:bg-gray-300'
                 }`}>
                 Pré-Conselho
               </button>
@@ -308,8 +308,8 @@ export function Sidebar() {
 
               <button
                 onClick={() => toggleAba('final')}
-                className={`w-full py-3 px-4 rounded-[8px] border-2 border-gray-500 text-xl font-medium transition-all shadow-lg text-center whitespace-nowrap ${
-                  abaAberta === 'final' ? 'bg-[var(--button-selected)] text-white border-2 border-gray-500 shadow-lg' : 'bg-gray-100 border-gray-300 hover:bg-gray-300'
+                className={`w-full py-3 px-4 rounded-[8px] border-2 border-gray-600 text-xl font-medium transition-all shadow-lg text-center whitespace-nowrap ${
+                  abaAberta === 'final' ? 'bg-[var(--button-selected)] text-white border-2 border-gray-600 shadow-lg' : 'bg-gray-100 border-gray-300 hover:bg-gray-300'
                 }`}>
                 Conselho Final
               </button>
@@ -337,7 +337,7 @@ export function Sidebar() {
             <div className="flex flex-col w-full mx-auto mt-[10px] gap-2">
               <button
                 onClick={() => navigate('/relatorios/ata')}
-                className={`w-full py-3 px-4 rounded-[8px] border-2 border-gray-500 text-lg font-medium transition-all shadow-lg text-center whitespace-nowrap ${
+                className={`w-full py-3 px-4 rounded-[8px] border-2 border-gray-600 text-lg font-medium transition-all shadow-lg text-center whitespace-nowrap ${
                   location.pathname === '/relatorios/ata' ? 'bg-[var(--button-selected)] text-white border-2 border-gray-700 shadow-lg' : 'bg-gray-100 border-gray-300 hover:bg-gray-300'
                 }`}>
                 Gerar Ata
@@ -345,7 +345,7 @@ export function Sidebar() {
 
               <button
                 onClick={() => navigate('/relatorios/relatorio')}
-                className={`w-full py-3 px-4 rounded-[8px] border-2 border-gray-500 text-lg font-medium transition-all shadow-lg text-center whitespace-nowrap ${
+                className={`w-full py-3 px-4 rounded-[8px] border-2 border-gray-600 text-lg font-medium transition-all shadow-lg text-center whitespace-nowrap ${
                   location.pathname === '/relatorios/relatorio' ? 'bg-[var(--button-selected)] text-white border-2 border-gray-700 shadow-lg' : 'bg-gray-100 border-gray-300 hover:bg-gray-300'
                 }`}>
                 Gerar Relatório
@@ -353,7 +353,7 @@ export function Sidebar() {
 
               <button
                 onClick={() => navigate('/relatorios/termo')}
-                className={`w-full py-3 px-4 rounded-[8px] border-2 border-gray-500 text-lg font-medium transition-all shadow-lg text-center whitespace-nowrap ${
+                className={`w-full py-3 px-4 rounded-[8px] border-2 border-gray-600 text-lg font-medium transition-all shadow-lg text-center whitespace-nowrap ${
                   location.pathname === '/relatorios/termo' ? 'bg-[var(--button-selected)] text-white border-2 border-gray-700 shadow-lg' : 'bg-gray-100 border-gray-300 hover:bg-gray-300'
                 }`}>
                 Gerar Termo de Ciência
