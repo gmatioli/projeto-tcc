@@ -256,7 +256,7 @@ export function Sidebar() {
 
   return (
     <section className="h-[calc(100vh-8vh)]">
-      <div className="bg-gray-200 max-w-[20vw] h-full flex flex-col border-r border-gray-300 overflow-hidden">
+      <div className="bg-gray-200 max-w-[20vw] h-full flex flex-col border-r-2 border-gray-300 overflow-hidden">
 
         <div className="flex-1 overflow-y-auto pt-6 px-[0.5vw] pb-4 custom-scrollbar">
 
@@ -363,7 +363,7 @@ export function Sidebar() {
 
         </div>
 
-        <div className="w-full flex justify-center border-t border-gray-300">
+        <div className="w-full flex justify-center border-t-2 border-gray-300">
           <button
             onClick={() => handleClick('/configuracoes', 'configuracoes')}
             className={`flex items-center justify-center w-full h-[70px] px-[20px] bg-gray-100 border-2 shadow-[0px_-3px_7px_rgb(150,150,150)] font-bold text-[26px] cursor-pointer transition-all gap-[15px] ${
