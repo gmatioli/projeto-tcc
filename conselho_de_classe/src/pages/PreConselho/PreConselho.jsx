@@ -38,12 +38,12 @@ export function PreConselho() {
     // Usuário logado vindo do localStorage (para registrar quem iniciou)
     const usuario = JSON.parse(localStorage.getItem('usuarioLogado') || '{}');
     const idUsuario = usuario.idUsuario;
-    
-    const [conselhoId, setConselhoId] = useState(() => {
-            const v = localStorage.getItem('preConselhoAtivo');
-            return v ? Number(v) : null;
-        });
-    
+
+    // conselhoId vem do backend (lookup por turma com fallback para sessão
+    // do usuário). Sem localStorage — evita "vazamento" entre usuários.
+    const [conselhoId, setConselhoId] = useState(null);
+    const [donoConselho, setDonoConselho] = useState(null);
+
     const [modoEdicao, setModoEdicao] = useState(false);
         
     // Ciclo (semestre/ano) corrente — usado para reusar/abrir conselho no mesmo período
@@ -63,11 +63,15 @@ export function PreConselho() {
     // Existe um conselho rodando?
     const conselhoAtivo = !!conselhoId;
 
+    // O usuário logado é o dono deste conselho? Quando não é, mostramos aviso
+    // e o botão de finalizar pede confirmação reforçada.
+    const naoEhDono = !!(donoConselho && donoConselho.idUsuario && donoConselho.idUsuario !== idUsuario);
+
     // Regras de habilitação (centralizadas aqui pra ficar fácil de manter):
     //  - botoesDesabilitados: bloqueia tudo enquanto o conselho não for iniciado
     //  - podeAvaliarAlunos: precisa ter conselho +  alunos marcados
     const botoesDesabilitados = !modoEdicao;
-    
+
     const podeAvaliarAlunos =
         modoEdicao && alunosSelecionados.length > 0;
 
@@ -138,36 +142,74 @@ export function PreConselho() {
             .catch(err => console.error('Erro ao buscar histórico do intermediário:', err));
     }, [idTurma, ciclo.semestre, ciclo.ano]);
 
-    // 1b) Ao montar: se não há conselho em localStorage, busca um do ciclo atual.
+    // 1b) Ao trocar de turma: localiza o conselho do ciclo (turma primeiro,
+    // depois sessão do usuário) e vincula a turma de forma idempotente.
     useEffect(() => {
-        if (conselhoId || !idUsuario) return;
-        fetch(`${API.conselho}/ativo/${encodeURIComponent('Pré-Conselho')}/${idUsuario}?semestre=${ciclo.semestre}&ano=${ciclo.ano}`)
-            .then(r => r.json())
-            .then(d => {
-                if (d?.sucesso && d.conselho?.idConselho) {
-                    setConselhoId(d.conselho.idConselho);
-                    localStorage.setItem('preConselhoAtivo', String(d.conselho.idConselho));
+        if (!idTurma || !idUsuario) return;
+
+        let cancelado = false;
+        (async () => {
+            // Reset apenas dos dados da TURMA. NÃO reseta modoEdicao — uma
+            // vez iniciado o pré-conselho, o usuário continua em edit mode
+            // ao navegar entre as próprias turmas. O reset acontece só
+            // quando /ativo não acha conselho ou quando o usuário Finaliza.
+            setAlunosAvaliados({});
+            setAlunosSelecionados([]);
+
+            try {
+                // 1. Existe pré-conselho do ciclo para esta turma?
+                const r1 = await fetch(
+                    `${API.conselho}/ativo/${encodeURIComponent('Pré-Conselho')}/turma/${idTurma}` +
+                    `?idUsuario=${idUsuario}&semestre=${ciclo.semestre}&ano=${ciclo.ano}`
+                );
+                const d1 = await r1.json();
+                if (cancelado) return;
+
+                if (!d1?.sucesso || !d1.conselho) {
+                    setConselhoId(null);
+                    setDonoConselho(null);
+                    setModoEdicao(false);
+                    return;
                 }
-            })
-            .catch(err => console.error('Erro ao buscar pré-conselho ativo do ciclo:', err));
-    }, [conselhoId, idUsuario, ciclo.semestre, ciclo.ano]);
 
+                // 2. Vincula a turma de forma idempotente (parâmetros completos).
+                const r2 = await fetch(`${API.conselho}/iniciar`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        tipoConselho: 'Pré-Conselho',
+                        idTurma,
+                        idUsuario,
+                        semestre: ciclo.semestre,
+                        ano: ciclo.ano,
+                    }),
+                });
+                const d2 = await r2.json();
+                if (cancelado) return;
 
+                const cidFinal = (d2?.sucesso && d2.conselhoId) || d1.conselho.idConselho;
+                const dono = d2?.dono || (d1.conselho.Usuario_idUsuario ? {
+                    idUsuario: d1.conselho.Usuario_idUsuario,
+                    nomeUsuario: d1.conselho.nomeUsuario,
+                } : null);
 
-     // 2) Ao trocar de turma, se já existe conselho ativo, vincula a turma a ele
-    useEffect(() => {
-        if (!idTurma || !conselhoId) return;
-        fetch(`${API.conselho}/iniciar`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ idTurma, conselhoId })
-        })
-            .then(() => recarregarConselho(conselhoId, idTurma))
+                setConselhoId(cidFinal);
+                setDonoConselho(dono);
 
-            .catch(err => console.error('Erro ao adicionar turma ao conselho:', err));
-        setAlunosSelecionados([]);
+                // modoEdicao só é setado por clique do usuário (Iniciar/Editar).
+                // Não forçamos aqui: após F5/relogin, o usuário vê "Editar
+                // Conselho" e clica para entrar em modo edição. Dentro da
+                // sessão, modoEdicao persiste entre trocas de turma.
 
-    }, [idTurma, conselhoId, recarregarConselho]);
+                // 3. Carrega avaliações.
+                await recarregarConselho(cidFinal, idTurma);
+            } catch (err) {
+                console.error('Erro ao localizar/vincular pré-conselho:', err);
+            }
+        })();
+
+        return () => { cancelado = true; };
+    }, [idTurma, idUsuario, ciclo.semestre, ciclo.ano, recarregarConselho]);
 
     // Iniciar / Finalizar conselho
     const handleIniciarConselho = async () => {
@@ -191,9 +233,8 @@ export function PreConselho() {
             const dados = await resp.json();
             if (!dados.sucesso) throw new Error(dados.mensagem);
             setConselhoId(dados.conselhoId);
-            localStorage.setItem('preConselhoAtivo', String(dados.conselhoId));
+            setDonoConselho(dados.dono || null);
             setModoEdicao(true);
-
 
         } catch (e) {
             console.error(e);
@@ -201,7 +242,7 @@ export function PreConselho() {
         } finally {
             setCarregandoConselho(false);
         }
-    };  
+    };
 
     const handleEditarConselho = async () => {
         if (!conselhoId || !idTurma || !idUsuario) return;
@@ -220,14 +261,14 @@ export function PreConselho() {
             });
             const dados = await resp.json();
             if (!dados.sucesso) throw new Error(dados.mensagem);
- 
+
             // Garante consistência do ID local com o retorno do backend
             const idFinal = dados.conselhoId || conselhoId;
             if (idFinal !== conselhoId) {
                 setConselhoId(idFinal);
-                localStorage.setItem('preConselhoAtivo', String(idFinal));
             }
- 
+            if (dados.dono) setDonoConselho(dados.dono);
+
             await recarregarConselho(idFinal, idTurma);
             setModoEdicao(true);
         } catch (e) {
@@ -243,7 +284,11 @@ export function PreConselho() {
 
         setAguardandoConfirmacao(true);
 
-        toast('Deseja finalizar o conselho?', {
+        const mensagem = naoEhDono
+            ? `Você não é o dono deste pré-conselho (iniciado por ${donoConselho?.nomeUsuario || 'outro usuário'}). Finalizar mesmo assim?`
+            : 'Deseja finalizar o conselho?';
+
+        toast(mensagem, {
           action: {
               label: "FINALIZAR",
               onClick: () => executarFinalizacao(),
@@ -254,13 +299,13 @@ export function PreConselho() {
           },
           onDismiss: () => setAguardandoConfirmacao(false),    // ← libera se fechar
           onAutoClose: () => setAguardandoConfirmacao(false),  // ← libera se expirar
-          duration: 5000,
+          duration: 8000,
 
         });
       };
 
     const executarFinalizacao = async () => {
-        setAguardandoConfirmacao(false);   
+        setAguardandoConfirmacao(false);
         setCarregandoConselho(true);
 
         try {
@@ -269,16 +314,15 @@ export function PreConselho() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ conselhoId })
             });
-            
-            const dados = await resp.json();
 
+            const dados = await resp.json();
             if (!dados.sucesso) throw new Error(dados.mensagem);
-            localStorage.removeItem('preConselhoAtivo');
-            setConselhoId(null);
+
+            // Sai do modo de edição mas mantém conselhoId/dono/avaliações
+            // na tela. O botão vira "Editar Conselho" — se precisar mexer
+            // em algum aluno depois, clica em Editar e o /iniciar reabre.
             setModoEdicao(false);
-            setAlunosAvaliados({});
             toast.success('Conselho finalizado com sucesso!');
-            navigate('/dashboard')
 
         } catch (e) {
             console.error(e);
@@ -326,16 +370,16 @@ export function PreConselho() {
     ]);
     const totalRestritos = idsRestritos.size;
 
-    const tableThClasses = "border-b-2 border-r-2 last:border-r-0 border-gray-400 p-[1vh_1.2vw] font-bold bg-white sticky top-0 z-10";
-    const tableTdClasses = "border-b-2 border-r-2 last:border-r-0 border-gray-400 p-[1vh_1.2vw] text-lg";
+    const tableThClasses = "border-b-2 border-t-2 border-r-2 first:border-l-2 border-gray-400 p-[12px_15px] font-bold bg-white sticky top-0 z-10";
+    const tableTdClasses = "border-b-2 border-r-2 first:border-l-2 border-gray-400 p-[12px_15px] text-lg";
 
     // Classes do botão principal baseadas no estado atual
     const classeBotaoPrincipal = botaoPrincipalDesabilitado
         ? 'opacity-50 cursor-not-allowed bg-gray-400 text-white'
         : modoEdicao
-            ? 'bg-[var(--red-senai)] text-white cursor-pointer active:scale-95 hover:bg-red-800'
+            ? 'bg-red-900 text-white cursor-pointer active:scale-95 hover:bg-red-700'
             : conselhoAtivo
-                ? 'bg-[var(--red-senai)] text-white cursor-pointer active:scale-95 hover:bg-red-800'
+                ? 'bg-red-700 text-white cursor-pointer active:scale-95 hover:bg-red-800'
                 : 'bg-green-600 text-white cursor-pointer active:scale-95 hover:bg-green-700';
  
   return (
@@ -352,6 +396,14 @@ export function PreConselho() {
           <span className="font-medium text-gray-700">Pré-Conselho / {nomeTurma}</span>
         </span>
       </nav>
+
+      {naoEhDono && (
+        <div className="bg-amber-50 border border-amber-300 text-amber-900 rounded-md px-4 py-2 text-sm mx-[1vw] mb-2">
+          <strong>Iniciado por {donoConselho?.nomeUsuario || 'outro usuário'}.</strong>{' '}
+          Você está visualizando o pré-conselho de outro responsável. Alterações
+          serão registradas em seu nome. Evite finalizar sem combinar com o dono.
+        </div>
+      )}
         <div className="flex flex-col min-w-[72vw] my-5 ">
             <div className="flex justify-between">
                 <div className={`${cardInfo} bg-white border-gray-800`}>
@@ -391,16 +443,16 @@ export function PreConselho() {
                     </div>
                 </div>
                 <div className="card_avaliacoes">
-            <div className="flex flex-col gap-[3vh] min-h-[28vh]">
+            <div className="flex flex-col gap-7 min-h-[220px]">
                 <button
                   onClick={handleAcaoBotaoPrincipal}
                   disabled={botaoPrincipalDesabilitado}
-                  className={`p-[1.2vh] w-[22vw] rounded-[15px] border-2 border-gray-600 shadow-[0_0_3px_black] transition-all duration-200 font-bold text-lg
+                  className={`p-[10px] w-[350px] rounded-[15px] border-2 border-gray-600 shadow-[0_0_3px_black] transition-all duration-200 font-bold text-lg
                   ${classeBotaoPrincipal}`}>
                   {textoBotaoPrincipal}
               </button>
 
-                <button onClick={handleLimparSelecao}  disabled={botoesDesabilitados}  className={`limpar_selecao p-[1.2vh] w-[22vw] rounded-[15px] border-2 border-gray-600 shadow-[0_0_3px_black] transition-all duration-200 
+                <button onClick={handleLimparSelecao}  disabled={botoesDesabilitados}  className={`limpar_selecao p-[10px] w-[350px] rounded-[15px] border-2 border-gray-600 shadow-[0_0_3px_black] transition-all duration-200 
                     ${botoesDesabilitados ? 'opacity-50 cursor-not-allowed bg-gray-100' : 'bg-white cursor-pointer active:scale-95'}`}>
                     Limpar Seleção
                 </button>
@@ -414,7 +466,7 @@ export function PreConselho() {
                             ? 'Selecione ao menos um aluno'
                             : ''
                 }
-                className={`p-[1.2vh] w-[22vw] rounded-[15px] border-2 border-gray-600 shadow-[0_0_3px_black] transition-all duration-200
+                className={`p-[10px] w-[350px] rounded-[15px] border-2 border-gray-600 shadow-[0_0_3px_black] transition-all duration-200
                 ${!podeAvaliarAlunos
                     ? 'opacity-50 cursor-not-allowed bg-gray-100'
                     : 'bg-red-600 text-white cursor-pointer active:scale-95'}`}>
@@ -439,25 +491,25 @@ export function PreConselho() {
         </div>
         
             <div className="flex flex-col">
-                <div className="flex justify-between mb-1 text-xl mx-[1.4vw]">
-                    <div className="flex gap-2 items-center">
+                <div className="flex justify-between my-0 text-xl ">
+                    <div className="flex gap-2">
                         <input onChange={handleSelecionarTudo} disabled={botoesDesabilitados} type="checkbox" id="checkbox_selecionar_tudo" className="w-5 h-5 cursor-pointer"
                         checked={alunos.length > 0 && alunosSelecionados.length === alunos.length} />
                         <p>Selecionar Tudo</p>
                     </div>
-                    <div className="quatidade_alunos_selecionados items-center">
+                    <div className="quatidade_alunos_selecionados">
                         <p>Alunos Selecionados: {alunosSelecionados.length}</p>
                     </div>
                 </div>
 
-                <section className='max-h-[50vh] overflow-y-auto border-2 border-gray-400 shadow-[0_0_2px_gray]'>
+                <section className='max-h-[50vh] overflow-y-auto'>
                     {!carregando && (
                         
-                    <table className="w-full bg-white text-sm box-border border-separate border-spacing-0 [&_tbody_tr:last-child_td]:!border-b-0">
+                    <table className="w-full bg-white box-border border-separate border-spacing-0 shadow-[0_0_4px_gray]">
                         <thead>
                         <tr>
                             <th className={`${tableThClasses} w-[40%]`}>Aluno</th>
-                            <th className={`${tableThClasses} w-[15%] text-center`}>Observações</th>
+                            <th className={`${tableThClasses} w-[14%] text-center`}>Observações</th>
                             <th className={`${tableThClasses} w-[22%] text-center`}>Empresa</th>
                             <th className={`${tableThClasses} w-[12%] text-center`}>1° Conselho</th>
                             <th className={`${tableThClasses} w-[12%] text-center`}>2° Conselho</th>

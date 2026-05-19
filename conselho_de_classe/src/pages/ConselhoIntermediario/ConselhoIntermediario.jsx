@@ -44,14 +44,13 @@ export function ConselhoIntermediario() {
     // =====================================================================
     // ESTADOS
     // =====================================================================
-    // conselhoId é restaurado do localStorage para persistir entre reloads.
-    // Se tiver valor => existe um conselho em andamento.
-    // Se for null   => nenhum conselho iniciado.
-    const [conselhoId, setConselhoId] = useState(() => {
-        const v = localStorage.getItem('conselhoIntermediarioAtivo');
-        return v ? Number(v) : null;
-    });
-  
+    // conselhoId vem sempre do backend (lookup por turma, com fallback pela
+    // sessão do usuário). Não usamos mais localStorage — evita "vazamento"
+    // entre usuários na mesma máquina e entre turmas distintas.
+    const [conselhoId, setConselhoId] = useState(null);
+    // Dono original do conselho (quem iniciou). Usado para exibir aviso
+    // quando o usuário logado não é o dono.
+    const [donoConselho, setDonoConselho] = useState(null);
     const [modoEdicao, setModoEdicao] = useState(false);
 
     // Ciclo (semestre/ano) corrente — usado para reusar/abrir conselho no mesmo período
@@ -75,11 +74,14 @@ export function ConselhoIntermediario() {
     const conselhoAtivo = !!conselhoId;
     // A turma atual já tem avaliação registrada neste conselho?
     const turmaJaAvaliada = !!avaliacaoTurma;
+    
+    // O usuário logado é dono deste conselho? (relevante para finalizar)
+    const naoEhDono = !!(donoConselho && donoConselho.idUsuario && donoConselho.idUsuario !== idUsuario);
 
     // Regras de habilitação (centralizadas aqui pra ficar fácil de manter):
     //  - botoesDesabilitados: bloqueia tudo enquanto o conselho não for iniciado
     //  - podeAvaliarAlunos: precisa ter conselho + avaliação da turma + alunos marcados
-    const botoesDesabilitados = !modoEdicao 
+    const botoesDesabilitados = !modoEdicao || !turmaJaAvaliada
     // && !conselhoAtivo; // modoEdição libera os botões mesmo sem conselho, para permitir edição posterior
 
     const podeAvaliarAlunos =
@@ -145,7 +147,7 @@ export function ConselhoIntermediario() {
           });
           setAlunosAvaliados(mapa);
 
-          return avaliacao; // pro handleIniciarConselho decidir se abre modal
+          return avaliacao;
       } catch (e) {
           console.error('Erro ao recarregar conselho:', e);
           return null;
@@ -154,54 +156,89 @@ export function ConselhoIntermediario() {
 
       // 1) Carrega alunos da turma sempre que a turma muda
     useEffect(() => {
-        if(!idTurma) return;
-        setAlunosAvaliados({});
-        setAlunosSelecionados([]);
+      if(!idTurma) return;
+      setAlunosAvaliados({});
+      setAlunosSelecionados([]);
+      setIsModalTurmaOpen(false); // Fecha modal ao trocar de turma
 
-        setCarregando(true);
-        fetch(`${API.alunos}/empresa/${idTurma}`)
-            .then(res => res.json())
-            .then(data => {
-                if (data.sucesso) setAlunos(data.alunos);
-            })
-            .finally(() => setCarregando(false));
+      setCarregando(true);
+      fetch(`${API.alunos}/empresa/${idTurma}`)
+          .then(res => res.json())
+          .then(data => {
+              if (data.sucesso) setAlunos(data.alunos);
+          })
+          .finally(() => setCarregando(false));
     }, [idTurma]);
 
-    // 1b) Ao montar: se não há conselho em localStorage, busca um do ciclo atual.
-    // Permite retomar/editar conselho finalizado do mesmo semestre (ex: aluno esquecido).
-
-
+    // 1b) Ao trocar de turma: localiza o conselho do ciclo (turma primeiro,
+    // depois sessão do usuário) e vincula a turma de forma idempotente.
+    // Se nenhum conselho for encontrado, o botão fica como "Iniciar Conselho".
     useEffect(() => {
-        if (conselhoId || !idUsuario) return;
-        fetch(`${API.conselho}/ativo/${encodeURIComponent('Intermediário')}/${idUsuario}?semestre=${ciclo.semestre}&ano=${ciclo.ano}`)
-            .then(r => r.json())
-            .then(d => {
-                if (d?.sucesso && d.conselho?.idConselho) {
-                    setConselhoId(d.conselho.idConselho);
-                    localStorage.setItem('conselhoIntermediarioAtivo', String(d.conselho.idConselho));
-                }
-            })
-            .catch(err => console.error('Erro ao buscar conselho ativo do ciclo:', err));
-    }, [conselhoId, idUsuario, ciclo.semestre, ciclo.ano]);
+      if (!idTurma || !idUsuario) return;
 
-    // 2) Ao trocar de turma, se já existe conselho ativo, vincula a turma a ele
-    useEffect(() => {
-        if (!idTurma || !conselhoId) return;
-        fetch(`${API.conselho}/iniciar`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ idTurma, conselhoId })
-        })
-          .then(() => recarregarConselho(conselhoId, idTurma))
-          .then(avaliacao => {
-            if (!avaliacao && modoEdicao) setIsModalTurmaOpen(true);  
-          })
-          .catch(err => console.error('Erro ao adicionar turma ao conselho:', err));
-        setAlunosSelecionados([]);
+      let cancelado = false;
+      (async () => {
+          // Reset apenas dos dados da TURMA (avaliações pertencem ao par
+          // turma+conselho). NÃO reseta modoEdicao aqui — uma vez iniciado
+          // o conselho, o usuário continua em modo de edição ao navegar
+          // entre as próprias turmas. O reset acontece só nos dois lugares
+          // certos: (a) quando /ativo retorna null (nada começado);
+          // (b) quando o usuário Finaliza.
+          setAvaliacaoTurma(null);
+          setAlunosAvaliados({});
+          setAlunosSelecionados([]);
 
-    }, [idTurma, conselhoId, recarregarConselho, modoEdicao]);
+          try {
+            // 1. Read-only: existe conselho do ciclo para esta turma?
+            const r1 = await fetch(
+                `${API.conselho}/ativo/${encodeURIComponent('Intermediário')}/turma/${idTurma}` +
+                `?idUsuario=${idUsuario}&semestre=${ciclo.semestre}&ano=${ciclo.ano}`
+            );
+            const d1 = await r1.json();
+            if (cancelado) return;
 
+            if (!d1?.sucesso || !d1.conselho) {
+                setConselhoId(null);
+                setDonoConselho(null);
+                setModoEdicao(false);
+                return;
+            }
+            // 2. Vincula a turma ao conselho (idempotente, ON CONFLICT DO NOTHING).
+            // Manda parâmetros completos para o backend decidir — não enviamos
+            // mais "conselhoId cego" que arrastava turma errada de outro usuário.
+            const r2 = await fetch(`${API.conselho}/iniciar`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    tipoConselho: 'Intermediário',
+                    idTurma,
+                    idUsuario,
+                    semestre: ciclo.semestre,
+                    ano: ciclo.ano,
+                }),
+            });
+            const d2 = await r2.json();
+            if (cancelado) return;
 
+            const cidFinal = (d2?.sucesso && d2.conselhoId) || d1.conselho.idConselho;
+            const dono = d2?.dono || (d1.conselho.Usuario_idUsuario ? {
+                idUsuario: d1.conselho.Usuario_idUsuario,
+                nomeUsuario: d1.conselho.nomeUsuario,
+            } : null);
+
+            setConselhoId(cidFinal);
+            setDonoConselho(dono);
+
+            // 3. Carrega avaliações dessa turma neste conselho.
+            await recarregarConselho(cidFinal, idTurma);
+          } catch (err) {
+              console.error('Erro ao localizar/vincular conselho:', err);
+          }
+      })(); 
+        return () => { cancelado = true; };
+    }, [idTurma, idUsuario, ciclo.semestre, ciclo.ano, recarregarConselho]);
+
+   
     // Iniciar / Finalizar conselho
     const handleIniciarConselho = async () => {
         if (!idTurma || !idUsuario) {
@@ -224,7 +261,7 @@ export function ConselhoIntermediario() {
             const dados = await resp.json();
             if (!dados.sucesso) throw new Error(dados.mensagem);
             setConselhoId(dados.conselhoId);
-            localStorage.setItem('conselhoIntermediarioAtivo', String(dados.conselhoId));
+            setDonoConselho(dados.dono || null);
             const avaliacao = await recarregarConselho(dados.conselhoId, idTurma);
             setModoEdicao(true);
 
@@ -257,17 +294,19 @@ export function ConselhoIntermediario() {
             });
             const dados = await resp.json();
             if (!dados.sucesso) throw new Error(dados.mensagem);
- 
             // Garante consistência do ID local com o retorno do backend
             const idFinal = dados.conselhoId || conselhoId;
             if (idFinal !== conselhoId) {
                 setConselhoId(idFinal);
-                localStorage.setItem('conselhoIntermediarioAtivo', String(idFinal));
             }
-          
-            await recarregarConselho(idFinal, idTurma);
+            if (dados.dono) setDonoConselho(dados.dono);
+
+            const avaliacao = await recarregarConselho(dados.conselhoId, idTurma);
             setModoEdicao(true);
- 
+
+            if (!avaliacao) {
+              setIsModalTurmaOpen(true); // auto-abre se ainda não tem avaliação da turma
+            }
         } catch (e) {
             console.error(e);
             alert('Erro ao editar conselho.');
@@ -281,7 +320,11 @@ export function ConselhoIntermediario() {
 
         setAguardandoConfirmacao(true);
 
-        toast('Deseja finalizar o conselho?', {
+         const mensagem = naoEhDono
+            ? `Você não é o dono deste conselho (iniciado por ${donoConselho?.nomeUsuario || 'outro usuário'}). Finalizar mesmo assim?`
+            : 'Deseja finalizar o conselho?';
+
+        toast(mensagem, {
           action: {
               label: "FINALIZAR",
               onClick: () => executarFinalizacao(),
@@ -292,13 +335,13 @@ export function ConselhoIntermediario() {
           },
           onDismiss: () => setAguardandoConfirmacao(false),    // ← libera se fechar
           onAutoClose: () => setAguardandoConfirmacao(false),  // ← libera se expirar
-          duration: 5000,
+          duration: 8000,
 
         });
       };
 
     const executarFinalizacao = async () => {
-        setAguardandoConfirmacao(false);   
+        setAguardandoConfirmacao(false);
         setCarregandoConselho(true);
 
         try {
@@ -307,17 +350,15 @@ export function ConselhoIntermediario() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ conselhoId })
             });
-            
             const dados = await resp.json();
             if (!dados.sucesso) throw new Error(dados.mensagem);
-
-            localStorage.removeItem('conselhoIntermediarioAtivo');
-            setConselhoId(null);
+            // setConselhoId(null);
+            // setDonoConselho(null);
             setModoEdicao(false);
-            setAvaliacaoTurma(null);
-            setAlunosAvaliados({});
+            // setAvaliacaoTurma(null);
+            // setAlunosAvaliados({});
             toast.success('Conselho finalizado com sucesso!');
-            navigate('/dashboard')
+            // navigate('/dashboard')
 
         } catch (e) {
             console.error(e);
@@ -397,6 +438,14 @@ export function ConselhoIntermediario() {
 
         </span>
       </nav>
+       {naoEhDono && (
+        <div className="bg-amber-50 border border-amber-300 text-amber-900 rounded-md px-4 py-2 text-sm">
+          <strong>Iniciado por {donoConselho?.nomeUsuario || 'outro usuário'}.</strong>{' '}
+          Você está visualizando o conselho de outro responsável. Alterações
+          serão registradas em seu nome. Evite finalizar sem combinar com o
+          dono do conselho.
+        </div>
+      )}
         <div className="flex flex-col min-w-[72vw] gap-[1vh]">
         <div className="flex justify-around align-center ">
           <div className={`${cardInfo} bg-gray-50 border-gray-800`}>
@@ -488,6 +537,7 @@ export function ConselhoIntermediario() {
               onClose={handleCloseModalTurma}
               conselhoId={conselhoId}
               idTurma={idTurma}
+              idUsuario={idUsuario}
               nomeTurma={nomeTurma}
               avaliacaoExistente={avaliacaoTurma}
               onSaved={onSalvarAvaliacaoTurma}

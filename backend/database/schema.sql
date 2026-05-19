@@ -133,11 +133,13 @@ CREATE TABLE IF NOT EXISTS "Avaliacao_Turma" (
   "alcancou_Objetivos"         "avaliacao_objetivos",
   "Turma_idTurma"              INTEGER NOT NULL REFERENCES "Turma"("idTurma"),
   "Conselho_idConselho"        INTEGER NOT NULL REFERENCES "Conselho"("idConselho"),
+  "Usuario_idUsuario"          INTEGER REFERENCES "Usuario"("idUsuario"),
   CONSTRAINT "uq_Avaliacao_Turma_TurmaConselho"
     UNIQUE ("Turma_idTurma", "Conselho_idConselho")
 );
 
 ALTER TABLE "Avaliacao_Turma" ADD COLUMN IF NOT EXISTS "acaoProposta" TEXT;
+ALTER TABLE "Avaliacao_Turma" ADD COLUMN IF NOT EXISTS "Usuario_idUsuario" INTEGER REFERENCES "Usuario"("idUsuario");
 
 CREATE INDEX IF NOT EXISTS "idx_AvaliacaoTurma_Turma"    ON "Avaliacao_Turma"("Turma_idTurma");
 CREATE INDEX IF NOT EXISTS "idx_AvaliacaoTurma_Conselho" ON "Avaliacao_Turma"("Conselho_idConselho");
