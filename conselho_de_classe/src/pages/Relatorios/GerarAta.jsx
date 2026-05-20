@@ -1,86 +1,126 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { API } from '../../config/api';
 
 export function GerarAta() {
   const navigate = useNavigate();
- 
+
   const [conselho, setConselho] = useState('');
   const [ano, setAno] = useState('');
   const [semestre, setSemestre] = useState('');
-  const [dataConselho, setDataConselho] = useState('2024-05-04');
- 
+  
+  // Define a data de hoje como padrão para preencher o cabeçalho do Word
+  const [dataDocumento, setDataDocumento] = useState(new Date().toISOString().split('T')[0]);
+  
+  // Estado para armazenar as opções únicas de Semestre/Ano
+  const [opcoesSemestreAno, setOpcoesSemestreAno] = useState([]);
+
+  // Busca as datas no backend e filtra os semestres/anos únicos
+  useEffect(() => {
+    const buscarDados = async () => {
+      try {
+        const response = await fetch(`${API.relatorio}/datas`);
+        if (response.ok) {
+          const dados = await response.json();
+          
+          // TRAVA DE SEGURANÇA: Garante que estamos iterando sobre um array
+          // Algumas libs de banco retornam o array dentro de "dados.rows"
+          const lista = Array.isArray(dados) ? dados : (dados.rows || []);
+          
+          const combinacoes = [];
+          const setUnicos = new Set();
+          
+          // Percorre a lista segura e separa as opções únicas
+          lista.forEach(item => {
+            // Verifica se não é nulo/vazio
+            if (item.semestre != null && item.ano != null && String(item.semestre).trim() !== '') {
+              const chave = `${item.semestre}/${item.ano}`;
+              if (!setUnicos.has(chave)) {
+                setUnicos.add(chave);
+                combinacoes.push({ 
+                  valor: chave, 
+                  semestre: item.semestre, 
+                  ano: item.ano 
+                });
+              }
+            }
+          });
+          
+          setOpcoesSemestreAno(combinacoes);
+        }
+      } catch (error) {
+        console.error('Erro ao buscar dados do conselho:', error);
+      }
+    };
+    buscarDados();
+  }, []);
+
   const handleLimpar = () => {
     setConselho('');
     setAno('');
     setSemestre('');
-    setDataConselho('2024-05-04');
+    setDataDocumento(new Date().toISOString().split('T')[0]);
   };
- 
-  // const handleGerar = () => {
-  //   if (!conselho || !ano || !semestre || !dataConselho) {
-  //     alert('Por favor, preencha todos os campos obrigatórios.');
-  //     return;
-  //   }
-  //   alert('Ata gerada com sucesso!');
-  // };
- 
 
-  //docs gerar ataaaaa----------------------------------------------------
- const gerarAta = async () => {
+  const handleSelecionarSemestreAno = (e) => {
+    const valor = e.target.value;
+    if (valor) {
+      const [sem, a] = valor.split('/');
+      setSemestre(sem);
+      setAno(a);
+    } else {
+      setSemestre('');
+      setAno('');
+    }
+  };
 
-  if (!conselho || !ano || !semestre || !dataConselho) {
-    alert('Por favor, preencha todos os campos.');
-    return;
-  }
+  const gerarAta = async () => {
+    if (!conselho || !ano || !semestre || !dataDocumento) {
+      alert('Por favor, preencha todos os campos obrigatórios.');
+      return;
+    }
 
-  try {
-   const dataFormatada = new Date(dataConselho)
-        .toLocaleDateString('pt-BR');
+    try {
+      // Formata a data escolhida para enviar ao backend (apenas para exibição no DOCX)
+      const dataFormatada = dataDocumento.includes('/') 
+        ? dataDocumento 
+        : new Date(dataDocumento + 'T00:00:00').toLocaleDateString('pt-BR');
 
-    const dados = {
-      conselho,
-      semestre,
-      ano,
-      data: dataFormatada
-    };
+      const dados = {
+        conselho,
+        semestre,
+        ano,
+        data: dataFormatada // Essa data será usada lá no {dataConselho} do template
+      };
 
-    const response = await fetch(
-      API.gerarDoc,
-      {
+      const response = await fetch(API.gerarDoc, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify(dados)
+      });
+
+      if (!response.ok) {
+        throw new Error('Falha ao gerar o documento no servidor');
       }
-    );
 
-    const blob = await response.blob();
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
 
-    const url = window.URL.createObjectURL(blob);
+      a.href = url;
+      a.download = `Ata_Final_Sem${semestre}_Ano${ano}.docx`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
 
-    const a = document.createElement('a');
-
-    a.href = url;
-    a.download = 'ata.docx';
-
-    document.body.appendChild(a);
-
-    a.click();
-
-    a.remove();
-
-  } catch (error) {
-
-    console.log(error);
-
-    alert('Erro ao gerar ata');
-  }
-};
-
-
-
+    } catch (error) {
+      console.error(error);
+      alert('Erro ao gerar ata. Verifique o console para mais detalhes.');
+    }
+  };
 
   return (
     <div className="flex flex-col h-full bg-gray-100 p-5 overflow-auto">
@@ -97,79 +137,66 @@ export function GerarAta() {
           <span className="font-medium text-gray-700">Gerar Ata</span>
         </span>
       </nav>
- 
+
       {/* Card principal */}
       <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 w-full max-w-3xl mx-auto">
         <h1 className="text-center text-xl font-bold tracking-widest text-gray-800 mb-8 uppercase">
           Geração de Ata
         </h1>
- 
-        {/* Campo Conselho */}
-        <div className="mb-5">
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Conselho(*):
-          </label>
-          <select
-            value={conselho}
-            onChange={(e) => setConselho(e.target.value)}
-            className="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-red-400 focus:border-transparent transition"
-          >
-            <option value="">Selecione...</option>
-            <option value="final">Conselho Final</option>
-          </select>
-        </div>
- 
-        {/* Linha: Ano + Semestre + Data */}
-        <div className="flex gap-4 mb-8">
-          {/* Ano */}
-          <div className="flex-1">
+
+        <div className="flex flex-col gap-6 mb-8">
+          {/* Campo Conselho */}
+          <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Ano(*):
+              Conselho(*):
             </label>
             <select
-              value={ano}
-              onChange={(e) => setAno(e.target.value)}
+              value={conselho}
+              onChange={(e) => setConselho(e.target.value)}
               className="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-red-400 focus:border-transparent transition"
             >
               <option value="">Selecione...</option>
-              <option value="2024">2024</option>
-              <option value="2025">2025</option>
-              <option value="2026">2026</option>
+              <option value="final">Conselho Final</option>
             </select>
           </div>
- 
-          {/* Semestre */}
-          <div className="flex-1">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Semestre(*):
-            </label>
-            <select
-              value={semestre}
-              onChange={(e) => setSemestre(e.target.value)}
-              className="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-red-400 focus:border-transparent transition"
-            >
-              <option value="">Selecione...</option>
-              <option value="1">1º Semestre</option>
-              <option value="2">2º Semestre</option>
-            </select>
-          </div>
- 
-          {/* Data do Conselho */}
-          <div className="flex-1">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Data do Conselho (*):
-            </label>
-            <div className="relative">
+
+          <div className="flex gap-4">
+            {/* Semestre / Ano (Montado a partir dos dados do banco) */}
+            <div className="flex-[2]">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Semestre / Ano Referência (*):
+              </label>
+              <select
+                value={semestre && ano ? `${semestre}/${ano}` : ''}
+                onChange={handleSelecionarSemestreAno}
+                className="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-red-400 focus:border-transparent transition"
+              >
+                <option value="">
+                  {opcoesSemestreAno.length === 0 ? 'Carregando períodos...' : 'Selecione o período...'}
+                </option>
+                {opcoesSemestreAno.map((op) => (
+                  <option key={op.valor} value={op.valor}>
+                    {op.semestre}º Semestre / {op.ano}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Data para o cabeçalho do DOCX */}
+            <div className="flex-1">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Data no Documento (*):
+              </label>
               <input
                 type="date"
-                value={dataConselho}
-                onChange={(e) => setDataConselho(e.target.value)}
+                value={dataDocumento}
+                onChange={(e) => setDataDocumento(e.target.value)}
                 className="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-red-400 focus:border-transparent transition"
               />
             </div>
           </div>
         </div>
- 
+
         {/* Botões */}
         <div className="flex justify-center gap-6">
           <button

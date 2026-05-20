@@ -8,22 +8,31 @@ const Docxtemplater = require('docxtemplater');
 const db = require('../config/db');
 
 // ==========================================
-// BUSCAR DATAS
+// BUSCAR DATAS (E PERÍODOS DE CONSELHO)
 // ==========================================
 router.get('/datas', async (req, res) => {
   try {
-    console.log(' Buscando datas...');
+    console.log(' Buscando datas e referências de conselho...');
 
+    // AJUSTE: Removemos o limite apertado e forçamos o banco
+    // a entregar apenas registros que tenham semestre e ano.
     const result = await db`
       SELECT 
         "idConselho",
-        TO_CHAR("dataRealizacao", 'DD/MM/YYYY') AS "dataFormatada"
+        "semestre",
+        "ano",
+        TO_CHAR("dataRealizacao", 'DD/MM/YYYY') AS "dataFormatada",
+        TO_CHAR("dataRealizacao", 'YYYY-MM-DD') AS "dataInput"
       FROM "Conselho"
-      ORDER BY "dataRealizacao" DESC
-      LIMIT 10
+      WHERE "semestre" IS NOT NULL 
+        AND "ano" IS NOT NULL
+      ORDER BY "ano" DESC, "semestre" DESC
     `;
 
-    console.log(` Datas OK: ${result.length} registros`);
+    // Se result.length estiver indefinido, tentaremos ler .rows
+    const tamanho = result.length !== undefined ? result.length : (result.rows ? result.rows.length : 0);
+    console.log(` Datas OK: ${tamanho} registros`);
+    
     res.json(result);
 
   } catch (erro) {
@@ -50,7 +59,6 @@ router.get('/turmas', async (req, res) => {
       LIMIT 20
     `;
 
-    console.log(` Turmas OK: ${result.length} registros`);
     res.json(result);
 
   } catch (erro) {
@@ -64,11 +72,13 @@ router.get('/turmas', async (req, res) => {
 // ==========================================
 router.post('/gerar-doc', async (req, res) => {
   try {
-    const { dataConselho, turma, semestre, conselho } = req.body;
+    const { tipoConselho, dataConselho, data, turma, semestre, conselho, ano } = req.body;
 
-    console.log(` Gerando: ${conselho} | Turma: ${turma} | Data: ${dataConselho}`);
+    // Fallback seguro
+    const dataUsada = data || dataConselho;
 
-    // Query base
+    console.log(` Gerando: ${conselho} | Turma: ${turma || 'Todas'} | Data: ${dataUsada}`);
+
     let result;
 
     if (conselho === "preConselho" || conselho === "pre") {
@@ -98,7 +108,7 @@ router.post('/gerar-doc', async (req, res) => {
         titulo: "PRÉ CONSELHO – PLANO DE AÇÃO",
         escola: "Escola SENAI \"Mariano Ferraz\"",
 
-        alunos: result.map(aluno => ({
+        alunos: (result.rows || result).map(aluno => ({
           nomeAluno: aluno.nomeAluno || '',
           situacao: aluno.situacao || 'Não definido',
           justificativa: aluno.justificativa || 'Não informado',
@@ -112,7 +122,6 @@ router.post('/gerar-doc', async (req, res) => {
         return res.status(400).json({ mensagem: 'Template do Pré Conselho não encontrado!' });
       }
 
-      // Geração do Pré Conselho
       const content = fs.readFileSync(templatePath, 'binary');
       const zip = new PizZip(content);
       const doc = new Docxtemplater(zip, { paragraphLoop: true, linebreaks: true });
@@ -123,8 +132,8 @@ router.post('/gerar-doc', async (req, res) => {
       res.setHeader('Content-Disposition', `attachment; filename=Pre_Conselho_${turma}_${dataConselho.replace(/\//g, '-')}.docx`);
       res.send(buffer);
 
-    } else {
-      // === CONSELHO INTERMEDIÁRIO (mantido como estava) ===
+    } else if (conselho === "Intermediário") {
+      // === CONSELHO INTERMEDIÁRIO ===
       result = await db`
         SELECT 
           A."nome" as "nomeAluno",
@@ -151,7 +160,7 @@ router.post('/gerar-doc', async (req, res) => {
         titulo: "CONSELHO DE CLASSE INTERMEDIÁRIO – PLANO DE AÇÃO",
         escola: "Escola SENAI \"Mariano Ferraz\"",
 
-        alunos: result.map(aluno => ({
+        alunos: (result.rows || result).map(aluno => ({
           nomeAluno: aluno.nomeAluno || '',
           restricao: aluno.restricao || 'Não informado',
           acaoProposta: aluno.acaoProposta || 'Não definido',
@@ -176,11 +185,67 @@ router.post('/gerar-doc', async (req, res) => {
 
       res.setHeader('Content-Disposition', `attachment; filename=Plano_Acao_${turma}_${dataConselho.replace(/\//g, '-')}.docx`);
       res.send(buffer);
-    }
 
+    } else {
+      // === CONSELHO FINAL (ATA GERAL) ===
+      console.log(`[Conselho Final] Buscando alunos para Semestre: ${semestre} | Ano: ${ano}`);
+
+      result = await db`
+        SELECT 
+          A."nome" as "nomeAluno",
+          T."codigo" as "codigoTurma",
+          AA."situacaoFinal" as "situacao",
+          AA."contestacaoSituacaoFinal" as "contestacao"
+        FROM "Avaliacao_Aluno" AA
+        INNER JOIN "tblAluno" A ON AA."tblAluno_idtblAluno" = A."idtblAluno"
+        INNER JOIN "Turma" T ON A."Turma_idTurma" = T."idTurma"
+        INNER JOIN "Conselho" C ON AA."Conselho_idConselho" = C."idConselho"
+        WHERE C."semestre" = ${Number(semestre)}
+          AND C."ano" = ${Number(ano)}
+          AND C."tipoConselho" = 'Final'
+        ORDER BY T."codigo" ASC, A."nome" ASC
+      `;
+
+      // Guarda o array de alunos com segurança
+      const listaAlunos = result.rows || result;
+      
+      // LOG IMPORTANTE: Vai mostrar no terminal quantos alunos achou
+      console.log(`[Conselho Final] Total de alunos encontrados: ${listaAlunos.length}`);
+
+      const dadosTemplate = {
+        turma: "Todas as turmas", 
+        semestre: semestre,       
+        ano: ano,                
+        dataConselho: dataUsada,  
+        
+        alunos: listaAlunos.map(aluno => ({
+          codigoTurma: `${aluno.codigoTurma}`,
+          nomeAluno: `${aluno.nomeAluno}`, 
+          situacao: aluno.situacao || 'Não definido',
+          contestacao: aluno.contestacao || '-'
+        }))
+      };
+
+      const templatePath = path.join(__dirname, '../../docs/template-ata-conselhofinal.docx');
+
+      if (!fs.existsSync(templatePath)) {
+        return res.status(400).json({ mensagem: 'Template da Ata Final não encontrado!' });
+      }
+
+      const content = fs.readFileSync(templatePath, 'binary');
+      const zip = new PizZip(content);
+      const doc = new Docxtemplater(zip, { paragraphLoop: true, linebreaks: true });
+
+      doc.render(dadosTemplate);
+      const buffer = doc.getZip().generate({ type: 'nodebuffer' });
+
+      res.setHeader('Content-Disposition', `attachment; filename=Ata_Final_Ano${ano}_Sem${semestre}.docx`);
+      res.send(buffer);
+    }
   } catch (erro) {
     console.error(' Erro completo:', erro);
     res.status(500).json({ mensagem: 'Erro ao gerar documento', detalhe: erro.message });
   }
 });
+
 module.exports = router;

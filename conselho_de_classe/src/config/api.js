@@ -10,7 +10,7 @@ export const API = {
     login:       `${API_BASE}/login`,
     cadastro:    `${API_BASE}/cadastro`,
     relatorio:   `${API_BASE}/relatorio`,
-    gerarDoc:    `${API_BASE}/gerar-doc`,
+    gerarDoc:    `${API_BASE}/relatorio/gerar-doc`,
     termoDeCiencia: `${API_BASE}/termoDeCiencia`,
     instrumento: `${API_BASE}/instrumento-acompanhamento`,
     usuarios:    `${API_BASE}/usuarios`,
