@@ -112,7 +112,7 @@ export function Configuracoes() {
                 </div>
                 
                 <button
-                  className="w-full sm:w-auto px-6 py-2 rounded-lg text-sm font-bold transition-all bg-red-600 text-white hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full sm:w-auto px-6 py-2 rounded-lg text-sm font-bold transition-all bg-[var(--button-selected)] text-white hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
                   onClick={handleEnviarPlanilha}
                   disabled={!arquivo}
                 >
@@ -134,7 +134,7 @@ export function Configuracoes() {
               
               <button 
                 onClick={handleDownloadBackup}
-                className="flex items-center justify-center sm:justify-start gap-2 px-6 py-2.5 bg-red-600 text-white text-sm font-semibold rounded-lg hover:bg-red-700 transition-all shadow-sm w-full sm:w-max"
+                className="flex items-center justify-center sm:justify-start gap-2 px-6 py-2.5 bg-[var(--red-senai)] border-2 border-red-800 text-white text-sm font-semibold rounded-lg hover:bg-red-800 transition-all shadow-sm w-full sm:w-max"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
@@ -153,7 +153,7 @@ export function Configuracoes() {
                 <span className="text-gray-700 font-medium text-sm">Cadastrar Novo Usuário</span>
                 <button 
                   onClick={() => navigate('/cadastrarusuario')}
-                  className="w-[120px] py-2 bg-gray-100 border-2 border-gray-300 rounded-lg text-gray-700 text-sm font-semibold hover:bg-red-600 hover:text-white hover:border-[#E20814] transition-colors text-center"
+                  className="w-[120px] py-2 bg-gray-100 border-2 border-gray-300 rounded-lg text-gray-700 text-sm font-semibold hover:bg-[var(--button-selected)] hover:text-white hover:border-red-800 transition-colors text-center"
                 >
                   Cadastrar
                 </button>
@@ -163,7 +163,7 @@ export function Configuracoes() {
                 <span className="text-gray-700 font-medium text-sm">Recuperar/Alterar Senha</span>
                 <button 
                   onClick={() => navigate('/recuperarsenha')}
-                  className="w-[120px] py-2 bg-gray-100 border-2 border-gray-300 rounded-lg text-gray-700 text-sm font-semibold hover:bg-red-600 hover:text-white hover:border-[#E20814] transition-colors text-center"
+                  className="w-[120px] py-2 bg-gray-100 border-2 border-gray-300 rounded-lg text-gray-700 text-sm font-semibold hover:bg-[var(--button-selected)] hover:text-white hover:border-red-800 transition-colors text-center"
                 >
                   Recuperar
                 </button>
@@ -173,7 +173,7 @@ export function Configuracoes() {
                 <span className="text-gray-700 font-medium text-sm">Atribuir Turma a Docente</span>
                 <button 
                   onClick={() => navigate('/atribuirturma')}
-                  className="w-[120px] py-2 bg-gray-100 border-2 border-gray-300 rounded-lg text-gray-700 text-sm font-semibold hover:bg-red-600 hover:text-white hover:border-[#E20814] transition-colors text-center"
+                  className="w-[120px] py-2 bg-gray-100 border-2 border-gray-300 rounded-lg text-gray-700 text-sm font-semibold hover:bg-[var(--button-selected)] hover:text-white hover:border-red-800 transition-colors text-center"
                 >
                   Atribuir
                 </button>

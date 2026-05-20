@@ -367,7 +367,7 @@ const turmasFiltradas = turmas.filter((t) => {
 
           <button
             onClick={handleGerar}
-            className="px-10 py-3 rounded-full bg-[var(--red-senai)] border-2 border-gray-400 text-white hover:bg-red-800 transition font-medium text-sm shadow hover:scale-95 hover:opacity[0.8]"
+            className="px-10 py-3 rounded-full bg-[var(--red-senai)] border-2 border-red-800 text-white hover:bg-red-800 transition font-medium text-sm shadow hover:scale-95 hover:opacity[0.8]"
           >
             Gerar
           </button>

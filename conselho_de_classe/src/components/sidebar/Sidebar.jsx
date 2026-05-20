@@ -162,7 +162,7 @@ function FormConselhoFinal({ rotaDestino, onFechar }) {
     <div className="flex flex-col gap-[12px] border-l-[2px] border-[var(--button-selected)] pl-[15px] ml-[5px] mb-[10px]">
       <div className="flex flex-col text-left gap-[5px]">
         <label className="text-xl font-medium text-[#333]">Área curso:</label>
-        <select className="p-[8px] rounded-[5px] border-2 border-gray-300 bg-white text-lg outline-none focus:border-[var(--button-selected)]"
+        <select className="p-[8px] rounded-[5px] border-2 border-gray-400 bg-white text-lg outline-none focus:border-[var(--button-selected)]"
           value={areaSelecionada}
           onChange={handleMudarArea}
         >
@@ -175,7 +175,7 @@ function FormConselhoFinal({ rotaDestino, onFechar }) {
 
       <div className="flex flex-col text-left gap-[5px]">
         <label className="text-xl font-medium text-[#333]">Curso:</label>
-        <select className="p-[8px] rounded-[5px] border-2 border-gray-300 bg-white text-lg outline-none focus:border-[var(--button-selected)]"
+        <select className="p-[8px] rounded-[5px] border-2 border-gray-400 bg-white text-lg outline-none focus:border-[var(--button-selected)]"
           value={cursoSelecionado}
           onChange={handleMudarCurso}
           disabled={!areaSelecionada}
@@ -262,25 +262,34 @@ export function Sidebar() {
 
           <button
             onClick={() => handleClick('/dashboard', 'dashboard')}
-            className={`flex items-center justify-center min-w-[18vw] min-h-[10vh] text-[1.625rem] max-px-[0.5vw] mx-auto mt-[2vh] bg-gray-100 rounded-[10px] border-2 border-gray-700 font-bold shadow-[0px_3px_7px_rgb(117,117,117)] cursor-pointer transition-all sm:gap-[0.1vh] md:gap-[0.5vh] lg:gap-[1vh] xl:gap-[3vh] ${
-              botaoSelecionado === 'dashboard' ? 'bg-[var(--button-selected)] border-red-900 text-white' : ''
+            className={`flex items-center justify-center min-w-[18vw] min-h-[10vh] text-[1.625rem] max-px-[0.5vw] mx-auto mt-[2vh] rounded-[10px] border-2 border-gray-700 font-bold shadow-[0px_3px_7px_rgb(117,117,117)] cursor-pointer transition-all sm:gap-[0.1vh] md:gap-[0.5vh] lg:gap-[1vh] xl:gap-[3vh] ${
+              location.pathname === '/dashboard' ? 'bg-[var(--button-selected)] border-red-900 text-white' : 'bg-gray-100'
             }`}>
-            <img src={dashboardIcon} className={`w-6 h-6 ${botaoSelecionado === 'dashboard' ? 'brightness-0 invert' : 'brightness-0'}`} alt="Dashboard" />
+            <img src={dashboardIcon} className={`w-6 h-6 ${location.pathname === '/dashboard' ? 'brightness-0 invert' : 'brightness-0'}`} alt="Dashboard" />
             <p className="flex text-center ">Dashboard</p>
-            <img src={arrowRightIcon} className={`w-6 h-6 ${botaoSelecionado === 'dashboard' ? 'brightness-0 invert' : 'brightness-0'}`} alt="Seta" />
+            <img src={arrowRightIcon} className={`w-6 h-6 ${location.pathname === '/dashboard' ? 'brightness-0 invert' : 'brightness-0'}`} alt="Seta" />
           </button>
 
           {/* CONSELHOS */}
           <button
             onClick={toggleMenuConselho}
-            className={`flex items-center justify-center min-w-[18vw] min-h-[10vh] text-[1.625rem] max-px-[0.5vw] mx-auto mt-[2vh] bg-gray-100 rounded-[10px] border-2 border-gray-700 font-bold shadow-[0px_3px_7px_rgb(117,117,117)] cursor-pointer transition-all sm:gap-[0.1vh] md:gap-[0.5vh] lg:gap-[1vh] xl:gap-[3vh] ${
-              botaoSelecionado === 'conselhos' || menuConselhoAberto ? 'bg-[var(--button-selected)] border-red-900 text-white' : ''
+            className={`flex items-center justify-center min-w-[18vw] min-h-[10vh] text-[1.625rem] max-px-[0.5vw] mx-auto mt-[2vh] rounded-[10px] border-2 border-gray-700 font-bold shadow-[0px_3px_7px_rgb(117,117,117)] cursor-pointer transition-all sm:gap-[0.1vh] md:gap-[0.5vh] lg:gap-[1vh] xl:gap-[3vh] ${
+              location.pathname === '/conselhointermediario' ||
+              location.pathname === '/preconselho' || 
+              location.pathname === '/conselhofinal' ||
+              menuConselhoAberto ? 'bg-[var(--button-selected)] border-red-900 text-white' : 'bg-gray-100'
             }`}>
-            <img src={councilIcon} className={`w-7 h-7 ${botaoSelecionado === 'conselhos' || menuConselhoAberto ? 'brightness-0 invert' : 'brightness-0'}`} alt="Conselhos" />
+            <img src={councilIcon} className={`w-7 h-7 ${location.pathname === '/conselhointermediario' ||
+              location.pathname === '/preconselho' || 
+              location.pathname === '/conselhofinal' ||
+              menuConselhoAberto ? 'brightness-0 invert' : 'brightness-0'}`} alt="Conselhos" />
             <p className="flex text-center">Conselhos</p>
             <img
               src={arrowRightIcon}
-              className={`w-6 h-6 ${botaoSelecionado === 'conselhos' || menuConselhoAberto ? 'brightness-0 invert' : 'brightness-0'} transition-transform duration-300 ${menuConselhoAberto ? '[transform:rotate(90deg)]' : '[transform:rotate(0deg)]'}`}
+              className={`w-6 h-6 ${location.pathname === '/conselhointermediario' ||
+              location.pathname === '/preconselho' || 
+              location.pathname === '/conselhofinal' ||
+              menuConselhoAberto ? 'brightness-0 invert' : 'brightness-0'} transition-transform duration-300 ${menuConselhoAberto ? '[transform:rotate(90deg)]' : '[transform:rotate(0deg)]'}`}
               alt="Seta"
             />
           </button>
@@ -291,7 +300,7 @@ export function Sidebar() {
               <button
                 onClick={() => toggleAba('intermediario')}
                 className={`min-w-[10vw] min-h-[6vh] rounded-[8px] border-2 border-gray-700 text-xl font-medium transition-all shadow-lg text-center whitespace-nowrap ${
-                  abaAberta === 'intermediario' ? 'bg-[var(--button-selected)] border-red-900 text-white border-2 border-gray-700 shadow-xl' : 'bg-gray-100 border-gray-300 hover:bg-gray-300'
+                  location.pathname === '/conselhointermediario' ? 'bg-[var(--button-selected)] border-red-900 text-white border-2 border-gray-700 shadow-xl' : 'bg-gray-100 border-gray-300 hover:bg-gray-300'
                 }`}>
                 Conselho Intermediário
               </button>
@@ -300,7 +309,7 @@ export function Sidebar() {
               <button
                 onClick={() => toggleAba('pre')}
                 className={`min-w-[10vw] min-h-[6vh] rounded-[8px] border-2 border-gray-700 text-xl font-medium transition-all shadow-lg text-center whitespace-nowrap ${
-                  abaAberta === 'pre' ? 'bg-[var(--button-selected)] border-red-900 text-white border-2 border-gray-700 shadow-lg' : 'bg-gray-100 border-gray-300 hover:bg-gray-300'
+                  location.pathname === '/preconselho' ? 'bg-[var(--button-selected)] border-red-900 text-white border-2 border-gray-700 shadow-lg' : 'bg-gray-100 border-gray-300 hover:bg-gray-300'
                 }`}>
                 Pré-Conselho
               </button>
@@ -320,14 +329,25 @@ export function Sidebar() {
           {/* RELATÓRIOS */}
           <button
             onClick={toggleMenuRelatorio}
-            className={`flex items-center justify-center min-w-[18vw] min-h-[10vh] text-[1.625rem] max-px-[0.5vw] mx-auto mt-[2vh] bg-gray-100 rounded-[10px] border-2 border-gray-700 font-bold shadow-[0px_3px_7px_rgb(117,117,117)] cursor-pointer transition-all sm:gap-[0.1vh] md:gap-[0.5vh] lg:gap-[1vh] xl:gap-[3vh] ${
-              botaoSelecionado === 'relatorios' || menuRelatorioAberto ? 'bg-[var(--button-selected)] border-red-900 text-white' : ''
+            className={`flex items-center justify-center min-w-[18vw] min-h-[10vh] text-[1.625rem] max-px-[0.5vw] mx-auto mt-[2vh] rounded-[10px] border-2 border-gray-700 font-bold shadow-[0px_3px_7px_rgb(117,117,117)] cursor-pointer transition-all sm:gap-[0.1vh] md:gap-[0.5vh] lg:gap-[1vh] xl:gap-[3vh] ${
+              location.pathname === '/relatorios/ata' || 
+              location.pathname === '/relatorios/relatorio' || 
+              location.pathname === '/relatorios/termo' || 
+              menuRelatorioAberto ? 'bg-[var(--button-selected)] border-red-900 text-white' : 'bg-gray-100 '
             }`}>
-              <img src={reportIcon} className={`w-7 h-7 ${botaoSelecionado === 'relatorios' || menuRelatorioAberto ? 'brightness-0 invert' : 'brightness-0'}`} alt="Relatórios" />
+              <img src={reportIcon} className={`w-7 h-7 ${
+                location.pathname === '/relatorios/ata' || 
+                location.pathname === '/relatorios/relatorio' || 
+                location.pathname === '/relatorios/termo' || 
+                menuRelatorioAberto ? 'brightness-0 invert' : 'brightness-0'}`} alt="Relatórios" />
               <p className=" text-center">Relatórios</p>
               <img
                 src={arrowRightIcon}
-                className={`w-6 h-6 ${botaoSelecionado === 'relatorios' || menuRelatorioAberto ? 'brightness-0 invert' : 'brightness-0'} transition-transform duration-300 ${menuRelatorioAberto ? '[transform:rotate(90deg)]' : '[transform:rotate(0deg)]'}`}
+                className={`w-6 h-6 ${
+                  location.pathname === '/relatorios/ata' || 
+                  location.pathname === '/relatorios/relatorio' || 
+                  location.pathname === '/relatorios/termo' || 
+                  menuRelatorioAberto ? 'brightness-0 invert' : 'brightness-0'} transition-transform duration-300 ${menuRelatorioAberto ? '[transform:rotate(90deg)]' : '[transform:rotate(0deg)]'}`}
                 alt="Seta"
               />
           </button>
@@ -366,12 +386,12 @@ export function Sidebar() {
         <div className="w-full flex justify-center border-t-2 border-gray-300">
           <button
             onClick={() => handleClick('/configuracoes', 'configuracoes')}
-            className={`flex items-center justify-center w-full h-[70px] px-[20px] bg-gray-100 border-2 shadow-[0px_-3px_7px_rgb(150,150,150)] font-bold text-[1.5rem] cursor-pointer transition-all gap-[1vh] ${
-              botaoSelecionado === 'configuracoes' ? 'bg-[var(--button-selected)] border-red-900 text-white border-2 border-[var(--button-selected)]' : ''
+            className={`flex items-center justify-center w-full h-[70px] px-[20px] border-t-2 shadow-[0px_-3px_7px_rgb(150,150,150)] font-bold text-[1.5rem] cursor-pointer transition-all gap-[1vh] ${
+              location.pathname === '/configuracoes' ? 'bg-[var(--button-selected)] border-red-900 text-white border-t-2 border-[var(--button-selected)]' : 'bg-gray-100 '
             }`}>
             <img
               src={configIcon}
-              className={`w-6 h-6 ${botaoSelecionado === 'configuracoes' ? 'brightness-0 invert' : ''}`}
+              className={`w-6 h-6 ${location.pathname === '/configuracoes' ? 'brightness-0 invert' : ''}`}
               alt="Configurações"
             />
             <p>Configurações</p>
