@@ -409,8 +409,8 @@ export function ConselhoIntermediario() {
 
     const totalRestritos = Object.keys(alunosAvaliados).length;
 
-    const tableThClasses = "border-b-2 border-r-2 last:border-r-0 border-gray-400 p-[1vh_1.2vw] font-bold bg-white sticky top-0 z-10";
-    const tableTdClasses = "border-b-2 border-r-2 last:border-r-0 border-gray-400 p-[1vh_1.2vw] text-lg";
+    const tableThClasses = "border-b-2 border-r-2 last:border-r-0 border-gray-300 p-[1vh_1.2vw] font-bold bg-white sticky top-0 z-10";
+    const tableTdClasses = "border-b-2 border-r-2 last:border-r-0 border-gray-300 p-[1vh_1.2vw] text-lg";
 
     const botaoPrincipalDesabilitado = carregandoConselho || aguardandoConfirmacao || (!conselhoAtivo && (!idTurma || !idUsuario));
 
@@ -490,7 +490,7 @@ export function ConselhoIntermediario() {
                 <button
                   onClick={handleAcaoBotaoPrincipal}
                   disabled={botaoPrincipalDesabilitado}
-                  className={`p-[1.2vh] w-[22vw] rounded-[15px] border-2 border-gray-600 shadow-[0_0_3px_black] transition-all duration-200 font-bold text-lg ${classeBotaoPrincipal}`}>
+                  className={`p-[1.2vh] w-[22vw] rounded-[15px] border-2 border-red-900 shadow-[0_0_3px_black] transition-all duration-200 font-bold text-lg ${classeBotaoPrincipal}`}>
                   {textoBotaoPrincipal}
               </button>
 
@@ -509,7 +509,7 @@ export function ConselhoIntermediario() {
                   className={`avaliar_toda_turma p-[1.2vh] w-[22vw] rounded-[15px] border-2 border-gray-600 shadow-[0_0_3px_black] transition-all duration-200
                   ${!modoEdicao
                       ? 'opacity-50 cursor-not-allowed bg-gray-100'
-                      : 'bg-[#FEFEFE] cursor-pointer active:scale-95'}`}>
+                      : 'bg-white cursor-pointer active:scale-95'}`}>
                   {turmaJaAvaliada ? 'Avaliação da Turma Salva' : 'Avaliar Toda Turma'}
               </button>
 
@@ -517,7 +517,7 @@ export function ConselhoIntermediario() {
                 onClick={handleLimparSelecao}
                 disabled={botoesDesabilitados}
                 className={`limpar_selecao p-[1.2vh] w-[22vw] rounded-[15px] border-2 border-gray-600 shadow-[0_0_3px_black] transition-all duration-200
-                ${botoesDesabilitados ? 'opacity-50 cursor-not-allowed bg-gray-100' : 'bg-[#FEFEFE] cursor-pointer active:scale-95'}`}>
+                ${botoesDesabilitados ? 'opacity-50 cursor-not-allowed bg-gray-100' : 'bg-white cursor-pointer active:scale-95'}`}>
                 Limpar Seleção
               </button>
 
@@ -527,7 +527,7 @@ export function ConselhoIntermediario() {
                 className={`p-[1.2vh] w-[22vw] rounded-[15px] border-2 border-gray-600 shadow-[0_0_3px_black] transition-all duration-200
                 ${!podeAvaliarAlunos
                     ? 'opacity-50 cursor-not-allowed bg-gray-100'  
-                    : 'bg-red-600 text-white cursor-pointer active:scale-95'}`}>
+                    : 'bg-[var(--red-senai)] border-red-900 text-white cursor-pointer active:scale-95'}`}>
               {textoBotaoAvaliar}
             </button>
           </div>
@@ -573,7 +573,7 @@ export function ConselhoIntermediario() {
                     <p className="text-center text-gray-500 py-4">Carregando alunos...</p>
                 )}
 
-                <section className='max-h-[48vh] overflow-y-auto border-2 border-gray-400 shadow-[0_0_2px_gray]'>
+                <section className='max-h-[48vh] overflow-y-auto border-2 border-gray-300 shadow-md'>
                 {!carregando && (
                   <table className="w-full bg-white text-sm box-border border-separate border-spacing-0 [&_tbody_tr:last-child_td]:!border-b-0">
                     <thead>
