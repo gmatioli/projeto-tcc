@@ -8,6 +8,9 @@ import retidosIcon from '../../assets/pre-conselho/retidos-icon.svg'
 import notificationIcon from '../../assets/pre-conselho/notification-icon.svg'
 
 import ModalAvaliacao from '../../components/modalAvaliacaoPreConselho/ModalAvaliacao';
+ 
+// ── Modal: Ver Observações ─────────────────────────────────────────────────
+import ModalObservacoes from '../../components/modalObservacao/ModalObservacao';
 
 import { API } from '../../config/api';
 
@@ -33,6 +36,10 @@ export function PreConselho() {
     const idTurma = searchParams.get('turma');
     const nomeTurma = searchParams.get('nomeTurma');
     const nomeEmpresa = searchParams.get('');
+
+    const [modalObsAberto, setModalObsAberto] = useState(false);
+    const [alunoSelecionadoObs, setAlunoSelecionadoObs] = useState(null);
+
 
 
     // Usuário logado vindo do localStorage (para registrar quem iniciou)
@@ -99,6 +106,38 @@ export function PreConselho() {
 
     const handleCloseModal = () => setIsModalOpen(false);
 
+    const handleVerObservacoes = async (aluno) => {
+        try {
+            // Busca na rota dinâmica recém-criada
+            const idDoAluno = aluno.idtblAluno || aluno.id; 
+            const res = await fetch(`${API.observacoes}/aluno/${idDoAluno}`);
+            const data = await res.json();
+
+            if (data.sucesso) {
+            const observacoesFormatadas = data.observacoes.map(o => {
+                const dataObj = new Date(o.dataObservacao);
+                return {
+                id: o.idObservacao_Docente,
+                texto: o.descricao,
+                data: dataObj.toLocaleDateString('pt-BR', { timeZone: 'UTC' }),
+                docente: o.docente
+                };
+            });
+
+            setAlunoSelecionadoObs({
+                nome: aluno.nome,
+                observacoes: observacoesFormatadas
+            });
+            setModalObsAberto(true);
+            } else {
+            toast.error('Não há observações registradas para este aluno.');
+            }
+        } catch (error) {
+            console.error("Erro ao buscar observações:", error);
+            toast.error('Erro de conexão ao buscar observações.');
+        }
+        };
+
     const recarregarConselho = useCallback(async (cid, tid) => {
         if (!cid || !tid) return;
         try {
@@ -121,14 +160,26 @@ export function PreConselho() {
         setAlunosSelecionados([]);
         setHistoricoIntermediario({});
         setCarregando(true);
-        fetch(`${API.alunos}/empresa/${idTurma}`)
-            .then(res => res.json())
-            .then(data => {
-                if (data.sucesso) setAlunos(data.alunos);
-            })
-            .finally(() => setCarregando(false));
+        
+        // Busca alunos e observações em paralelo
+        Promise.all([
+            fetch(`${API.alunos}/empresa/${idTurma}`).then(res => res.json()),
+            fetch(`${API.observacoes}/turma/${idTurma}`).then(res => res.json())
+        ])
+        .then(([dataAlunos, dataObs]) => {
+            if (dataAlunos.sucesso) {
+                const listaObs = dataObs.sucesso ? dataObs.observacoes : [];
+                // Cruza alunos com observações
+                const alunosComObs = dataAlunos.alunos.map(aluno => {
+                    const qtd = listaObs.filter(o => o.tblAluno_idtblAluno === aluno.idtblAluno).length;
+                    return { ...aluno, qtdObservacoes: qtd };
+                });
+                setAlunos(alunosComObs);
+            }
+        })
+        .finally(() => setCarregando(false));
+
         // Busca histórico do Conselho Intermediário do MESMO ciclo (semestre+ano)
-        // Marca como "Restrito" no Pré-Conselho os alunos que já tiveram restrição no Intermediário.
         fetch(`${API.conselho}/historico-intermediario/turma/${idTurma}?semestre=${ciclo.semestre}&ano=${ciclo.ano}`)
             .then(res => res.json())
             .then(data => {
@@ -534,14 +585,21 @@ export function PreConselho() {
                                 </td>
                                 {/* Coluna 2: Observações */}
                                 <td className={`${tableTdClasses}`}>
-                                <button className='text-gray-500 text-xs mt-[5px] hover:underline'>
-                                <div className="flex items-center my-0 mx-1 gap-1">
-                                    <img src={notificationIcon} alt="" className="w-6 h-6 p-[1px]"/>
-                                    <div className='flex'>
-                                    <p className="text-m underline text-orange-700">Ver Observações</p>
+                                  {aluno.qtdObservacoes > 0 ? (
+                                    <button 
+                                        onClick={() => handleVerObservacoes(aluno)} 
+                                        className='text-gray-500 text-xs hover:underline flex flex-col items-center mx-auto'
+                                    >
+                                        <div className="flex items-center my-0 mx-1 gap-1">
+                                        <img src={notificationIcon} alt="" className="w-6 h-6 p-[1px]"/>
+                                        <div className='flex'>
+                                            <p className="text-sm underline text-orange-700 whitespace-nowrap">Ver Observações ({aluno.qtdObservacoes})</p>
                                         </div>
-                                    </div>
-                                </button>
+                                        </div>
+                                    </button>
+                                  ) : (
+                                    <div className="text-center text-gray-400 font-bold">-</div>
+                                  )}
                                 </td>
                                 {/* Coluna 3: Empresa */}
                                 <td className={`${tableTdClasses}`}>
@@ -579,7 +637,14 @@ export function PreConselho() {
                     )}
                 </section>
             </div>
+            <ModalObservacoes
+            isOpen={modalObsAberto}
+            onClose={() => { setModalObsAberto(false); setAlunoSelecionadoObs(null); }}
+            aluno={alunoSelecionadoObs}
+            somenteLeitura={true} // <-- Aqui garante que o ADMIN não possa alterar nem deletar nada!
+        />
       </section>
+      
       
   );
 }

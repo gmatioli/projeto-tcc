@@ -10,6 +10,9 @@ import notificationIcon from '../../assets/conselho-intermediario/notification-i
 import ModalAvaliacaoAlunos from '../../components/modalAvaliacaoConselhoIntermediario/ModalAvaliacaoAlunos';
 import ModalAvaliacaoTurma from '../../components/modalAvaliacaoConselhoIntermediario/ModalAvaliacaoTurma';
 
+// ── Modal: Ver Observações ─────────────────────────────────────────────────
+import ModalObservacoes from '../../components/modalObservacao/ModalObservacao';
+
 import { API } from '../../config/api';
 
 // Calcula semestre/ano corrente (mês <= 6 => 1º semestre)
@@ -36,6 +39,9 @@ export function ConselhoIntermediario() {
     const [searchParams] = useSearchParams();
     const idTurma = searchParams.get('turma');
     const nomeTurma = searchParams.get('nomeTurma');
+
+    const [modalObsAberto, setModalObsAberto] = useState(false);
+    const [alunoSelecionadoObs, setAlunoSelecionadoObs] = useState(null);
 
     // Usuário logado vindo do localStorage (para registrar quem iniciou)
     const usuario = JSON.parse(localStorage.getItem('usuarioLogado') || '{}');
@@ -154,7 +160,7 @@ export function ConselhoIntermediario() {
       }
     }, []);
 
-      // 1) Carrega alunos da turma sempre que a turma muda
+    // 1) Carrega alunos da turma sempre que a turma muda
     useEffect(() => {
       if(!idTurma) return;
       setAlunosAvaliados({});
@@ -162,12 +168,24 @@ export function ConselhoIntermediario() {
       setIsModalTurmaOpen(false); // Fecha modal ao trocar de turma
 
       setCarregando(true);
-      fetch(`${API.alunos}/empresa/${idTurma}`)
-          .then(res => res.json())
-          .then(data => {
-              if (data.sucesso) setAlunos(data.alunos);
-          })
-          .finally(() => setCarregando(false));
+      
+      // Busca alunos e observações em paralelo
+      Promise.all([
+          fetch(`${API.alunos}/empresa/${idTurma}`).then(res => res.json()),
+          fetch(`${API.observacoes}/turma/${idTurma}`).then(res => res.json())
+      ])
+      .then(([dataAlunos, dataObs]) => {
+          if (dataAlunos.sucesso) {
+              const listaObs = dataObs.sucesso ? dataObs.observacoes : [];
+              // Mapeia os alunos e conta as observações de cada um
+              const alunosComObs = dataAlunos.alunos.map(aluno => {
+                  const qtd = listaObs.filter(o => o.tblAluno_idtblAluno === aluno.idtblAluno).length;
+                  return { ...aluno, qtdObservacoes: qtd };
+              });
+              setAlunos(alunosComObs);
+          }
+      })
+      .finally(() => setCarregando(false));
     }, [idTurma]);
 
     // 1b) Ao trocar de turma: localiza o conselho do ciclo (turma primeiro,
@@ -609,12 +627,19 @@ export function ConselhoIntermediario() {
 
                             {/* Coluna 2: Observações */}
                             <td className={`${tableTdClasses} text-center`}>
-                              <button className='flex flex-col items-center justify-center mx-auto text-gray-500 hover:opacity-80 transition-opacity'>
-                                <img src={notificationIcon} alt="Notificações" className="w-5 h-5 mb-1" />
-                                <span className="text-sm underline text-orange-700 whitespace-nowrap">
-                                  Ver Observações
-                                </span>
-                              </button>
+                              {aluno.qtdObservacoes > 0 ? (
+                                <button 
+                                  onClick={() => handleVerObservacoes(aluno)} 
+                                  className='flex flex-col items-center justify-center mx-auto text-gray-500 hover:opacity-80 transition-opacity'
+                                >
+                                  <img src={notificationIcon} alt="Notificações" className="w-5 h-5 mb-1" />
+                                  <span className="text-sm underline text-orange-700 whitespace-nowrap">
+                                    Ver Observações ({aluno.qtdObservacoes})
+                                  </span>
+                                </button>
+                              ) : (
+                                <span className="text-gray-400 font-bold">-</span>
+                              )}
                             </td>
 
                             {/* Coluna 3: Empresa */}
@@ -647,11 +672,17 @@ export function ConselhoIntermediario() {
               </p>
             )}
           </div>
-        </div>
-             
+        </div> 
                 
         </div>
+        <ModalObservacoes
+            isOpen={modalObsAberto}
+            onClose={() => { setModalObsAberto(false); setAlunoSelecionadoObs(null); }}
+            aluno={alunoSelecionadoObs}
+            somenteLeitura={true} // <-- Aqui garante que o ADMIN não possa alterar nem deletar nada!
+        />
       </section>
+      
       
   );
 }
