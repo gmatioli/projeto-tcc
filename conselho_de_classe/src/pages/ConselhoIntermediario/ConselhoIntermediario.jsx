@@ -628,11 +628,11 @@ export function ConselhoIntermediario() {
 
                 <section className='max-h-[48vh] overflow-y-auto border-2 border-gray-300 shadow-md'>
                 {!carregando && (
-                  <table className="w-full bg-white text-sm box-border border-separate border-spacing-0 [&_tbody_tr:last-child_td]:!border-b-0">
+                  <table className="w-full bg-white text-md box-border border-separate border-spacing-0 [&_tbody_tr:last-child_td]:!border-b-0">
                     <thead>
                       <tr>
                         {/* Adicionado text-left aqui */}
-                        <th className={`${tableThClasses} w-[58%] text-left`}>Aluno</th>
+                        <th className={`${tableThClasses} w-[58%] text-center`}>Aluno</th>
                         <th className={`${tableThClasses} w-[12%] text-center`}>Observações</th>
                         <th className={`${tableThClasses} w-[20%] text-center`}>Empresa</th>
                         <th className={`${tableThClasses} w-[10%] text-center`}>Restrição</th>
@@ -686,7 +686,7 @@ export function ConselhoIntermediario() {
                             <td className={`${tableTdClasses} text-center`}>
                               <div className="flex justify-center">
                                 {restrito && (
-                                  <span className="text-sm text-white font-bold bg-red-800 px-3 py-1 rounded-full whitespace-nowrap">
+                                  <span className="text-lg text-white font-bold bg-red-800 px-3 py-1 rounded-full whitespace-nowrap">
                                     Restrito
                                   </span>
                                 )}

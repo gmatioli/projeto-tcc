@@ -553,10 +553,10 @@ export function PreConselho() {
                 <section className='max-h-[50vh] overflow-y-auto'>
                     {!carregando && (
                         
-                    <table className="w-full bg-white box-border border-separate border-spacing-0 shadow-[0_0_4px_gray]">
+                    <table className="w-full bg-white text-md box-border border-separate border-spacing-0 shadow-[0_0_4px_gray]">
                         <thead>
                         <tr>
-                            <th className={`${tableThClasses} w-[40%]`}>Aluno</th>
+                            <th className={`${tableThClasses} w-[40%] text-center`}>Aluno</th>
                             <th className={`${tableThClasses} w-[14%] text-center`}>Observações</th>
                             <th className={`${tableThClasses} w-[22%] text-center`}>Empresa</th>
                             <th className={`${tableThClasses} w-[12%] text-center`}>1° Conselho</th>
