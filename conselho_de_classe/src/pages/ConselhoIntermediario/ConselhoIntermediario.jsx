@@ -131,6 +131,37 @@ export function ConselhoIntermediario() {
         setIsModalAlunosOpen(true);
     };
     const handleCloseModalAlunos = () => setIsModalAlunosOpen(false);
+
+    const handleVerObservacoes = async (aluno) => {
+      try {
+          const idDoAluno = aluno.idtblAluno || aluno.id; 
+          const res = await fetch(`${API.observacoes}/aluno/${idDoAluno}`);
+          const data = await res.json();
+
+          if (data.sucesso) {
+          const observacoesFormatadas = data.observacoes.map(o => {
+              const dataObj = new Date(o.dataObservacao);
+              return {
+              id: o.idObservacao_Docente,
+              texto: o.descricao,
+              data: dataObj.toLocaleDateString('pt-BR', { timeZone: 'UTC' }),
+              docente: o.docente
+              };
+          });
+
+          setAlunoSelecionadoObs({
+              nome: aluno.nome,
+              observacoes: observacoesFormatadas
+          });
+          setModalObsAberto(true);
+          } else {
+          toast.error('Não há observações registradas para este aluno.');
+          }
+      } catch (error) {
+          console.error("Erro ao buscar observações:", error);
+          toast.error('Erro de conexão ao buscar observações.');
+      }
+    };
     
     // =====================================================================
     // RECARREGAR DADOS DO CONSELHO (avaliação da turma + alunos avaliados)
@@ -179,7 +210,9 @@ export function ConselhoIntermediario() {
               const listaObs = dataObs.sucesso ? dataObs.observacoes : [];
               // Mapeia os alunos e conta as observações de cada um
               const alunosComObs = dataAlunos.alunos.map(aluno => {
-                  const qtd = listaObs.filter(o => o.tblAluno_idtblAluno === aluno.idtblAluno).length;
+                  // CORREÇÃO: Garante pegar o ID certo e usa "==" para ignorar diferença de String/Number
+                  const idAluno = aluno.idtblAluno || aluno.id;
+                  const qtd = listaObs.filter(o => o.tblAluno_idtblAluno == idAluno).length;
                   return { ...aluno, qtdObservacoes: qtd };
               });
               setAlunos(alunosComObs);
@@ -427,6 +460,8 @@ export function ConselhoIntermediario() {
 
     const totalRestritos = Object.keys(alunosAvaliados).length;
 
+    const totalObs = alunos.reduce((acc, aluno) => acc + (aluno.qtdObservacoes || 0), 0);
+
     const tableThClasses = "border-b-2 border-r-2 last:border-r-0 border-gray-400 p-[1vh_1.2vw] font-bold bg-white sticky top-0 z-10";
     const tableTdClasses = "border-b-2 border-r-2 last:border-r-0 border-gray-400 p-[1vh_1.2vw] text-lg";
 
@@ -486,7 +521,7 @@ export function ConselhoIntermediario() {
           </div>
           <div className={`${cardInfo} bg-yellow-50 border border-yellow-600`}>
             <div className={`${cardText} text-yellow-600`}>
-              <h3 className={`${cardNum}`}>{totalRestritos}</h3>
+              <h3 className={`${cardNum}`}>{totalObs}</h3>
               <p>Total Observações</p>
             </div>
             <div className={`${cardIcon}`}>

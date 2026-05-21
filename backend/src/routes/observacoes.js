@@ -115,7 +115,7 @@ router.delete('/:idObservacao', async (req, res) => {
   }
 });
 
-// exibição para o docente
+// exibição para o adm
 // GET /observacoes/aluno/:idAluno - BUSCA OBSERVAÇÕES DE UM ALUNO ESPECÍFICO
 router.get('/aluno/:idAluno', async (req, res) => {
   const { idAluno } = req.params;

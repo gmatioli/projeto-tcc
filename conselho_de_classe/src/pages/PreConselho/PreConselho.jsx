@@ -171,7 +171,9 @@ export function PreConselho() {
                 const listaObs = dataObs.sucesso ? dataObs.observacoes : [];
                 // Cruza alunos com observações
                 const alunosComObs = dataAlunos.alunos.map(aluno => {
-                    const qtd = listaObs.filter(o => o.tblAluno_idtblAluno === aluno.idtblAluno).length;
+                    // CORREÇÃO AQUI: Garante pegar o ID certo e usa "==" para ignorar se é String ou Number
+                    const idAluno = aluno.idtblAluno || aluno.id;
+                    const qtd = listaObs.filter(o => o.tblAluno_idtblAluno == idAluno).length;
                     return { ...aluno, qtdObservacoes: qtd };
                 });
                 setAlunos(alunosComObs);
@@ -413,6 +415,8 @@ export function PreConselho() {
 
     const totalRestritos = Object.keys(alunosAvaliados).length;
 
+    const totalObs = alunos.reduce((acc, aluno) => acc + (aluno.qtdObservacoes || 0), 0);
+
 
     const tableThClasses = "border-b-2 border-t-2 border-r-2 first:border-l-2 border-gray-400 p-[12px_15px] font-bold bg-white sticky top-0 z-10";
     const tableTdClasses = "border-b-2 border-r-2 first:border-l-2 border-gray-400 p-[12px_15px] text-lg";
@@ -470,7 +474,7 @@ export function PreConselho() {
                 </div>
                 <div className={`${cardInfo} bg-yellow-50 border-yellow-600`}>
                     <div className={`${cardText} text-yellow-600`}>
-                        <h3 className={`${cardNum}`}>{totalRestritos}</h3>
+                        <h3 className={`${cardNum}`}>{totalObs}</h3>
                         <p className="text_restritos">Total Observações</p>
                     </div>
                     <div className={`${cardIcon}`}>
