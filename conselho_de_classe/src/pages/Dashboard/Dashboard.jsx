@@ -70,7 +70,7 @@ export function Dashboard() {
     datasets: [
       {
         data: [],
-        backgroundColor: ['#5b21b6', '#ea580c', '#06b6d4'], // Suas cores originais
+        backgroundColor: ['#5b21b6', '#f97316', '#06b6d4'], // Suas cores originais
         borderWidth: 0,
       },
     ],
@@ -106,7 +106,7 @@ export function Dashboard() {
             datasets: [
               {
                 data: valoresBanco,
-                backgroundColor: ['#5b21b6', '#ea580c', '#06b6d4'],
+                backgroundColor: ['#5b21b6', '#f97316', '#06b6d4'],
                 borderWidth: 0,
               },
             ],
@@ -154,7 +154,7 @@ export function Dashboard() {
 
               if (porcentagem > 50) return '#8b5cf6'; 
               if (porcentagem >= 25) return '#f97316'; 
-              if (porcentagem >= 10) return '#2dd4bf'; 
+              if (porcentagem >= 10) return '#06b6d4'; 
               return '#4ade80';                        
           });
 
@@ -271,7 +271,7 @@ export function Dashboard() {
             <div className="flex flex-wrap justify-center gap-4 text-sm text-gray-600 font-medium h-[5vh]">
               <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-[3px] bg-[#7c3aed]"></div> {'>'}50% Crítico</div>
               <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-[3px] bg-[#f97316]"></div> 25%-49% Alto</div>
-              <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-[3px] bg-[#2dd4bf]"></div> 10%-24% Médio</div>
+              <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-[3px] bg-[#06b6d4]"></div> 10%-24% Médio</div>
               <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-[3px] bg-[#4ade80]"></div> {'<'}9% Normal</div>
             </div>
 

@@ -117,14 +117,14 @@ export function SidebarDocente() {
  
   return (
     <section className="h-[calc(100vh-8vh)]">
-      <div className="bg-gray-200 w-[20vw] h-full flex flex-col border-r border-[#ccc] overflow-hidden">
+      <div className="bg-gray-200 w-[20vw] h-full flex flex-col border-r border-gray-300 overflow-hidden">
  
-        <div className="flex-1 overflow-y-auto pt-6 px-4 pb-4 custom-scrollbar">
+        <div className="flex-1 overflow-y-auto pt-6 px-[0.5vw] pb-4 custom-scrollbar">
  
           {/* BOTAO TURMAS */}
           <button
             onClick={toggleTurmas}
-            className={`flex items-center justify-center gap-4 w-full h-[10vh] px-10 mx-auto bg-gray-100 rounded-[10px] font-bold border border-black text-[26px] shadow-[0px_3px_7px_rgb(117,117,117)] cursor-pointer transition-all ${
+            className={`flex items-center justify-center min-w-[18vw] min-h-[10vh] text-[1.625rem] max-px-[0.5vw] mx-auto mt-[2vh] bg-gray-100 rounded-[10px] border-2 border-gray-700 font-bold shadow-[0px_3px_7px_rgb(117,117,117)] cursor-pointer transition-all sm:gap-[0.1vh] md:gap-[0.5vh] lg:gap-[1vh] xl:gap-[3vh] ${
               botaoSelecionado === 'turmas' || menuTurmasAberto ? 'bg-[var(--button-selected)] text-white' : ''
             }`}
           >
@@ -133,7 +133,7 @@ export function SidebarDocente() {
               className={`w-7 h-7 ${botaoSelecionado === 'turmas' || menuTurmasAberto ? 'brightness-0 invert' : 'brightness-0'}`}
               alt="Turmas"
             />
-            <p className="flex-1 text-center">Turmas</p>
+            <p className="flex text-center">Turmas</p>
             <img
               src={arrowRightIcon}
               className={`w-6 h-6 transition-transform duration-300 ${menuTurmasAberto ? '[transform:rotate(90deg)]' : '[transform:rotate(0deg)]'} ${botaoSelecionado === 'turmas' || menuTurmasAberto ? 'brightness-0 invert' : 'brightness-0'}`}
@@ -238,7 +238,7 @@ export function SidebarDocente() {
           {/* BOTAO INSTR. DE ACOMP. */}
           <button
             onClick={handleInstrAcomp}
-            className={`flex items-center justify-center gap-2 lg:gap-4 w-full min-h-[10vh] px-4 lg:px-10 mx-auto mt-4 bg-gray-100 rounded-[10px] border border-black font-bold text-lg lg:text-[26px] shadow-[0px_3px_7px_rgb(117,117,117)] cursor-pointer transition-all ${
+            className={`flex items-center justify-center min-w-[18vw] min-h-[10vh] text-[1.625rem] max-px-[0.5vw] mx-auto mt-[2vh] bg-gray-100 rounded-[10px] border-2 border-gray-700 font-bold shadow-[0px_3px_7px_rgb(117,117,117)] cursor-pointer transition-all sm:gap-[0.1vh] md:gap-[0.5vh] lg:gap-[1vh] xl:gap-[3vh] ${
               botaoSelecionado === 'instr' ? 'bg-[var(--button-selected)] text-white' : ''
             }`}
           >
@@ -247,7 +247,7 @@ export function SidebarDocente() {
               className={`w-6 h-6 lg:w-7 lg:h-7 shrink-0 ${botaoSelecionado === 'instr' ? 'brightness-0 invert' : 'brightness-0'}`}
               alt="Instrumento"
             />
-            <p className="flex-1 text-center leading-tight">Instr. de Acomp.</p>
+            <p className="flex text-center">Instr. de Acomp.</p>
             <img
               src={arrowRightIcon}
               className={`w-5 h-5 lg:w-6 lg:h-6 shrink-0 ${botaoSelecionado === 'instr' ? 'brightness-0 invert' : 'brightness-0'}`}
@@ -261,7 +261,7 @@ export function SidebarDocente() {
         <div className="w-full flex justify-center border-t border-[#ccc]">
           <button
             onClick={handleConfig}
-            className={`flex items-center justify-center w-full h-[70px] px-[20px] bg-gray-100 border shadow-[0px_-3px_7px_rgb(150,150,150)] font-bold text-[26px] cursor-pointer transition-all gap-[15px] ${
+            className={`flex items-center justify-center w-full h-[70px] px-[20px] bg-gray-100 border-2 shadow-[0px_-3px_7px_rgb(150,150,150)] font-bold text-[1.5rem] cursor-pointer transition-all gap-[1vh] ${
               botaoSelecionado === 'config' ? 'bg-[var(--button-selected)] text-white border border-[var(--button-selected)]' : ''
             }`}
           >

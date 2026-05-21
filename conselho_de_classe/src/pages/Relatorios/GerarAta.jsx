@@ -99,7 +99,7 @@ export function GerarAta() {
       </nav>
  
       {/* Card principal */}
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 w-full max-w-3xl mx-auto">
+      <div className="bg-white rounded-2xl shadow-sm border-2 border-gray-00 p-8 w-full max-w-3xl mx-auto">
         <h1 className="text-center text-xl font-bold tracking-widest text-gray-800 mb-8 uppercase">
           Geração de Ata
         </h1>
@@ -112,7 +112,7 @@ export function GerarAta() {
           <select
             value={conselho}
             onChange={(e) => setConselho(e.target.value)}
-            className="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-red-400 focus:border-transparent transition"
+            className="w-full border-2 border-gray-300 rounded-lg px-4 py-3 text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-red-400 focus:border-transparent transition"
           >
             <option value="">Selecione...</option>
             <option value="final">Conselho Final</option>
@@ -129,7 +129,7 @@ export function GerarAta() {
             <select
               value={ano}
               onChange={(e) => setAno(e.target.value)}
-              className="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-red-400 focus:border-transparent transition"
+              className="w-full border-2 border-gray-300 rounded-lg px-4 py-3 text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-red-400 focus:border-transparent transition"
             >
               <option value="">Selecione...</option>
               <option value="2024">2024</option>
@@ -146,7 +146,7 @@ export function GerarAta() {
             <select
               value={semestre}
               onChange={(e) => setSemestre(e.target.value)}
-              className="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-red-400 focus:border-transparent transition"
+              className="w-full border-2 border-gray-300 rounded-lg px-4 py-3 text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-red-400 focus:border-transparent transition"
             >
               <option value="">Selecione...</option>
               <option value="1">1º Semestre</option>
@@ -164,7 +164,7 @@ export function GerarAta() {
                 type="date"
                 value={dataConselho}
                 onChange={(e) => setDataConselho(e.target.value)}
-                className="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-red-400 focus:border-transparent transition"
+                className="w-full border-2 border-gray-300 rounded-lg px-4 py-3 text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-red-400 focus:border-transparent transition"
               />
             </div>
           </div>
@@ -174,12 +174,12 @@ export function GerarAta() {
         <div className="flex justify-center gap-6">
           <button
             onClick={handleLimpar}
-            className="px-10 py-3 rounded-full border border-gray-400 text-gray-700 bg-white hover:bg-gray-100 transition font-medium text-sm">
+            className="px-10 py-3 rounded-full border-2 border-gray-400 text-gray-800 bg-white hover:bg-gray-100 transition font-medium text-sm hover:scale-95 hover:opacity[0.8]">
             Limpar
           </button>
           <button
             onClick={gerarAta}
-            className="px-10 py-3 rounded-full bg-red-600 text-white hover:bg-red-700 transition font-medium text-sm shadow">
+            className="px-10 py-3 rounded-full bg-[var(--red-senai)] border-2 border-red-800 text-white hover:bg-red-800 transition font-medium text-sm shadow hover:scale-95 hover:opacity[0.8]">
             Gerar
           </button>
         </div>
