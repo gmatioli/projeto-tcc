@@ -160,7 +160,7 @@ const turmasFiltradas = turmas.filter((t) => {
 
       a.href = url;
 
-      a.download = 'termoCiencia.docx';
+      a.download = `TermoDeCiencia_${aluno}.docx`;
 
       document.body.appendChild(a);
 
