@@ -1,9 +1,23 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { API } from '../../config/api';
 
 export function Configuracoes() {
+
+  
+// ==========================================
+// TITLE
+// ==========================================
+  useEffect(() => {
+
+      document.title =
+          "Sistema de Conselhos";
+
+  }, []);
+
   const navigate = useNavigate();
+
+  
   
   // Estado para guardar o arquivo selecionado e o status do envio
   const [arquivo, setArquivo] = useState(null);
