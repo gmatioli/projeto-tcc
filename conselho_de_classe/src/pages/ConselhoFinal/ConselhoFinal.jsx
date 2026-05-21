@@ -6,6 +6,9 @@ import { toast } from 'sonner';
 import notificationIcon from '../../assets/conselho-intermediario/notification-icon.svg';
 import ModalJustificativa from '../../components/modalJustificativa/ModalJustificativa.jsx';
 
+// ── Modal: Ver Observações ─────────────────────────────────────────────────
+import ModalObservacoes from '../../components/modalObservacao/ModalObservacao';
+
 const intObservacoes = 3
 
 // Variável para evitar repetição nas células de tabela padronizadas
@@ -28,6 +31,9 @@ const ConselhoFinal = () => {
 
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+
+  const [modalObsAberto, setModalObsAberto] = useState(false);
+  const [alunoSelecionadoObs, setAlunoSelecionadoObs] = useState(null);
   
   // Parâmetros vindos da Sidebar (FormConselhoFinal)
   const areaSelecionada = searchParams.get('area');
@@ -117,17 +123,29 @@ const ConselhoFinal = () => {
       const dataP = await resP.json();
       if (estaCancelado && estaCancelado()) return;
       
+      // NOVA BUSCA DE OBSERVAÇÕES
+      const resObs = await fetch(`${API.observacoes}/turma/${idTurma}`);
+      const dataObs = await resObs.json();
+      const listaObs = dataObs.sucesso ? dataObs.observacoes : [];
+
       if (!dataP.sucesso) {
         toast.error('Erro ao carregar alunos da turma.');
         return;
       }
 
-      setAlunosComAcaoProposta(dataP.alunosComAcaoProposta);
+      // Injeta a quantidade de observações nos alunos que vieram do pré-conselho
+      const alunosComQtd = dataP.alunosComAcaoProposta.map(aluno => {
+        // Usa idtblAluno ou id, dependendo de como o backend do pré-conselho retorna
+        const idAluno = aluno.idtblAluno || aluno.id; 
+        const qtd = listaObs.filter(o => o.tblAluno_idtblAluno === idAluno).length;
+        return { ...aluno, qtdObservacoes: qtd };
+      });
+
+      setAlunosComAcaoProposta(alunosComQtd);
       setAlunosComJustificativa(dataP.alunosComJustificativa);
       setMostrarTabelaAlunos(true);
 
       // Situações finais vivem em Avaliacao_Aluno do Conselho FINAL, não do Pré.
-      // Só consulta se já existe um conselho final para o ciclo.
       if (!conselhoIdFinal) {
         setSituacoesFinais({});
         return;
@@ -224,6 +242,38 @@ const ConselhoFinal = () => {
 
     return () => { cancelado = true; };
   }, [turmaSelecionada, idUsuario, ciclo.semestre, ciclo.ano]);
+
+    const handleVerObservacoes = async (aluno) => {
+      try {
+          // Busca na rota dinâmica recém-criada
+          const idDoAluno = aluno.idtblAluno || aluno.id; 
+          const res = await fetch(`${API.observacoes}/aluno/${idDoAluno}`);
+          const data = await res.json();
+
+          if (data.sucesso) {
+          const observacoesFormatadas = data.observacoes.map(o => {
+              const dataObj = new Date(o.dataObservacao);
+              return {
+              id: o.idObservacao_Docente,
+              texto: o.descricao,
+              data: dataObj.toLocaleDateString('pt-BR', { timeZone: 'UTC' }),
+              docente: o.docente
+              };
+          });
+
+          setAlunoSelecionadoObs({
+              nome: aluno.nome,
+              observacoes: observacoesFormatadas
+          });
+          setModalObsAberto(true);
+          } else {
+          toast.error('Não há observações registradas para este aluno.');
+          }
+      } catch (error) {
+          console.error("Erro ao buscar observações:", error);
+          toast.error('Erro de conexão ao buscar observações.');
+      }
+    };
 
   // Iniciar / Editar / Finalizar Conselho Final
   const handleIniciarConselho = async () => {
@@ -573,15 +623,20 @@ const ConselhoFinal = () => {
 
                   <td className={`${tableTdClasses} `}>
                     <p>{aluno.acaoProposta}</p>
-
-                    <button className='text-gray-500 text-xs mt-[5px] hover:underline'>
-                      <div className="flex items-center my-0 mx-1 gap-1">
-                        <img src={notificationIcon} alt="" className="w-6 h-6 p-[1px]"/>
-                        <div className='flex'>
-                          <p className="text-m underline text-orange-700">Ver Observações</p>
+                    
+                    {aluno.qtdObservacoes > 0 && (
+                      <button 
+                        onClick={() => handleVerObservacoes(aluno)} 
+                        className='flex flex-col items-center justify-center mx-auto mt-2 text-gray-500 hover:opacity-80 transition-opacity'
+                      >
+                        <div className="flex items-center my-0 mx-1 gap-1">
+                          <img src={notificationIcon} alt="" className="w-6 h-6 p-[1px]"/>
+                          <div className='flex'>
+                            <p className="text-sm underline text-orange-700 whitespace-nowrap">Ver Observações ({aluno.qtdObservacoes})</p>
+                          </div>
                         </div>
-                      </div>
-                    </button>
+                      </button>
+                    )}
                   </td>
 
                   <td className={`${tableTdClasses} text-center `}>
@@ -655,6 +710,12 @@ const ConselhoFinal = () => {
         soLeitura={modalSoLeitura}
         onSalvar={handleSalvarJustificativa}
       />
+      <ModalObservacoes
+            isOpen={modalObsAberto}
+            onClose={() => { setModalObsAberto(false); setAlunoSelecionadoObs(null); }}
+            aluno={alunoSelecionadoObs}
+            somenteLeitura={true} // <-- Aqui garante que o ADMIN não possa alterar nem deletar nada!
+        />
     </div>
   );
 };
