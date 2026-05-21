@@ -65,7 +65,7 @@ export function Configuracoes() {
       
       <h2 className="text-sm font-bold text-gray-700 mb-4 ">Configurações</h2>
 
-      <div className="flex-1 bg-white border border-gray-300 rounded-2xl p-6 lg:p-8 shadow-sm flex flex-col">
+      <div className="flex-1 bg-white border-2 border-gray-300 rounded-2xl p-6 lg:p-8 shadow-sm flex flex-col">
         <h3 className="text-2xl font-bold text-gray-800 mb-6">Configurações do Sistema</h3>
 
         <div className="grid grid-cols-1 xl:grid-cols-5 gap-8 lg:gap-12 flex-1">
@@ -73,7 +73,7 @@ export function Configuracoes() {
           {/* Coluna da Esquerda (Upload e Backup) */}
           <div className="xl:col-span-3 flex flex-col gap-6">
             
-            <div className="bg-gray-50 p-5 rounded-xl border border-gray-200">
+            <div className="bg-gray-50 p-5 rounded-xl border-2 border-gray-200">
               <label className="block text-lg font-semibold text-gray-800 mb-1">Carregar Planilha SGSET</label>
               <p className="text-sm text-gray-500 mb-4">Selecione o arquivo .csv exportado do sistema para atualizar a base de alunos.</p>
               
@@ -88,12 +88,12 @@ export function Configuracoes() {
                     onChange={handleSelecionarArquivo} 
                     className="block w-full text-sm text-gray-500
                       file:mr-4 file:py-2 file:px-4
-                      file:rounded-lg file:border file:border-red-300
+                      file:border-none file:border-red-300
                       file:text-sm file:font-semibold
-                      file:bg-red-50 file:text-[#E20814]
+                      file:bg-red-100 file:text-[#E20814]
                       hover:file:bg-red-100 hover:file:border-red-400 
                       file:cursor-pointer cursor-pointer
-                      border border-gray-300 rounded-lg bg-white transition-all pr-10"
+                      border-2 border-gray-300 rounded-lg bg-white transition-all pr-10"
                   />
                   
                   {/* O X mágico que só aparece se tiver arquivo escolhido */}
@@ -112,7 +112,7 @@ export function Configuracoes() {
                 </div>
                 
                 <button
-                  className="w-full sm:w-auto px-6 py-2 rounded-lg text-sm font-bold transition-all bg-red-600 text-white hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full sm:w-auto px-6 py-2 rounded-lg text-sm font-bold transition-all bg-[var(--button-selected)] text-white hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
                   onClick={handleEnviarPlanilha}
                   disabled={!arquivo}
                 >
@@ -128,13 +128,13 @@ export function Configuracoes() {
             </div>
 
             {/* Seção Backup */}
-            <div className="bg-gray-50 p-5 rounded-xl border border-gray-200">
+            <div className="bg-gray-50 p-5 rounded-xl border-2 border-gray-200">
               <label className="block text-lg font-semibold text-gray-800 mb-1">Backup do Banco de Dados</label>
               <p className="text-sm text-gray-500 mb-4">Gere e faça o download de uma cópia de segurança de todos os dados atuais do sistema.</p>
               
               <button 
                 onClick={handleDownloadBackup}
-                className="flex items-center justify-center sm:justify-start gap-2 px-6 py-2.5 bg-red-600 text-white text-sm font-semibold rounded-lg hover:bg-red-700 transition-all shadow-sm w-full sm:w-max"
+                className="flex items-center justify-center sm:justify-start gap-2 px-6 py-2.5 bg-[var(--red-senai)] border-2 border-red-800 text-white text-sm font-semibold rounded-lg hover:bg-red-800 transition-all shadow-sm w-full sm:w-max"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
@@ -149,31 +149,31 @@ export function Configuracoes() {
             <h4 className="text-lg font-semibold text-gray-800 mb-1">Ações de Gerenciamento</h4>
 
             <div className="flex flex-col gap-4">
-              <div className="flex items-center justify-between p-4 bg-white border border-gray-200 rounded-xl shadow-sm hover:border-gray-300 transition-colors">
+              <div className="flex items-center justify-between p-4 bg-white border-2 border-gray-200 rounded-xl shadow-sm hover:border-gray-300 transition-colors">
                 <span className="text-gray-700 font-medium text-sm">Cadastrar Novo Usuário</span>
                 <button 
                   onClick={() => navigate('/cadastrarusuario')}
-                  className="w-[120px] py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-700 text-sm font-semibold hover:bg-red-600 hover:text-white hover:border-[#E20814] transition-colors text-center"
+                  className="w-[120px] py-2 bg-gray-100 border-2 border-gray-300 rounded-lg text-gray-700 text-sm font-semibold hover:bg-[var(--button-selected)] hover:text-white hover:border-red-800 transition-colors text-center"
                 >
                   Cadastrar
                 </button>
               </div>
 
-              <div className="flex items-center justify-between p-4 bg-white border border-gray-200 rounded-xl shadow-sm hover:border-gray-300 transition-colors">
+              <div className="flex items-center justify-between p-4 bg-white border-2 border-gray-200 rounded-xl shadow-sm hover:border-gray-300 transition-colors">
                 <span className="text-gray-700 font-medium text-sm">Recuperar/Alterar Senha</span>
                 <button 
                   onClick={() => navigate('/recuperarsenha')}
-                  className="w-[120px] py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-700 text-sm font-semibold hover:bg-red-600 hover:text-white hover:border-[#E20814] transition-colors text-center"
+                  className="w-[120px] py-2 bg-gray-100 border-2 border-gray-300 rounded-lg text-gray-700 text-sm font-semibold hover:bg-[var(--button-selected)] hover:text-white hover:border-red-800 transition-colors text-center"
                 >
                   Recuperar
                 </button>
               </div>
 
-              <div className="flex items-center justify-between p-4 bg-white border border-gray-200 rounded-xl shadow-sm hover:border-gray-300 transition-colors">
+              <div className="flex items-center justify-between p-4 bg-white border-2 border-gray-200 rounded-xl shadow-sm hover:border-gray-300 transition-colors">
                 <span className="text-gray-700 font-medium text-sm">Atribuir Turma a Docente</span>
                 <button 
                   onClick={() => navigate('/atribuirturma')}
-                  className="w-[120px] py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-700 text-sm font-semibold hover:bg-red-600 hover:text-white hover:border-[#E20814] transition-colors text-center"
+                  className="w-[120px] py-2 bg-gray-100 border-2 border-gray-300 rounded-lg text-gray-700 text-sm font-semibold hover:bg-[var(--button-selected)] hover:text-white hover:border-red-800 transition-colors text-center"
                 >
                   Atribuir
                 </button>

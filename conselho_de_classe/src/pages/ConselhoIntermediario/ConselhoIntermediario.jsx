@@ -10,6 +10,9 @@ import notificationIcon from '../../assets/conselho-intermediario/notification-i
 import ModalAvaliacaoAlunos from '../../components/modalAvaliacaoConselhoIntermediario/ModalAvaliacaoAlunos';
 import ModalAvaliacaoTurma from '../../components/modalAvaliacaoConselhoIntermediario/ModalAvaliacaoTurma';
 
+// ── Modal: Ver Observações ─────────────────────────────────────────────────
+import ModalObservacoes from '../../components/modalObservacao/ModalObservacao';
+
 import { API } from '../../config/api';
 
 // Calcula semestre/ano corrente (mês <= 6 => 1º semestre)
@@ -36,6 +39,9 @@ export function ConselhoIntermediario() {
     const [searchParams] = useSearchParams();
     const idTurma = searchParams.get('turma');
     const nomeTurma = searchParams.get('nomeTurma');
+
+    const [modalObsAberto, setModalObsAberto] = useState(false);
+    const [alunoSelecionadoObs, setAlunoSelecionadoObs] = useState(null);
 
     // Usuário logado vindo do localStorage (para registrar quem iniciou)
     const usuario = JSON.parse(localStorage.getItem('usuarioLogado') || '{}');
@@ -125,6 +131,37 @@ export function ConselhoIntermediario() {
         setIsModalAlunosOpen(true);
     };
     const handleCloseModalAlunos = () => setIsModalAlunosOpen(false);
+
+    const handleVerObservacoes = async (aluno) => {
+      try {
+          const idDoAluno = aluno.idtblAluno || aluno.id; 
+          const res = await fetch(`${API.observacoes}/aluno/${idDoAluno}`);
+          const data = await res.json();
+
+          if (data.sucesso) {
+          const observacoesFormatadas = data.observacoes.map(o => {
+              const dataObj = new Date(o.dataObservacao);
+              return {
+              id: o.idObservacao_Docente,
+              texto: o.descricao,
+              data: dataObj.toLocaleDateString('pt-BR', { timeZone: 'UTC' }),
+              docente: o.docente
+              };
+          });
+
+          setAlunoSelecionadoObs({
+              nome: aluno.nome,
+              observacoes: observacoesFormatadas
+          });
+          setModalObsAberto(true);
+          } else {
+          toast.error('Não há observações registradas para este aluno.');
+          }
+      } catch (error) {
+          console.error("Erro ao buscar observações:", error);
+          toast.error('Erro de conexão ao buscar observações.');
+      }
+    };
     
     // =====================================================================
     // RECARREGAR DADOS DO CONSELHO (avaliação da turma + alunos avaliados)
@@ -154,7 +191,7 @@ export function ConselhoIntermediario() {
       }
     }, []);
 
-      // 1) Carrega alunos da turma sempre que a turma muda
+    // 1) Carrega alunos da turma sempre que a turma muda
     useEffect(() => {
       if(!idTurma) return;
       setAlunosAvaliados({});
@@ -162,12 +199,26 @@ export function ConselhoIntermediario() {
       setIsModalTurmaOpen(false); // Fecha modal ao trocar de turma
 
       setCarregando(true);
-      fetch(`${API.alunos}/empresa/${idTurma}`)
-          .then(res => res.json())
-          .then(data => {
-              if (data.sucesso) setAlunos(data.alunos);
-          })
-          .finally(() => setCarregando(false));
+      
+      // Busca alunos e observações em paralelo
+      Promise.all([
+          fetch(`${API.alunos}/empresa/${idTurma}`).then(res => res.json()),
+          fetch(`${API.observacoes}/turma/${idTurma}`).then(res => res.json())
+      ])
+      .then(([dataAlunos, dataObs]) => {
+          if (dataAlunos.sucesso) {
+              const listaObs = dataObs.sucesso ? dataObs.observacoes : [];
+              // Mapeia os alunos e conta as observações de cada um
+              const alunosComObs = dataAlunos.alunos.map(aluno => {
+                  // CORREÇÃO: Garante pegar o ID certo e usa "==" para ignorar diferença de String/Number
+                  const idAluno = aluno.idtblAluno || aluno.id;
+                  const qtd = listaObs.filter(o => o.tblAluno_idtblAluno == idAluno).length;
+                  return { ...aluno, qtdObservacoes: qtd };
+              });
+              setAlunos(alunosComObs);
+          }
+      })
+      .finally(() => setCarregando(false));
     }, [idTurma]);
 
     // 1b) Ao trocar de turma: localiza o conselho do ciclo (turma primeiro,
@@ -409,6 +460,8 @@ export function ConselhoIntermediario() {
 
     const totalRestritos = Object.keys(alunosAvaliados).length;
 
+    const totalObs = alunos.reduce((acc, aluno) => acc + (aluno.qtdObservacoes || 0), 0);
+
     const tableThClasses = "border-b-2 border-r-2 last:border-r-0 border-gray-400 p-[1vh_1.2vw] font-bold bg-white sticky top-0 z-10";
     const tableTdClasses = "border-b-2 border-r-2 last:border-r-0 border-gray-400 p-[1vh_1.2vw] text-lg";
 
@@ -468,7 +521,7 @@ export function ConselhoIntermediario() {
           </div>
           <div className={`${cardInfo} bg-yellow-50 border border-yellow-600`}>
             <div className={`${cardText} text-yellow-600`}>
-              <h3 className={`${cardNum}`}>{totalRestritos}</h3>
+              <h3 className={`${cardNum}`}>{totalObs}</h3>
               <p>Total Observações</p>
             </div>
             <div className={`${cardIcon}`}>
@@ -490,7 +543,7 @@ export function ConselhoIntermediario() {
                 <button
                   onClick={handleAcaoBotaoPrincipal}
                   disabled={botaoPrincipalDesabilitado}
-                  className={`p-[1.2vh] w-[22vw] rounded-[15px] border-2 border-gray-600 shadow-[0_0_3px_black] transition-all duration-200 font-bold text-lg ${classeBotaoPrincipal}`}>
+                  className={`p-[1.2vh] w-[22vw] rounded-[15px] border-2 border-red-900 shadow-[0_0_3px_black] transition-all duration-200 font-bold text-lg ${classeBotaoPrincipal}`}>
                   {textoBotaoPrincipal}
               </button>
 
@@ -509,7 +562,7 @@ export function ConselhoIntermediario() {
                   className={`avaliar_toda_turma p-[1.2vh] w-[22vw] rounded-[15px] border-2 border-gray-600 shadow-[0_0_3px_black] transition-all duration-200
                   ${!modoEdicao
                       ? 'opacity-50 cursor-not-allowed bg-gray-100'
-                      : 'bg-[#FEFEFE] cursor-pointer active:scale-95'}`}>
+                      : 'bg-white cursor-pointer active:scale-95'}`}>
                   {turmaJaAvaliada ? 'Avaliação da Turma Salva' : 'Avaliar Toda Turma'}
               </button>
 
@@ -517,7 +570,7 @@ export function ConselhoIntermediario() {
                 onClick={handleLimparSelecao}
                 disabled={botoesDesabilitados}
                 className={`limpar_selecao p-[1.2vh] w-[22vw] rounded-[15px] border-2 border-gray-600 shadow-[0_0_3px_black] transition-all duration-200
-                ${botoesDesabilitados ? 'opacity-50 cursor-not-allowed bg-gray-100' : 'bg-[#FEFEFE] cursor-pointer active:scale-95'}`}>
+                ${botoesDesabilitados ? 'opacity-50 cursor-not-allowed bg-gray-100' : 'bg-white cursor-pointer active:scale-95'}`}>
                 Limpar Seleção
               </button>
 
@@ -527,7 +580,7 @@ export function ConselhoIntermediario() {
                 className={`p-[1.2vh] w-[22vw] rounded-[15px] border-2 border-gray-600 shadow-[0_0_3px_black] transition-all duration-200
                 ${!podeAvaliarAlunos
                     ? 'opacity-50 cursor-not-allowed bg-gray-100'  
-                    : 'bg-red-600 text-white cursor-pointer active:scale-95'}`}>
+                    : 'bg-[var(--red-senai)] border-red-900 text-white cursor-pointer active:scale-95'}`}>
               {textoBotaoAvaliar}
             </button>
           </div>
@@ -573,7 +626,7 @@ export function ConselhoIntermediario() {
                     <p className="text-center text-gray-500 py-4">Carregando alunos...</p>
                 )}
 
-                <section className='max-h-[48vh] overflow-y-auto border-2 border-gray-400 shadow-[0_0_2px_gray]'>
+                <section className='max-h-[48vh] overflow-y-auto border-2 border-gray-300 shadow-md'>
                 {!carregando && (
                   <table className="w-full bg-white text-sm box-border border-separate border-spacing-0 [&_tbody_tr:last-child_td]:!border-b-0">
                     <thead>
@@ -609,12 +662,19 @@ export function ConselhoIntermediario() {
 
                             {/* Coluna 2: Observações */}
                             <td className={`${tableTdClasses} text-center`}>
-                              <button className='flex flex-col items-center justify-center mx-auto text-gray-500 hover:opacity-80 transition-opacity'>
-                                <img src={notificationIcon} alt="Notificações" className="w-5 h-5 mb-1" />
-                                <span className="text-sm underline text-orange-700 whitespace-nowrap">
-                                  Ver Observações
-                                </span>
-                              </button>
+                              {aluno.qtdObservacoes > 0 ? (
+                                <button 
+                                  onClick={() => handleVerObservacoes(aluno)} 
+                                  className='flex flex-col items-center justify-center mx-auto text-gray-500 hover:opacity-80 transition-opacity'
+                                >
+                                  <img src={notificationIcon} alt="Notificações" className="w-5 h-5 mb-1" />
+                                  <span className="text-sm underline text-orange-700 whitespace-nowrap">
+                                    Ver Observações ({aluno.qtdObservacoes})
+                                  </span>
+                                </button>
+                              ) : (
+                                <span className="text-gray-400 font-bold">-</span>
+                              )}
                             </td>
 
                             {/* Coluna 3: Empresa */}
@@ -647,11 +707,17 @@ export function ConselhoIntermediario() {
               </p>
             )}
           </div>
-        </div>
-             
+        </div> 
                 
         </div>
+        <ModalObservacoes
+            isOpen={modalObsAberto}
+            onClose={() => { setModalObsAberto(false); setAlunoSelecionadoObs(null); }}
+            aluno={alunoSelecionadoObs}
+            somenteLeitura={true} // <-- Aqui garante que o ADMIN não possa alterar nem deletar nada!
+        />
       </section>
+      
       
   );
 }

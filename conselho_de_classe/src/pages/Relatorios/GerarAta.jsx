@@ -142,7 +142,7 @@ export function GerarAta() {
       </nav>
 
       {/* Card principal */}
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 w-full max-w-3xl mx-auto">
+      <div className="bg-white rounded-2xl shadow-sm border-2 border-gray-00 p-8 w-full max-w-3xl mx-auto">
         <h1 className="text-center text-xl font-bold tracking-widest text-gray-800 mb-8 uppercase">
           Geração de Ata Conselho Final
         </h1>
@@ -193,7 +193,7 @@ export function GerarAta() {
         <div className="flex justify-center gap-6">
           <button
             onClick={handleLimpar}
-            className="px-10 py-3 rounded-full border border-gray-400 text-gray-700 bg-white hover:bg-gray-100 transition font-medium text-sm">
+            className="px-10 py-3 rounded-full border-2 border-gray-400 text-gray-800 bg-white hover:bg-gray-100 transition font-medium text-sm hover:scale-95 hover:opacity[0.8]">
             Limpar
           </button>
           <button

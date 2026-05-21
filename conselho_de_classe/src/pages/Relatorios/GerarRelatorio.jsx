@@ -187,7 +187,7 @@ export function GerarRelatorio() {
       </nav>
 
       {/* CARD */}
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 w-full max-w-3xl mx-auto">
+      <div className="bg-white rounded-2xl shadow-sm border-2 border-gray-200 p-8 w-full max-w-3xl mx-auto">
 
         <h1 className="text-center text-xl font-bold tracking-widest text-gray-800 mb-8 uppercase">
           Geração de Relatório
@@ -203,7 +203,7 @@ export function GerarRelatorio() {
           <select
             value={conselho}
             onChange={(e) => setConselho(e.target.value)}
-            className="w-full border border-gray-300 rounded-lg px-4 py-3"
+            className="w-full border-2 border-gray-300 rounded-lg px-4 py-3"
           >
 
             <option value="" disabled hidden>
@@ -253,14 +253,14 @@ export function GerarRelatorio() {
 
           <button
             onClick={handleLimpar}
-            className="px-10 py-3 rounded-full border border-gray-400"
+            className="px-10 py-3 rounded-full border-2 border-gray-400 text-gray-700 bg-white hover:bg-gray-100 transition font-medium text-sm hover:scale-95 hover:opacity[0.8]"
           >
             Limpar
           </button>
 
           <button
             onClick={handleGerar}
-            className="px-10 py-3 rounded-full bg-red-600 text-white"
+            className="px-10 py-3 rounded-full bg-[var(--red-senai)] border-2 border-red-800 text-white hover:bg-red-800 transition font-medium text-sm shadow hover:scale-95 hover:opacity[0.8]"
           >
             Gerar
           </button>

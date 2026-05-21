@@ -115,4 +115,26 @@ router.delete('/:idObservacao', async (req, res) => {
   }
 });
 
+// exibição para o adm
+// GET /observacoes/aluno/:idAluno - BUSCA OBSERVAÇÕES DE UM ALUNO ESPECÍFICO
+router.get('/aluno/:idAluno', async (req, res) => {
+  const { idAluno } = req.params;
+
+  try {
+    const result = await db`
+      SELECT 
+        o.*, 
+        u."nomeUsuario" AS docente
+      FROM "Observacao_Docente" o
+      JOIN "Usuario" u ON o."Usuario_idUsuario" = u."idUsuario"
+      WHERE o."tblAluno_idtblAluno" = ${idAluno}
+      ORDER BY o."dataObservacao" DESC
+    `;
+
+    res.json({ sucesso: true, observacoes: result });
+  } catch (error) {
+    console.error("Erro ao buscar observações do aluno:", error);
+    res.status(500).json({ sucesso: false, message: 'Erro ao buscar observações do aluno.' });
+  }
+});
 module.exports = router;
