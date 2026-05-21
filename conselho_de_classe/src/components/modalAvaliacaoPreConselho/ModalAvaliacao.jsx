@@ -274,12 +274,12 @@ const ModalAvaliacao = ({
               value={form.responsavel}
               onChange={e => setCampo('responsavel', e.target.value)}
               className="p-1 mt-[5px] py-2 rounded-[18px] border border-black">
-              <option value=""   hidden >Selecione</option>
-              <option value="docente">Docente</option>
-              <option value="orientador_praticas_profissionais">Orientador Práticas Profissionais</option>
-              <option value="coordenacao">Coordenação</option>
-              <option value="analista_qualidade_vida">Analista e Qualidade de Vida</option>
-              <option value="trabalho_em_conjunto">Trabalho em Conjunto</option>
+              <option value="" hidden  >Selecione</option>
+              <option value="Docente">Docente</option>
+              <option value="OPP">Orientador Práticas Profissionais</option>
+              <option value="Coordenação">Coordenação</option>
+              <option value="AQV">Analista e Qualidade de Vida</option>
+              <option value="Trabalho Conjunto">Trabalho em Conjunto</option>
             </select>
           </div>
 

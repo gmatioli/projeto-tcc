@@ -8,22 +8,29 @@ const Docxtemplater = require('docxtemplater');
 const db = require('../config/db');
 
 // ==========================================
-// BUSCAR DATAS
+// BUSCAR DATAS (E PERÍODOS DE CONSELHO)
 // ==========================================
 router.get('/datas', async (req, res) => {
   try {
-    console.log(' Buscando datas...');
 
+    // AJUSTE: Removemos o limite apertado e forçamos o banco
+    // a entregar apenas registros que tenham semestre e ano.
     const result = await db`
       SELECT 
         "idConselho",
-        TO_CHAR("dataRealizacao", 'DD/MM/YYYY') AS "dataFormatada"
+        "semestre",
+        "ano",
+        TO_CHAR("dataRealizacao", 'DD/MM/YYYY') AS "dataFormatada",
+        TO_CHAR("dataRealizacao", 'YYYY-MM-DD') AS "dataInput"
       FROM "Conselho"
-      ORDER BY "dataRealizacao" DESC
-      LIMIT 10
+      WHERE "semestre" IS NOT NULL 
+        AND "ano" IS NOT NULL
+      ORDER BY "ano" DESC, "semestre" DESC
     `;
 
-    console.log(` Datas OK: ${result.length} registros`);
+    // Se result.length estiver indefinido, tentaremos ler .rows
+    const tamanho = result.length !== undefined ? result.length : (result.rows ? result.rows.length : 0);
+    
     res.json(result);
 
   } catch (erro) {
@@ -37,7 +44,6 @@ router.get('/datas', async (req, res) => {
 // ==========================================
 router.get('/turmas', async (req, res) => {
   try {
-    console.log(' Buscando turmas...');
 
     const result = await db`
       SELECT 
@@ -50,7 +56,6 @@ router.get('/turmas', async (req, res) => {
       LIMIT 20
     `;
 
-    console.log(` Turmas OK: ${result.length} registros`);
     res.json(result);
 
   } catch (erro) {
@@ -64,11 +69,8 @@ router.get('/turmas', async (req, res) => {
 // ==========================================
 router.post('/gerar-doc', async (req, res) => {
   try {
-    const { dataConselho, turma, semestre, conselho } = req.body;
+    const { dataConselho, semestre, conselho, ano } = req.body;
 
-    console.log(` Gerando: ${conselho} | Turma: ${turma} | Data: ${dataConselho}`);
-
-    // Query base
     let result;
 
     if (conselho === "preConselho" || conselho === "pre") {
@@ -76,88 +78,91 @@ router.post('/gerar-doc', async (req, res) => {
       result = await db`
         SELECT 
           A."nome" as "nomeAluno",
-          AA."situacaoFinal" as "situacao",
+          T."codigo" as "codigoTurma",
           AA."justificativa",
+          AA."acaoProposta",
           AA."responsavel"
         FROM "Avaliacao_Aluno" AA
         INNER JOIN "tblAluno" A ON AA."tblAluno_idtblAluno" = A."idtblAluno"
         INNER JOIN "Turma" T ON A."Turma_idTurma" = T."idTurma"
-        WHERE T."codigo" = ${turma}
-          AND AA."Conselho_idConselho" IN (
-            SELECT "idConselho" 
-            FROM "Conselho" 
-            WHERE TO_CHAR("dataRealizacao", 'DD/MM/YYYY') = ${dataConselho}
-          )
-        ORDER BY A."nome" ASC
+        INNER JOIN "Conselho" C ON AA."Conselho_idConselho" = C."idConselho"
+         WHERE C."semestre" = ${Number(semestre)}
+          AND C."ano" = ${Number(ano)}
+          AND C."tipoConselho" = 'Pré-Conselho'
+        ORDER BY T."codigo" ASC, A."nome" ASC
       `;
+      
+      // Guarda o array de alunos com segurança
+      const listaAlunos = result.rows || result;
 
       const dadosTemplate = {
-        turma: turma,
+        turma: "Todas as turmas",
         dataConselho: dataConselho,
-        semestre: semestre || '1º Semestre',
+        semestre: semestre,
+        ano: ano,
         titulo: "PRÉ CONSELHO – PLANO DE AÇÃO",
         escola: "Escola SENAI \"Mariano Ferraz\"",
 
-        alunos: result.map(aluno => ({
-          nomeAluno: aluno.nomeAluno || '',
-          situacao: aluno.situacao || 'Não definido',
-          justificativa: aluno.justificativa || 'Não informado',
+        alunos: listaAlunos.map(aluno => ({
+          codigoTurma: `${aluno.codigoTurma}`,
+          nomeAluno: `${aluno.nomeAluno}`,
+          situacao: aluno.justificativa 
+            ? 'Retido' 
+            : aluno.acaoProposta 
+              ? 'Conselho final' 
+              : 'Não definido',
+          observacao: aluno.justificativa || aluno.acaoProposta || 'Não informado',
           responsavel: aluno.responsavel || 'Coordenação'
         }))
       };
 
       const templatePath = path.join(__dirname, '../../docs/template-pre-conselho.docx');
-
-      if (!fs.existsSync(templatePath)) {
-        return res.status(400).json({ mensagem: 'Template do Pré Conselho não encontrado!' });
-      }
-
-      // Geração do Pré Conselho
       const content = fs.readFileSync(templatePath, 'binary');
       const zip = new PizZip(content);
       const doc = new Docxtemplater(zip, { paragraphLoop: true, linebreaks: true });
-
       doc.render(dadosTemplate);
-      const buffer = doc.getZip().generate({ type: 'nodebuffer' });
+      res.setHeader('Content-Disposition', `attachment; filename=Pre_Conselho_Ano${ano}_Sem${semestre}.docx`);
+      res.send(doc.getZip().generate({ type: 'nodebuffer' }));
 
-      res.setHeader('Content-Disposition', `attachment; filename=Pre_Conselho_${turma}_${dataConselho.replace(/\//g, '-')}.docx`);
-      res.send(buffer);
-
-    } else {
-      // === CONSELHO INTERMEDIÁRIO (mantido como estava) ===
+    } else if (conselho === "intermediario") {
+      // === CONSELHO INTERMEDIÁRIO ===
       result = await db`
         SELECT 
           A."nome" as "nomeAluno",
+          T."codigo" as "codigoTurma",
           AA."restricao",
           AA."acaoProposta",
           AA."justificativa",
+          AA."responsavel",
           AA."situacaoFinal"
         FROM "Avaliacao_Aluno" AA
         INNER JOIN "tblAluno" A ON AA."tblAluno_idtblAluno" = A."idtblAluno"
         INNER JOIN "Turma" T ON A."Turma_idTurma" = T."idTurma"
-        WHERE T."codigo" = ${turma}
-          AND AA."Conselho_idConselho" IN (
-            SELECT "idConselho" 
-            FROM "Conselho" 
-            WHERE TO_CHAR("dataRealizacao", 'DD/MM/YYYY') = ${dataConselho}
-          )
-        ORDER BY A."nome" ASC
+        INNER JOIN "Conselho" C ON AA."Conselho_idConselho" = C."idConselho"
+        WHERE C."semestre" = ${Number(semestre)}
+          AND C."ano" = ${Number(ano)}
+          AND C."tipoConselho" = 'Intermediário'
+        ORDER BY T."codigo" ASC, A."nome" ASC
       `;
 
+      // Guarda o array de alunos com segurança
+      const listaAlunos = result.rows || result;
+      
+
       const dadosTemplate = {
-        turma: turma,
+        turma: "Todas as turmas",
         dataConselho: dataConselho,
-        semestre: semestre || '1º Semestre',
+        semestre: semestre,
+        ano: ano,
         titulo: "CONSELHO DE CLASSE INTERMEDIÁRIO – PLANO DE AÇÃO",
         escola: "Escola SENAI \"Mariano Ferraz\"",
 
-        alunos: result.map(aluno => ({
-          nomeAluno: aluno.nomeAluno || '',
+        alunos: listaAlunos.map(aluno => ({
+          codigoTurma: `${aluno.codigoTurma}`,
+          nomeAluno: `${aluno.nomeAluno}`,
           restricao: aluno.restricao || 'Não informado',
           acaoProposta: aluno.acaoProposta || 'Não definido',
-          responsavel: "Coordenação / Professor",
-          situacaoFinal: aluno.situacaoFinal || 'Aprovado',
-          portal: "Registrado"
+          responsavel: aluno.responsavel || 'Não definido',
         }))
       };
 
@@ -172,15 +177,62 @@ router.post('/gerar-doc', async (req, res) => {
       const doc = new Docxtemplater(zip, { paragraphLoop: true, linebreaks: true });
 
       doc.render(dadosTemplate);
-      const buffer = doc.getZip().generate({ type: 'nodebuffer' });
+      res.setHeader('Content-Disposition', `attachment; filename=Intermediario_Ano${ano}_Sem${semestre}.docx`);
+      res.send(doc.getZip().generate({ type: 'nodebuffer' }));
 
-      res.setHeader('Content-Disposition', `attachment; filename=Plano_Acao_${turma}_${dataConselho.replace(/\//g, '-')}.docx`);
-      res.send(buffer);
+    } else {
+      
+      result = await db`
+        SELECT 
+          A."nome" as "nomeAluno",
+          T."codigo" as "codigoTurma",
+          AA."situacaoFinal" as "situacao",
+          AA."contestacaoSituacaoFinal" as "contestacao"
+        FROM "Avaliacao_Aluno" AA
+        INNER JOIN "tblAluno" A ON AA."tblAluno_idtblAluno" = A."idtblAluno"
+        INNER JOIN "Turma" T ON A."Turma_idTurma" = T."idTurma"
+        INNER JOIN "Conselho" C ON AA."Conselho_idConselho" = C."idConselho"
+        WHERE C."semestre" = ${Number(semestre)}
+          AND C."ano" = ${Number(ano)}
+          AND C."tipoConselho" = 'Final'
+        ORDER BY T."codigo" ASC, A."nome" ASC
+      `;
+
+      // Guarda o array de alunos com segurança
+      const listaAlunos = result.rows || result;
+      
+      const dadosTemplate = {
+        turma: "Todas as turmas", 
+        semestre: semestre,       
+        ano: ano,                
+        dataConselho: dataConselho,  
+        
+        alunos: listaAlunos.map(aluno => ({
+          codigoTurma: `${aluno.codigoTurma}`,
+          nomeAluno: `${aluno.nomeAluno}`, 
+          situacao: aluno.situacao || 'Não definido',
+          contestacao: aluno.contestacao || ''
+        }))
+      };
+
+      const templatePath = path.join(__dirname, '../../docs/template-ata-conselhofinal.docx');
+
+      if (!fs.existsSync(templatePath)) {
+        return res.status(400).json({ mensagem: 'Template da Ata Final não encontrado!' });
+      }
+
+      const content = fs.readFileSync(templatePath, 'binary');
+      const zip = new PizZip(content);
+      const doc = new Docxtemplater(zip, { paragraphLoop: true, linebreaks: true });
+
+      doc.render(dadosTemplate);
+      res.setHeader('Content-Disposition', `attachment; filename=Intermediario_Ano${ano}_Sem${semestre}.docx`);      
+      res.send(doc.getZip().generate({ type: 'nodebuffer' }));
     }
-
   } catch (erro) {
     console.error(' Erro completo:', erro);
     res.status(500).json({ mensagem: 'Erro ao gerar documento', detalhe: erro.message });
   }
 });
+
 module.exports = router;

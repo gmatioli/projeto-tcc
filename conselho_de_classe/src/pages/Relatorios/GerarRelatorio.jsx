@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { API } from '../../config/api';
+import { toast } from 'sonner';
+
 
 
 export function GerarRelatorio() {
@@ -12,84 +14,51 @@ export function GerarRelatorio() {
   // ==========================================
   const [conselho, setConselho] = useState('');
   const [semestre, setSemestre] = useState('');
+  const [ano, setAno] = useState('');
 
-  const [tipoCurso, setTipoCurso] = useState('');
-  const [dataConselho, setDataConselho] = useState('');
-  const [turma, setTurma] = useState('');
+  // Estado para armazenar as opções únicas de Semestre/Ano
+  const [opcoesSemestreAno, setOpcoesSemestreAno] = useState([]);
 
-  // ==========================================
-  // LISTAS
-  // ==========================================
-  const [datas, setDatas] = useState([]);
-  const [turmas, setTurmas] = useState([]);
-
-  // ==========================================
-  // BUSCAR DATAS DOS CONSELHOS
-  // ==========================================
-  useEffect(() => {
-
-    fetch(`${API.relatorio}/datas`)
-
-      .then((res) => res.json())
-
-      .then((data) => {
-
-       console.log('DATAS recebidas:', data);
-
-        setDatas(data);
-      })
-
-      .catch((erro) => {
-
-        console.log(erro);
-
-        alert('Erro ao carregar datas');
-      });
-
-  }, []);
-
-  // ==========================================
-  // BUSCAR TURMAS
-  // ==========================================
-  useEffect(() => {
-
-    fetch(`${API.relatorio}/turmas`)
-
-      .then((res) => res.json())
-
-      .then((data) => {
-
-        console.log('TURMAS:', data);
-
-        setTurmas(data);
-      })
-
-      .catch((erro) => {
-
-        console.log(erro);
-
-        alert('Erro ao carregar turmas');
-      });
-
-  }, []);
-
-  // ==========================================
-  // FILTRAR TURMAS
-  // ==========================================
-  const turmasFiltradas = turmas.filter((t) => {
-
-    if (!tipoCurso) return true;
-
-    if (tipoCurso === 'tecnico') {
-      return t.tipo === 'Curso Técnico';
-    }
-
-    if (tipoCurso === 'aprendizagem') {
-      return t.tipo === 'Aprendizagem Industrial';
-    }
-
-    return true;
-  });
+ // Busca as datas no backend e filtra os semestres/anos únicos
+   useEffect(() => {
+     const buscarDados = async () => {
+       try {
+         const response = await fetch(`${API.relatorio}/datas`);
+         if (response.ok) {
+           const dados = await response.json();
+           
+           // TRAVA DE SEGURANÇA: Garante que estamos iterando sobre um array
+           // Algumas libs de banco retornam o array dentro de "dados.rows"
+           const lista = Array.isArray(dados) ? dados : (dados.rows || []);
+           
+           const combinacoes = [];
+           const setUnicos = new Set();
+           
+           // Percorre a lista segura e separa as opções únicas
+           lista.forEach(item => {
+             // Verifica se não é nulo/vazio
+             if (item.semestre != null && item.ano != null && String(item.semestre).trim() !== '') {
+               const chave = `${item.semestre}/${item.ano}`;
+               if (!setUnicos.has(chave)) {
+                 setUnicos.add(chave);
+                 combinacoes.push({ 
+                   valor: chave, 
+                   semestre: item.semestre, 
+                   ano: item.ano,
+                   dataConselho: item.dataFormatada
+                 });
+               }
+             }
+           });
+           
+           setOpcoesSemestreAno(combinacoes);
+         }
+       } catch (error) {
+         toast.error('Erro ao buscar dados do conselho:', error);
+       }
+     };
+     buscarDados();
+   }, []);
 
   // ==========================================
   // LIMPAR
@@ -98,11 +67,20 @@ export function GerarRelatorio() {
 
     setConselho('');
     setSemestre('');
-    setTipoCurso('');
-    setDataConselho('');
-    setTurma('');
+    setAno('');
   };
 
+  const handleSelecionarSemestreAno = (e) => {
+    const valor = e.target.value;
+    if (valor) {
+      const [sem, a] = valor.split('/');
+      setSemestre(sem);
+      setAno(a);
+    } else {
+      setSemestre('');
+      setAno('');
+    }
+  };
   // ==========================================
   // GERAR RELATÓRIO
   // ==========================================
@@ -110,25 +88,29 @@ export function GerarRelatorio() {
 
     if (
       !conselho ||
-      !semestre ||
-      !tipoCurso ||
-      !dataConselho ||
-      !turma
+      !semestre 
     ) {
 
-      alert('Preencha todos os campos.');
+      toast.warning('Preencha todos os campos.');
 
       return;
     }
 
     try {
+       // Procura a opção selecionada para resgatar a data dela
+      const opcaoEscolhida = opcoesSemestreAno.find(
+        (op) => op.semestre == semestre && op.ano == ano
+      );
 
+      // Fallback de segurança para o dia de hoje caso algo dê errado
+      const dataParaEnviar = opcaoEscolhida ? opcaoEscolhida.dataConselho : new Date().toLocaleDateString('pt-BR');
+
+      
       const dados = {
         conselho,
         semestre,
-        tipoCurso,
-        dataConselho,
-        turma
+        ano,
+        dataConselho: dataParaEnviar // Agora estamos enviando a data!
       };
 
       const response = await fetch(
@@ -146,7 +128,7 @@ export function GerarRelatorio() {
 
         const erro = await response.json();
 
-        alert(erro.mensagem);
+        toast.error(erro.mensagem);
 
         return;
       }
@@ -157,21 +139,24 @@ export function GerarRelatorio() {
 
       const a = document.createElement('a');
 
+      // Define o nome do arquivo baseado no tipo de conselho
+      let nomeArquivo;
+      if (conselho === 'preConselho') {
+        nomeArquivo = `Pre_Conselho_Sem${semestre}_Ano${ano}.docx`;
+      } else if (conselho === 'intermediario') {
+        nomeArquivo = `Conselho_Intermediario_Sem${semestre}_Ano${ano}.docx`;
+      } else {
+        nomeArquivo = `Relatorio_Sem${semestre}_Ano${ano}.docx`;
+      }
+
       a.href = url;
-
-      a.download = `Plano_Acao_${turma || 'relatorio'}.docx`;
-
+      a.download = nomeArquivo;
       document.body.appendChild(a);
-
       a.click();
-
       a.remove();
-
+      toast.success('Relatório gerado com sucesso')
     } catch (erro) {
-
-      console.log(erro);
-
-      alert('Erro ao gerar relatório');
+      toast.error('Erro ao gerar relatório');
     }
   };
 
@@ -221,8 +206,8 @@ export function GerarRelatorio() {
             className="w-full border-2 border-gray-300 rounded-lg px-4 py-3"
           >
 
-            <option value="">
-              Selecione...
+            <option value="" disabled hidden>
+              Selecione
             </option>
 
             <option value="preConselho">
@@ -238,148 +223,28 @@ export function GerarRelatorio() {
         </div>
 
         {/* LINHA 1 */}
-        <div className="grid grid-cols-2 gap-4 mb-5">
+        <div className="grid grid-cols-1 gap-4 mb-5">
 
-          {/* DATA */}
-          <div>
-
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Data(*):
-            </label>
-
-            <select
-              value={dataConselho}
-              onChange={(e) => setDataConselho(e.target.value)}
-              className="w-full border-2 border-gray-300 rounded-lg px-4 py-3"
-            >
-
-              <option value="">
-                Selecione...
-              </option>
-
-              {datas.map((d) => (
-
-                <option
-                  key={d.idConselho}
-                  value={d.dataFormatada}
-                >
-                  {d.dataFormatada}
+           {/* Semestre / Ano (Montado a partir dos dados do banco) */}
+            <div className="flex-[2]">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Semestre / Ano Referência (*):
+              </label>
+              <select
+                value={semestre && ano ? `${semestre}/${ano}` : ''}
+                onChange={handleSelecionarSemestreAno}
+                className="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-red-400 focus:border-transparent transition"
+              >
+                <option value="">
+                  {opcoesSemestreAno.length === 0 ? 'Carregando períodos...' : 'Selecione o período...'}
                 </option>
-
-              ))}
-
-            </select>
-
-          </div>
-
-          {/* TIPO CURSO */}
-          <div>
-
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Tipo Curso(*):
-            </label>
-
-            <select
-              value={tipoCurso}
-              onChange={(e) => {
-
-                setTipoCurso(e.target.value);
-
-                // limpa turma ao trocar tipo
-                setTurma('');
-              }}
-              className="w-full border-2 border-gray-300 rounded-lg px-4 py-3"
-            >
-
-              <option value="">
-                Selecione...
-              </option>
-
-              <option value="tecnico">
-                Curso Técnico
-              </option>
-
-              <option value="aprendizagem">
-                Aprendizagem Industrial
-              </option>
-
-            </select>
-
-          </div>
-
-        </div>
-
-        {/* LINHA 2 */}
-        <div className="grid grid-cols-2 gap-4 mb-8">
-
-          {/* TURMA */}
-          <div>
-
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Turma(*):
-            </label>
-
-            <select
-              value={turma}
-              onChange={(e) => setTurma(e.target.value)}
-              className="w-full border-2 border-gray-300 rounded-lg px-4 py-3"
-            >
-
-              <option value="">
-                Selecione...
-              </option>
-
-              {turmasFiltradas.map((t) => (
-
-                <option
-                  key={t.idTurma}
-                  value={t.codigo}
-                >
-                  {t.codigo}
-                </option>
-
-              ))}
-
-            </select>
-
-          </div>
-
-          {/* SEMESTRE */}
-          <div>
-
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Semestre(*):
-            </label>
-
-            <select
-              value={semestre}
-              onChange={(e) => setSemestre(e.target.value)}
-              className="w-full border-2 border-gray-300 rounded-lg px-4 py-3"
-            >
-
-              <option value="">
-                Selecione...
-              </option>
-
-              <option value="1">
-                1º Semestre
-              </option>
-
-              <option value="2">
-                2º Semestre
-              </option>
-
-              <option value="3">
-                3º Semestre
-              </option>
-
-              <option value="4">
-                4º Semestre
-              </option>
-
-            </select>
-
-          </div>
+                {opcoesSemestreAno.map((op) => (
+                  <option key={op.valor} value={op.valor}>
+                    {op.semestre}º Semestre / {op.ano}
+                  </option>
+                ))}
+              </select>
+            </div>
 
         </div>
 
