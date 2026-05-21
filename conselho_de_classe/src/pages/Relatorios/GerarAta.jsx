@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { API } from '../../config/api';
+import { toast } from 'sonner';
+
 
 export function GerarAta() {
   const navigate = useNavigate();
@@ -8,9 +10,6 @@ export function GerarAta() {
   const [conselho, setConselho] = useState('');
   const [ano, setAno] = useState('');
   const [semestre, setSemestre] = useState('');
-  
-  // Define a data de hoje como padrão para preencher o cabeçalho do Word
-  const [dataDocumento, setDataDocumento] = useState(new Date().toISOString().split('T')[0]);
   
   // Estado para armazenar as opções únicas de Semestre/Ano
   const [opcoesSemestreAno, setOpcoesSemestreAno] = useState([]);
@@ -22,14 +21,13 @@ export function GerarAta() {
         const response = await fetch(`${API.relatorio}/datas`);
         if (response.ok) {
           const dados = await response.json();
-          
           // TRAVA DE SEGURANÇA: Garante que estamos iterando sobre um array
           // Algumas libs de banco retornam o array dentro de "dados.rows"
           const lista = Array.isArray(dados) ? dados : (dados.rows || []);
           
           const combinacoes = [];
           const setUnicos = new Set();
-          
+
           // Percorre a lista segura e separa as opções únicas
           lista.forEach(item => {
             // Verifica se não é nulo/vazio
@@ -40,7 +38,8 @@ export function GerarAta() {
                 combinacoes.push({ 
                   valor: chave, 
                   semestre: item.semestre, 
-                  ano: item.ano 
+                  ano: item.ano,
+                  dataConselho: item.dataFormatada
                 });
               }
             }
@@ -49,7 +48,7 @@ export function GerarAta() {
           setOpcoesSemestreAno(combinacoes);
         }
       } catch (error) {
-        console.error('Erro ao buscar dados do conselho:', error);
+        toast.error('Erro ao buscar dados do conselho:', error);
       }
     };
     buscarDados();
@@ -59,7 +58,6 @@ export function GerarAta() {
     setConselho('');
     setAno('');
     setSemestre('');
-    setDataDocumento(new Date().toISOString().split('T')[0]);
   };
 
   const handleSelecionarSemestreAno = (e) => {
@@ -74,23 +72,27 @@ export function GerarAta() {
     }
   };
 
-  const gerarAta = async () => {
-    if (!conselho || !ano || !semestre || !dataDocumento) {
-      alert('Por favor, preencha todos os campos obrigatórios.');
+  const handleGerar = async () => {
+    if (!conselho || !ano || !semestre) {
+      toast.warning('Por favor, preencha todos os campos obrigatórios.');
       return;
     }
 
     try {
-      // Formata a data escolhida para enviar ao backend (apenas para exibição no DOCX)
-      const dataFormatada = dataDocumento.includes('/') 
-        ? dataDocumento 
-        : new Date(dataDocumento + 'T00:00:00').toLocaleDateString('pt-BR');
+
+      // Procura a opção selecionada para resgatar a data dela
+      const opcaoEscolhida = opcoesSemestreAno.find(
+        (op) => op.semestre == semestre && op.ano == ano
+      );
+
+      // Fallback de segurança para o dia de hoje caso algo dê errado
+      const dataParaEnviar = opcaoEscolhida ? opcaoEscolhida.dataConselho : new Date().toLocaleDateString('pt-BR');
 
       const dados = {
         conselho,
         semestre,
         ano,
-        data: dataFormatada // Essa data será usada lá no {dataConselho} do template
+        dataConselho: dataParaEnviar  // Essa data será usada lá no {dataConselho} do template
       };
 
       const response = await fetch(API.gerarDoc, {
@@ -102,7 +104,9 @@ export function GerarAta() {
       });
 
       if (!response.ok) {
-        throw new Error('Falha ao gerar o documento no servidor');
+        const erro = await response.json();
+        toast.error(erro.mensagem);
+        return;
       }
 
       const blob = await response.blob();
@@ -110,15 +114,14 @@ export function GerarAta() {
       const a = document.createElement('a');
 
       a.href = url;
-      a.download = `Ata_Final_Sem${semestre}_Ano${ano}.docx`;
+      a.download = `Ata_ConselhoFinal_Sem${semestre}_Ano${ano}.docx`;
       document.body.appendChild(a);
       a.click();
       a.remove();
-      window.URL.revokeObjectURL(url);
+      toast.success("Ata conselho final gerada com sucesso!")
 
     } catch (error) {
-      console.error(error);
-      alert('Erro ao gerar ata. Verifique o console para mais detalhes.');
+      toast.error('Erro ao gerar ata.', error);
     }
   };
 
@@ -141,7 +144,7 @@ export function GerarAta() {
       {/* Card principal */}
       <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 w-full max-w-3xl mx-auto">
         <h1 className="text-center text-xl font-bold tracking-widest text-gray-800 mb-8 uppercase">
-          Geração de Ata
+          Geração de Ata Conselho Final
         </h1>
 
         <div className="flex flex-col gap-6 mb-8">
@@ -155,7 +158,7 @@ export function GerarAta() {
               onChange={(e) => setConselho(e.target.value)}
               className="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-red-400 focus:border-transparent transition"
             >
-              <option value="">Selecione...</option>
+              <option value="" disabled hidden>Selecione</option>
               <option value="final">Conselho Final</option>
             </select>
           </div>
@@ -172,7 +175,7 @@ export function GerarAta() {
                 className="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-red-400 focus:border-transparent transition"
               >
                 <option value="">
-                  {opcoesSemestreAno.length === 0 ? 'Carregando períodos...' : 'Selecione o período...'}
+                  {opcoesSemestreAno.length === 0 ? 'Carregando períodos' : 'Selecione o período'}
                 </option>
                 {opcoesSemestreAno.map((op) => (
                   <option key={op.valor} value={op.valor}>
@@ -182,18 +185,7 @@ export function GerarAta() {
               </select>
             </div>
 
-            {/* Data para o cabeçalho do DOCX */}
-            <div className="flex-1">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Data no Documento (*):
-              </label>
-              <input
-                type="date"
-                value={dataDocumento}
-                onChange={(e) => setDataDocumento(e.target.value)}
-                className="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-red-400 focus:border-transparent transition"
-              />
-            </div>
+           
           </div>
         </div>
 
@@ -205,7 +197,7 @@ export function GerarAta() {
             Limpar
           </button>
           <button
-            onClick={gerarAta}
+            onClick={handleGerar}
             className="px-10 py-3 rounded-full bg-red-600 text-white hover:bg-red-700 transition font-medium text-sm shadow">
             Gerar
           </button>
