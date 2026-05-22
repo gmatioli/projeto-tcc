@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { HomepageDocente } from '../../pages/Docente/HomepageDocente.jsx';
 import { API } from '../../config/api';
+import { toast } from 'sonner';
 
 export function Header() {
   const navigate = useNavigate(); 
@@ -16,6 +17,7 @@ export function Header() {
     // ficava no localStorage e contaminava o próximo usuário que logasse.
     localStorage.removeItem('conselhoIntermediarioAtivo');
     localStorage.removeItem('preConselhoAtivo');
+    toast.success("Logout efetuado com sucesso!")
     navigate('/'); 
   };
 
