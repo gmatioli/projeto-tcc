@@ -151,7 +151,8 @@ router.get('/alunos/empresa/:idTurma', async (req, res) => {
       SELECT a."idtblAluno", a.nome, e."empresaContrato" AS "nomeEmpresa"
       FROM "tblAluno" a
       LEFT JOIN "Empresa" e ON a."Empresa_idEmpresa" = e."idEmpresa"
-      WHERE a."Turma_idTurma" = ${idTurma};
+      WHERE a."Turma_idTurma" = ${idTurma}
+      ORDER BY lower(a."nome") ASC
     `;
     res.json({ sucesso: true, alunos: result });
   } catch (erro) {
