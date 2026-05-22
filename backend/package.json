@@ -21,6 +21,7 @@
     "iconv-lite": "^0.7.2",
     "multer": "^2.1.1",
     "pizzip": "^3.2.0",
+    "postgres": "^3.4.9",
     "react-router-dom": "^7.14.1"
   },
   "directories": {
