@@ -279,9 +279,13 @@ export function ConselhoIntermediario() {
 
             setConselhoId(cidFinal);
             setDonoConselho(dono);
+            setModoEdicao(true);
 
             // 3. Carrega avaliações dessa turma neste conselho.
-            await recarregarConselho(cidFinal, idTurma);
+            const avaliacao = await recarregarConselho(cidFinal, idTurma);
+            if (!avaliacao) {
+              setIsModalTurmaOpen(true);
+            }
           } catch (err) {
               console.error('Erro ao localizar/vincular conselho:', err);
           }
@@ -543,7 +547,7 @@ export function ConselhoIntermediario() {
                 <button
                   onClick={handleAcaoBotaoPrincipal}
                   disabled={botaoPrincipalDesabilitado}
-                  className={`p-[1.2vh] w-[22vw] rounded-[15px] border-2 border-red-900 shadow-[0_0_3px_black] transition-all duration-200 font-bold text-lg ${classeBotaoPrincipal}`}>
+                  className={`p-[1.2vh] w-[22vw] rounded-[15px] shadow-[0_0_3px_black] transition-all duration-200 font-bold text-lg ${classeBotaoPrincipal}`}>
                   {textoBotaoPrincipal}
               </button>
 
