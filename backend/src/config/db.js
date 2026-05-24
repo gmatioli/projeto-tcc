@@ -6,7 +6,7 @@ const db = neon(process.env.DATABASE_URL);
 module.exports = db;
  */
 
-require('dotenv').config();
+// require('dotenv').config();
 
 const postgres = require('postgres');
 
