@@ -47,6 +47,7 @@ const ConselhoFinal = () => {
   const [carregando, setCarregando] = useState(false);
   const [mostrarTabelaAlunos, setMostrarTabelaAlunos] = useState(false);
   const [situacoesFinais, setSituacoesFinais] = useState({});
+  const [statusTurmas, setStatusTurmas] = useState({});
 
   // Estados do Conselho Final (sessão única por usuário+ciclo, abrange várias turmas)
   const [conselhoId, setConselhoId] = useState(null);
@@ -97,22 +98,68 @@ const ConselhoFinal = () => {
     setAlunosComJustificativa([]);
     setMostrarTabelaAlunos(false);
     setSituacoesFinais({});
+    setStatusTurmas({}); // limpa status anterior
 
     fetch(`${API.turmasFiltro}?area=${encodeURIComponent(areaSelecionada)}&curso=${encodeURIComponent(cursoSelecionado)}`)
       .then(res => res.json())
-      .then(data => {
-        if (data.sucesso && Array.isArray(data.dados)) {
-          setTurmas(data.dados.filter(turma => turma.curso === cursoSelecionado));
-        } else {
+      .then(async data => {
+        if (!data.sucesso || !Array.isArray(data.dados)) {
           setTurmas([]);
-        }
-      })
-      .catch(err => {
-        console.error('Erro ao carregar turmas:', err);
-        setTurmas([]);
-      })
-      .finally(() => setCarregando(false));
-  }, [areaSelecionada, cursoSelecionado]);
+          return;
+      }
+      const turmasFiltradas = data.dados.filter(turma => turma.curso === cursoSelecionado);
+      setTurmas(turmasFiltradas);
+
+      // Busca em paralelo as contagens (pré-conselho) e o status (conselho final)
+      // para cada turma, para exibir direto na tabela de turmas.
+      const resultados = await Promise.all(
+        turmasFiltradas.map(async (turma) => {
+          try {
+            // --- Pré-Conselho: quantos reprovados (com justificativa) e restritos (com ação proposta)
+            const resPre = await fetch(`${API.conselho}/dados-pre-conselho/turma/${turma.idTurma}`);
+            const dataPre = await resPre.json();
+
+            const reprovados = dataPre?.sucesso ? (dataPre.alunosComJustificativa?.length || 0) : 0;
+            const restritos  = dataPre?.sucesso ? (dataPre.alunosComAcaoProposta?.length  || 0) : 0;
+
+            // --- Conselho Final: existe e foi finalizado? -> "Realizada", senão "Pendente"
+            let statusFinal = 'Pendente';
+            if (idUsuario) {
+              const resFinal = await fetch(
+                `${API.conselho}/ativo/${encodeURIComponent('Final')}/turma/${turma.idTurma}` +
+                `?idUsuario=${idUsuario}&semestre=${ciclo.semestre}&ano=${ciclo.ano}`
+              );
+              const dataFinal = await resFinal.json();
+              if (dataFinal?.sucesso && dataFinal.conselho) {
+                const c = dataFinal.conselho;
+                // Ajuste o nome do campo conforme seu backend
+                // (ex.: dataFim, finalizado, statusConselho === 'Finalizado')
+                const foiFinalizado =
+                  !!c.dataFim ||
+                  c.finalizado === true ||
+                  c.statusConselho === 'Finalizado';
+                statusFinal = foiFinalizado ? 'Realizada' : 'Pendente';
+              }
+            }
+
+            return { idTurma: turma.idTurma, reprovados, restritos, statusFinal };
+          } catch (err) {
+            console.error(`Erro ao carregar status da turma ${turma.idTurma}:`, err);
+            return { idTurma: turma.idTurma, reprovados: 0, restritos: 0, statusFinal: 'Pendente' };
+          }
+        })
+      );
+
+      const mapa = {};
+      resultados.forEach(r => { mapa[r.idTurma] = r; });
+      setStatusTurmas(mapa);
+    })
+    .catch(err => {
+      console.error('Erro ao carregar turmas:', err);
+      setTurmas([]);
+    })
+    .finally(() => setCarregando(false));
+}, [areaSelecionada, cursoSelecionado, idUsuario, ciclo.semestre, ciclo.ano]);
 
   // Carrega alunos da turma (ação proposta e justificativa do Pré-Conselho)
   // E, se houver um Conselho Final ativo, restaura as situações finais já salvas.
@@ -509,23 +556,48 @@ const ConselhoFinal = () => {
                   </td>
                 </tr>
               ) : turmas.length > 0 ? (
-                turmas.map(turma => (
-                  <tr key={turma.idTurma}>
-                    <td className={`${tableTdClasses}`}>
-                      <label className='flex items-center gap-2 m-0 cursor-pointer'>
-                        <input 
-                          type="radio" 
-                          name="turma" 
-                          checked={turmaSelecionada === turma.idTurma}
-                          onChange={() => setTurmaSelecionada(turma.idTurma)}
-                        /> 
-                        {turma.turma}
-                      </label>
-                    </td>
-                    <td className={`${tableTdClasses}`}>{turma.preConselho}</td>
-                    <td className={`${tableTdClasses}`}>{turma.preConselho}</td>
-                  </tr>
-                ))
+                turmas.map(turma => {
+                  const status = statusTurmas[turma.idTurma];
+                  return (
+                    <tr key={turma.idTurma}>
+                      <td className={`${tableTdClasses}`}>
+                        <label className='flex items-center gap-2 m-0 cursor-pointer'>
+                          <input 
+                            type="radio" 
+                            name="turma" 
+                            checked={turmaSelecionada === turma.idTurma}
+                            onChange={() => setTurmaSelecionada(turma.idTurma)}
+                          /> 
+                          {turma.turma}
+                        </label>
+                      </td>
+
+                      {/* Coluna Pré Conselho: Reprovado(s): X  Restrito(s): Y */}
+                      <td className={`${tableTdClasses}`}>
+                        {status ? (
+                          <span>
+                            <strong>Reprovado(s):</strong> {status.reprovados}
+                            {'   '}
+                            <strong>Restrito(s):</strong> {status.restritos}
+                          </span>
+                        ) : (
+                          <span className="text-gray-400 italic">Carregando...</span>
+                        )}
+                      </td>
+
+                {/* Coluna Conselho Final: Pendente / Realizada */}
+                <td className={`${tableTdClasses}`}>
+                  {status ? (
+                    <span className={status.statusFinal === 'Realizada' ? 'text-green-700 font-semibold' : 'text-amber-700 font-semibold'}>
+                      {status.statusFinal}
+                    </span>
+        ) : (
+          <span className="text-gray-400 italic">—</span>
+        )}
+      </td>
+    </tr>
+  );
+})
               ) : (
                 <tr>
                   <td colSpan="3" className={`${tableTdClasses} text-center text-gray-500`}>

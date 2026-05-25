@@ -331,13 +331,13 @@ router.post('/avaliacao-turma', async (req, res) => {
       conselhoId,
       idTurma,
       idUsuario,
-      organizacao,
-      comportamental,
-      assiduidade,
-      disponibilidade_Aprendizado,
-      observacao,
-      alcancou_Objetivos,
-      acaoPreventiva
+      organizacao = null,
+      comportamental = null,
+      assiduidade = null,
+      disponibilidade_Aprendizado = null,
+      observacao = null,
+      alcancou_Objetivos = null,
+      acaoPreventiva = null
     } = req.body;
 
     if (!conselhoId || !idTurma) {
@@ -451,14 +451,14 @@ router.post('/avaliacao-aluno', async (req, res) => {
     const {
       conselhoId,
       idAluno,
-      naturezaOcorrencia,
-      restricao,
-      acaoProposta,
-      responsavel,
-      justificativa,
-      informacoesComplementares,
-      situacaoFinal,
-      contestacaoSituacaoFinal,
+      naturezaOcorrencia = null,
+      restricao = null,
+      acaoProposta = null,
+      responsavel = null,
+      justificativa = null,
+      informacoesComplementares = null,
+      situacaoFinal = null,
+      contestacaoSituacaoFinal = null,
       idUsuario
     } = req.body;
 
