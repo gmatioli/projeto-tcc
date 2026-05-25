@@ -1,31 +1,51 @@
 import React from 'react';
-import { API } from '../../config/api';
-
-function ModalObservacoes({ isOpen, onClose, aluno, onAdicionar, onSuccess, somenteLeitura = false }) {
+import { API, authFetch } from '../../config/api';
+import { toast } from 'sonner';
+ 
+function ModalObservacoes({ isOpen, onClose, aluno, onAdicionar, onSuccess, onExcluir, somenteLeitura = false }) {
   if (!isOpen) return null;
  
   const observacoes = aluno?.observacoes || [];
   const docentesUnicos = [...new Set(observacoes.map(obs => obs.docente))];
   const nomesDosDocentes = docentesUnicos.length > 0 ? docentesUnicos.join(', ') : 'Nenhuma observação';
-
-  const handleExcluir = async (idObservacao) => {
-    if (!window.confirm("Tem certeza que deseja excluir esta observação?")) return;
-
-    try {
-      const res = await fetch(`${API.observacoes}/${idObservacao}`, { method: 'DELETE' });
-      const data = await res.json();
-
-      if (res.ok && data.sucesso) {
-        alert('Observação excluída com sucesso!');
-        onClose();
-        if (onSuccess) onSuccess();
-      } else {
-        alert(`Erro ao excluir: ${data.mensagem || 'Tente novamente.'}`);
-      }
-    } catch (error) {
-      console.error("Erro ao excluir:", error);
-      alert('Erro de conexão com o servidor ao tentar excluir.');
+ 
+  const handleExcluir = (idObservacao) => {
+    // Se veio uma função de exclusão via prop (ex: TurmasDocente), usa ela
+    // para que o toast de confirmação apareça no contexto correto.
+    if (onExcluir) {
+      onClose();
+      onExcluir(idObservacao);
+      return;
     }
+ 
+    // Fallback: lógica interna com toast de confirmação
+    toast('Tem certeza que deseja excluir esta observação?', {
+      action: {
+        label: 'Excluir',
+        onClick: async () => {
+          try {
+            const res = await authFetch(`${API.observacoes}/${idObservacao}`, { method: 'DELETE' });
+            const data = await res.json();
+ 
+            if (res.ok && data.sucesso) {
+              toast.success('Observação excluída com sucesso!');
+              onClose();
+              if (onSuccess) onSuccess();
+            } else {
+              toast.error(`Erro ao excluir: ${data.mensagem || 'Tente novamente.'}`);
+            }
+          } catch (error) {
+            console.error("Erro ao excluir:", error);
+            toast.error('Erro de conexão ao tentar excluir. Tente novamente.');
+          }
+        },
+      },
+      cancel: {
+        label: 'Cancelar',
+        onClick: () => {},
+      },
+      duration: 6000,
+    });
   };
  
   return (
@@ -57,7 +77,6 @@ function ModalObservacoes({ isOpen, onClose, aluno, onAdicionar, onSuccess, some
                     <td className="p-3 text-gray-700">{obs.data}</td>
                     <td className="p-3 text-gray-700">{obs.texto}</td>
                     
-                    {/* Renderização Condicional com base no nível de privilégio admin */}
                     {!somenteLeitura && (
                       <td className="p-3 flex gap-2 justify-center">
                         <button
@@ -105,5 +124,5 @@ function ModalObservacoes({ isOpen, onClose, aluno, onAdicionar, onSuccess, some
     </div>
   );
 }
-
+ 
 export default ModalObservacoes;

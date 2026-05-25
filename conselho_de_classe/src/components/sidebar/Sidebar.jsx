@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { API } from '../../config/api';
+import { API, authFetch } from '../../config/api';
 
 import dashboardIcon from '../../assets/sidebar/dashboard-icon.svg';
 import councilIcon from '../../assets/sidebar/council-icon.svg';
@@ -19,7 +19,7 @@ function FormFiltros({ rotaDestino, onFechar }) {
   const formIncompleto = !turmaSelecionada || !cursoSelecionado || !tipoSelecionado;
 
   useEffect(() => {
-    fetch(API.turmasFiltro)
+    authFetch(API.turmasFiltro)
       .then(res => res.json())
       .then(data => {
         if (data.sucesso && Array.isArray(data.dados)) setDadosCompletos(data.dados);
@@ -126,7 +126,7 @@ function FormConselhoFinal({ rotaDestino, onFechar }) {
   const formIncompleto = !areaSelecionada || !cursoSelecionado;
 
   useEffect(() => {
-    fetch(API.turmasFiltro)
+    authFetch(API.turmasFiltro)
       .then(res => res.json())
       .then(data => {
         if (data.sucesso && Array.isArray(data.dados)) setDadosCompletos(data.dados);

@@ -4,11 +4,12 @@ const path = require('path');
 const fs = require('fs');
 const PizZip = require('pizzip');
 const Docxtemplater = require('docxtemplater');
+const { autenticar, exigirNivel } = require('../middleware/authToken');
 
 // ==========================================
 // ROTA: GERAR TERMO DE CIÊNCIA (POST)
 // ==========================================
-router.post('/termoDeCiencia', (req, res) => {
+router.post('/termoDeCiencia', autenticar, exigirNivel('admin'), (req, res) => {
   try {
     const { aluno, data, turma, observacao } = req.body;
 

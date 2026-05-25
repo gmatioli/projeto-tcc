@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { HomepageDocente } from '../../pages/Docente/HomepageDocente.jsx';
-import { API } from '../../config/api';
+import { API, authFetch } from '../../config/api';
 import { toast } from 'sonner';
 
 export function Header() {
@@ -34,7 +33,7 @@ export function Header() {
           const { email } = JSON.parse(logado);
           
           try {
-            const resposta = await fetch(`${API.perfil}/${email}`);
+            const resposta = await authFetch(`${API.perfil}/${email}`);
             const dados = await resposta.json();
   
             if (dados.sucesso) {
@@ -58,7 +57,7 @@ export function Header() {
   return (
       <header className='h-[8vh] bg-[var(--red-senai)] flex justify-between items-center'>
         <div className="ml-7">
-          <img onClick={() => navigate('/docente/home')}  src="/img/logo-senai-branco.png" alt="Logo da instituição SENAI" className='w-40 h-11 ml-10 cursor-pointer opacity-100' />
+          <img onClick={() => navigate('/home')}  src="/img/logo-senai-branco.png" alt="Logo da instituição SENAI" className='w-40 h-11 ml-10 cursor-pointer opacity-100' />
         </div>
         <div className="justify-center">
             <h1 className='text-white font-bold text-4xl'>Conselhos de Classes</h1>

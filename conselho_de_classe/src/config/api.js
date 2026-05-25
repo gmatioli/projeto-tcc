@@ -19,3 +19,33 @@ export const API = {
     turmaDocente: `${API_BASE}/turmaDocente`,
     observacoes: `${API_BASE}/observacoes`,
 };
+
+// ── lê o token salvo no login ───────────────────────────────
+function getToken() {
+  try {
+    const logado = JSON.parse(localStorage.getItem('usuarioLogado') || '{}');
+    return logado.token || null;
+  } catch {
+    return null;
+  }
+}
+
+// ── fetch com token embutido + tratamento de token expirado ──
+export async function authFetch(url, options = {}) {
+  const token = getToken();
+
+  const headers = { ...(options.headers || {}) };
+  if (token) headers.Authorization = `Bearer ${token}`;
+
+  const resposta = await fetch(url, { ...options, headers });
+
+  // 401 = token ausente/inválido/expirado → desloga e volta pro Login
+  if (resposta.status === 401) {
+    localStorage.removeItem('usuarioLogado');
+    if (window.location.pathname !== '/') {
+      window.location.href = '/';
+    }
+  }
+
+  return resposta;
+}

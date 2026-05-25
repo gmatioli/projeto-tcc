@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { VscAccount } from "react-icons/vsc";
 import { VscGitStashPop } from "react-icons/vsc";
-import { API } from '../../config/api';
+import { API, authFetch } from '../../config/api';
 
 
 export function Perfil() {
@@ -25,7 +25,7 @@ export function Perfil() {
         const { email } = JSON.parse(logado);
         
         try {
-          const resposta = await fetch(`${API.perfil}/${email}`);
+          const resposta = await authFetch(`${API.perfil}/${email}`);
           const dados = await resposta.json(); 
 
           if (dados.sucesso) {

@@ -1,12 +1,13 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../config/db');
+const { autenticar, exigirNivel } = require('../middleware/authToken');
 
 // ==========================================
 // LISTAR TURMAS
 // GET -> /api/turmas
 // ==========================================
-router.get('/turmas', async (req, res) => {
+router.get('/turmas', autenticar, exigirNivel('admin'), async (req, res) => {
   try {
     const result = await db`
       SELECT
@@ -34,7 +35,7 @@ router.get('/turmas', async (req, res) => {
 // LISTAR ALUNOS DA TURMA
 // GET -> /api/alunos?turma=DEV 3N
 // ==========================================
-router.get('/alunos', async (req, res) => {
+router.get('/alunos', autenticar, exigirNivel('admin'), async (req, res) => {
   try {
     const { turma } = req.query;
 
@@ -63,7 +64,7 @@ router.get('/alunos', async (req, res) => {
 // ROTA: FILTRO DE TURMAS PARA SIDEBAR (GET)
 // Acessada via: GET /api/turmas-filtro
 // ==========================================
-router.get('/turmas-filtro', async (req, res) => {
+router.get('/turmas-filtro', autenticar, exigirNivel('admin'), async (req, res) => {
   try {
     const result = await db`
       SELECT
@@ -89,7 +90,7 @@ router.get('/turmas-filtro', async (req, res) => {
 // ROTA: FILTRO DE TURMAS PARA CONSELHO FINAL  (GET)
 // Acessada via: GET /api/turmas-filtro
 // ==========================================
-router.get('/turmas-filtro/pre-conselho', async (req, res) => {
+router.get('/turmas-filtro/pre-conselho', autenticar, exigirNivel('admin'), async (req, res) => {
   try {
     const result = await db`
       SELECT
@@ -115,7 +116,7 @@ router.get('/turmas-filtro/pre-conselho', async (req, res) => {
 // ROTA: Para aparecer os alunos (GET)
 // Acessada via: GET /api/alunos/:idTurma
 // ==========================================
-router.get('/alunos/:idTurma', async (req, res) => {
+router.get('/alunos/:idTurma', autenticar, async (req, res) => {
   const { idTurma } = req.params;
 
   try {
@@ -141,7 +142,7 @@ router.get('/alunos/:idTurma', async (req, res) => {
 // ROTA: Para aparecer se aluno tem empresa (GET)
 // Acessada via: GET /api/alunos/empresa
 // ==========================================
-router.get('/alunos/empresa/:idTurma', async (req, res) => {
+router.get('/alunos/empresa/:idTurma', autenticar, exigirNivel('admin'), async (req, res) => {
   const { idTurma } = req.params;
   
   if (!idTurma) return res.status(400).json({ sucesso: false, mensagem: 'idTurma é obrigatório.' });

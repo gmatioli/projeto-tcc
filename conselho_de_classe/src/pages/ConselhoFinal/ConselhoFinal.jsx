@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom'
-import { API } from '../../config/api';
+import { API, authFetch } from '../../config/api';
 import { toast } from 'sonner';
 
 import notificationIcon from '../../assets/conselho-intermediario/notification-icon.svg';
@@ -100,7 +100,7 @@ const ConselhoFinal = () => {
     setSituacoesFinais({});
     setStatusTurmas({}); // limpa status anterior
 
-    fetch(`${API.turmasFiltro}?area=${encodeURIComponent(areaSelecionada)}&curso=${encodeURIComponent(cursoSelecionado)}`)
+    authFetch(`${API.turmasFiltro}?area=${encodeURIComponent(areaSelecionada)}&curso=${encodeURIComponent(cursoSelecionado)}`)
       .then(res => res.json())
       .then(async data => {
         if (!data.sucesso || !Array.isArray(data.dados)) {
@@ -116,7 +116,7 @@ const ConselhoFinal = () => {
         turmasFiltradas.map(async (turma) => {
           try {
             // --- Pré-Conselho: quantos reprovados (com justificativa) e restritos (com ação proposta)
-            const resPre = await fetch(`${API.conselho}/dados-pre-conselho/turma/${turma.idTurma}`);
+            const resPre = await authFetch(`${API.conselho}/dados-pre-conselho/turma/${turma.idTurma}`);
             const dataPre = await resPre.json();
 
             const reprovados = dataPre?.sucesso ? (dataPre.alunosComJustificativa?.length || 0) : 0;
@@ -125,7 +125,7 @@ const ConselhoFinal = () => {
             // --- Conselho Final: existe e foi finalizado? -> "Realizada", senão "Pendente"
             let statusFinal = 'Pendente';
             if (idUsuario) {
-              const resFinal = await fetch(
+              const resFinal = await authFetch(
                 `${API.conselho}/ativo/${encodeURIComponent('Final')}/turma/${turma.idTurma}` +
                 `?idUsuario=${idUsuario}&semestre=${ciclo.semestre}&ano=${ciclo.ano}`
               );
@@ -166,12 +166,12 @@ const ConselhoFinal = () => {
   // Recebe o cancelado para abortar atualizações se a turma trocou no meio.
   const carregarAlunos = async (idTurma, conselhoIdFinal, estaCancelado) => {
     try {
-      const resP = await fetch(`${API.conselho}/dados-pre-conselho/turma/${idTurma}`);
+      const resP = await authFetch(`${API.conselho}/dados-pre-conselho/turma/${idTurma}`);
       const dataP = await resP.json();
       if (estaCancelado && estaCancelado()) return;
       
       // NOVA BUSCA DE OBSERVAÇÕES
-      const resObs = await fetch(`${API.observacoes}/turma/${idTurma}`);
+      const resObs = await authFetch(`${API.observacoes}/turma/${idTurma}`);
       const dataObs = await resObs.json();
       const listaObs = dataObs.sucesso ? dataObs.observacoes : [];
 
@@ -198,7 +198,7 @@ const ConselhoFinal = () => {
         return;
       }
 
-      const resF = await fetch(`${API.conselho}/${conselhoIdFinal}/turma/${idTurma}/avaliacoes-alunos`);
+      const resF = await authFetch(`${API.conselho}/${conselhoIdFinal}/turma/${idTurma}/avaliacoes-alunos`);
       const dataF = await resF.json();
       if (estaCancelado && estaCancelado()) return;
 
@@ -240,7 +240,7 @@ const ConselhoFinal = () => {
       setSituacoesFinais({});
 
       try {
-        const r1 = await fetch(
+        const r1 = await authFetch(
           `${API.conselho}/ativo/${encodeURIComponent('Final')}/turma/${turmaSelecionada}` +
           `?idUsuario=${idUsuario}&semestre=${ciclo.semestre}&ano=${ciclo.ano}`
         );
@@ -258,7 +258,7 @@ const ConselhoFinal = () => {
 
         // Vincula a turma de forma idempotente (ON CONFLICT DO NOTHING).
         // Mandamos parâmetros completos — backend decide pelo lookup em duas etapas.
-        const r2 = await fetch(`${API.conselho}/iniciar`, {
+        const r2 = await authFetch(`${API.conselho}/iniciar`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -294,7 +294,7 @@ const ConselhoFinal = () => {
       try {
           // Busca na rota dinâmica recém-criada
           const idDoAluno = aluno.idtblAluno || aluno.id; 
-          const res = await fetch(`${API.observacoes}/aluno/${idDoAluno}`);
+          const res = await authFetch(`${API.observacoes}/aluno/${idDoAluno}`);
           const data = await res.json();
 
           if (data.sucesso) {
@@ -330,7 +330,7 @@ const ConselhoFinal = () => {
     }
     setCarregandoConselho(true);
     try {
-      const resp = await fetch(`${API.conselho}/iniciar`, {
+      const resp = await authFetch(`${API.conselho}/iniciar`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -361,7 +361,7 @@ const ConselhoFinal = () => {
     if (!conselhoId || !turmaSelecionada || !idUsuario) return;
     setCarregandoConselho(true);
     try {
-      const resp = await fetch(`${API.conselho}/iniciar`, {
+      const resp = await authFetch(`${API.conselho}/iniciar`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -416,7 +416,7 @@ const ConselhoFinal = () => {
     setAguardandoConfirmacao(false);
     setCarregandoConselho(true);
     try {
-      const resp = await fetch(`${API.conselho}/finalizar`, {
+      const resp = await authFetch(`${API.conselho}/finalizar`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ conselhoId }),
@@ -445,7 +445,7 @@ const ConselhoFinal = () => {
   const salvarSituacaoFinal = async (idAluno, novaSituacao, contestacao = null) => {
 
     try { 
-      const res = await fetch(`${API.conselho}/situacao-final`, {
+      const res = await authFetch(`${API.conselho}/situacao-final`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

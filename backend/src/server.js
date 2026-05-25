@@ -1,7 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 
-
+const { autenticar, exigirNivel } = require('./middleware/authToken');
 
 const app = express();
 
@@ -11,18 +11,27 @@ app.use(express.json());
 // ==========================================
 // IMPORTAÇÃO DAS ROTAS
 // ==========================================
+// PÚBLICAS
 app.use('/', require('./routes/auth'));
+
+// ADMIN
+app.use('/relatorio', autenticar, exigirNivel('admin'),  require('./routes/relatorio'));
+app.use('/conselho', autenticar, exigirNivel('admin'), require('./routes/conselho'));
+app.use('/dashboard', autenticar, exigirNivel('admin'), require('./routes/dashboard')); 
+app.use('/atribuirTurma', autenticar, exigirNivel('admin'), require('./routes/AtribuirTurma'));
+
+// DOCENTE
+app.use('/instrumento-acompanhamento', autenticar, exigirNivel('docente'), require('./routes/instrumentoAcompanhamento'));
+app.use('/turmaDocente', autenticar, exigirNivel('docente'), require('./routes/turmaDocente'));
+
+// COMPARTILHADAS
+app.use('/observacoes', autenticar, require('./routes/observacoes'));
+
+// proteção por rota (dentro de cada arquivo)
 app.use('/', require('./routes/usuario'));
 app.use('/', require('./routes/turma'));
 app.use('/', require('./routes/planilha'));
-app.use('/relatorio', require('./routes/relatorio'));
-app.use('/conselho', require('./routes/conselho'));
-app.use('/dashboard', require('./routes/dashboard')); 
 app.use('/', require('./routes/termo'));
-app.use('/instrumento-acompanhamento', require('./routes/instrumentoAcompanhamento'));
-app.use('/AtribuirTurma', require('./routes/AtribuirTurma'));
-app.use('/turmaDocente', require('./routes/turmaDocente'));
-app.use('/observacoes', require('./routes/observacoes'));
 
 
 // ==========================================

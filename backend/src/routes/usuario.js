@@ -2,11 +2,12 @@ const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcrypt');
 const db = require('../config/db');
+const { autenticar, exigirNivel } = require('../middleware/authToken');
 
 // ==========================================
 // ROTA 3: LISTAR USUÁRIOS (GET)
 // ==========================================
-router.get('/usuarios', async (req, res) => {
+router.get('/usuarios', autenticar, exigirNivel('admin'), async (req, res) => {
   try {
     const result = await db`
       SELECT "idUsuario", "nomeUsuario" FROM "Usuario" ORDER BY "nomeUsuario" ASC
@@ -23,7 +24,7 @@ router.get('/usuarios', async (req, res) => {
 // ==========================================
 // ROTA 4: ATUALIZAR SENHA DO USUÁRIO (PUT)
 // ==========================================
-router.put('/usuarios/senha', async (req, res) => {
+router.put('/usuarios/senha', autenticar, exigirNivel('admin'), async (req, res) => {
   const { idUsuario, novaSenha } = req.body;
 
   try {
@@ -45,7 +46,7 @@ router.put('/usuarios/senha', async (req, res) => {
 // ==========================================
 // ROTA 5: BUSCAR DADOS DO PERFIL (GET)
 // ==========================================
-router.get('/perfil/:email', async (req, res) => {
+router.get('/perfil/:email', autenticar, async (req, res) => {
   const emailLogado = req.params.email;
 
   try {

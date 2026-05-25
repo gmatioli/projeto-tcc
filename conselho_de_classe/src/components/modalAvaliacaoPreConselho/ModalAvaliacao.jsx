@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { toast } from 'sonner';
-import { API } from '../../config/api';
+import { API, authFetch } from '../../config/api';
 
 const NATUREZAS = ['Comportamental', 'Aproveitamento Escolar', 'Frequência'];
 
@@ -117,7 +117,7 @@ const ModalAvaliacao = ({
     try {
       const respostas = await Promise.all(
         alunosSelecionados.map(aluno =>
-          fetch(`${API.conselho}/avaliacao-aluno`, {
+          authFetch(`${API.conselho}/avaliacao-aluno`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ ...payloadBase, idAluno: aluno.id })
@@ -154,7 +154,7 @@ const ModalAvaliacao = ({
 
     setRemovendo(true);
     try {
-      const resp = await fetch(`${API.conselho}/avaliacao-aluno/${conselhoId}/${idAluno}`, 
+      const resp = await authFetch(`${API.conselho}/avaliacao-aluno/${conselhoId}/${idAluno}`, 
       { method: 'DELETE' }
       ).then(r => r.json());
 

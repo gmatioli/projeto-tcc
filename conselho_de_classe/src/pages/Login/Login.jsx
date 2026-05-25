@@ -30,6 +30,7 @@ function Login() {
         // Verifica se o Node.js respondeu com { sucesso: true }
         if (dados.sucesso) {
           localStorage.setItem('usuarioLogado', JSON.stringify({
+            token: dados.token, 
             idUsuario: dados.idUsuario,
             nomeUsuario: dados.nomeUsuario,
             email: usuario,
@@ -37,7 +38,7 @@ function Login() {
           }));
           
         
-          navigate('/docente/home');
+          navigate('/home');
           
           
 

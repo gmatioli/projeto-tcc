@@ -1,6 +1,6 @@
 import React from 'react';
  
-export function HomepageDocente() {
+export function Homepage() {
   return (
     <div className="flex flex-col items-end justify-center h-full w-full">
         <div className="p-10">

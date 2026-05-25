@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { API } from '../../config/api';
+import { toast } from 'sonner';
+import { API, authFetch } from '../../config/api';
  
 // ── Modal: Ver Observações ─────────────────────────────────────────────────
 import ModalObservacoes from '../../components/modalObservacao/ModalObservacao';
@@ -14,26 +15,23 @@ function ModalNovaObservacao({ isOpen, onClose, aluno, obsEditando, onSuccess })
  
   const handleSalvar = async () => {
     if (!texto.trim() || !data) {
-      alert('Preencha a observação e a data.');
+      toast.warning('Preencha a observação e a data antes de salvar.');
       return;
     }
-
+ 
     try {
-      // 1. Pegando o email do localStorage (mesma lógica do seu Header.jsx)
       const logado = localStorage.getItem('usuarioLogado');
       if (!logado) {
-        alert('Erro: Usuário não identificado. Faça login novamente.');
+        toast.error('Sessão expirada. Faça login novamente.');
         return;
       }
       
       const { email } = JSON.parse(logado); 
-
+ 
       let response;
-
-      // Verifica se estamos EDITANDO uma observação existente
+ 
       if (obsEditando && obsEditando.id) {
-        // Faz requisição PUT para atualizar
-        response = await fetch(`${API.observacoes}/${obsEditando.id}`, { 
+        response = await authFetch(`${API.observacoes}/${obsEditando.id}`, { 
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -42,7 +40,6 @@ function ModalNovaObservacao({ isOpen, onClose, aluno, obsEditando, onSuccess })
           })
         });
       } else {
-        // É UMA NOVA OBSERVAÇÃO, faz requisição POST para salvar
         const payload = {
           idAluno: aluno.id,
           emailUsuario: email, 
@@ -50,26 +47,26 @@ function ModalNovaObservacao({ isOpen, onClose, aluno, obsEditando, onSuccess })
           dataObservacao: data,
           categoria: 'Geral'
         };
-
-        response = await fetch(`${API.observacoes}/salvar`, { 
+ 
+        response = await authFetch(`${API.observacoes}/salvar`, { 
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)
         });
       }
-
+ 
       if (response.ok) {
-        alert(obsEditando ? 'Observação atualizada com sucesso!' : 'Observação salva com sucesso!');
+        toast.success(obsEditando ? 'Observação atualizada com sucesso!' : 'Observação salva com sucesso!');
         onClose();
         if (onSuccess) onSuccess(); 
       } else {
         const errorData = await response.json();
-        alert(`Erro ao salvar: ${errorData.mensagem || 'Tente novamente.'}`);
+        toast.error(`Erro ao salvar: ${errorData.mensagem || 'Tente novamente.'}`);
       }
-
+ 
     } catch (error) {
       console.error("Erro ao salvar observação:", error);
-      alert('Erro de conexão com o servidor.');
+      toast.error('Erro de conexão com o servidor. Tente novamente.');
     }
   };
  
@@ -133,15 +130,12 @@ function GraficoRosca({ comObs, semObs }) {
   const r = 50, cx = 70, cy = 70;
   const circ = 2 * Math.PI * r;
  
-  // Cálculos precisos para a parte Vermelha (Com Obs)
   const dashCom = circ * pctCom;
   const gapCom = circ - dashCom;
-
-  // Cálculos precisos para a parte Azul (Sem Obs)
+ 
   const dashSem = circ * pctSem;
   const gapSem = circ - dashSem;
   
-  // O offset faz a parte azul começar exatamente onde a vermelha termina
   const offsetSem = -dashCom;
  
   return (
@@ -149,10 +143,8 @@ function GraficoRosca({ comObs, semObs }) {
       <p className="text-sm font-bold text-gray-700 mb-2">Gráfico de Alunos</p>
       
       <svg width="140" height="140" viewBox="0 0 140 140">
-        {/* Fundo Cinza Base */}
         <circle cx={cx} cy={cy} r={r} fill="none" stroke="#e5e7eb" strokeWidth="22" />
         
-        {/* Círculo Azul (Sem Observação) */}
         <circle 
           cx={cx} cy={cy} r={r} 
           fill="none" 
@@ -163,11 +155,9 @@ function GraficoRosca({ comObs, semObs }) {
           transform={`rotate(-90 ${cx} ${cy})`} 
           className="cursor-pointer transition-opacity hover:opacity-75"
         >
-          {/* A tag title gera o tooltip nativo ao passar o mouse */}
           <title>Sem observação: {semObs} aluno(s)</title>
         </circle>
-
-        {/* Círculo Vermelho (Com Observação) */}
+ 
         <circle 
           cx={cx} cy={cy} r={r} 
           fill="none" 
@@ -181,7 +171,7 @@ function GraficoRosca({ comObs, semObs }) {
           <title>Com observação: {comObs} aluno(s)</title>
         </circle>
       </svg>
-
+ 
       <div className="flex flex-col gap-1 mt-1 text-xs">
         <span className="flex items-center gap-1">
           <span className="w-3 h-3 rounded-full bg-[#bdd2f3ff] inline-block"/> Sem Observação
@@ -199,17 +189,16 @@ export function TurmasDocente() {
   const navigate      = useNavigate();
   const [searchParams] = useSearchParams();
  
-  // Parâmetros vindos da sidebar via navigate()
-  const idTurma    = searchParams.get('turma');      // ex: "4"
-  const nomeTurma  = searchParams.get('nomeTurma');  // ex: "DEV 1A"
-  const modo       = searchParams.get('modo');       // "pesquisa" quando vem da sidebar
+  const idTurma    = searchParams.get('turma');
+  const nomeTurma  = searchParams.get('nomeTurma');
+  const modo       = searchParams.get('modo');
  
   // ── Estado da lista de alunos ──────────────────────────────────────────
   const [alunos,     setAlunos]     = useState([]);
   const [carregando, setCarregando] = useState(false);
   const [erro,       setErro]       = useState('');
  
-  // ── Busca alunos sempre que o idTurma mudar (Transformado em função) ──
+  // ── Busca alunos sempre que o idTurma mudar ──
   const buscarAlunos = async () => {
     if (!idTurma) {
       setAlunos([]);
@@ -221,53 +210,45 @@ export function TurmasDocente() {
     setErro('');
  
     try {
-      // 1. Busca os alunos da turma
-      const resAlunos = await fetch(`${API.alunos}/${idTurma}`);
+      const resAlunos = await authFetch(`${API.alunos}/${idTurma}`);
       const dataAlunos = await resAlunos.json();
-
+ 
       if (!dataAlunos.sucesso || !Array.isArray(dataAlunos.alunos)) {
         throw new Error('Não foi possível carregar os alunos.');
       }
-
-      // 2. Busca as observações dessa turma
-      const resObs = await fetch(`${API.observacoes}/turma/${idTurma}`);
+ 
+      const resObs = await authFetch(`${API.observacoes}/turma/${idTurma}`);
       const dataObs = await resObs.json();
       
       const listaObservacoes = dataObs.sucesso ? dataObs.observacoes : [];
-
-      // 3. Mescla os alunos com suas respectivas observações
+ 
       const alunosComObs = dataAlunos.alunos.map(aluno => {
-        // Filtra para pegar apenas as observações que pertencem a este aluno
         const obsDoAluno = listaObservacoes.filter(
           obs => obs.tblAluno_idtblAluno === aluno.idtblAluno
         );
-
+ 
         return {
           ...aluno,
           id: aluno.idtblAluno, 
           observacoes: obsDoAluno.map(o => {
-            // Cria um objeto de data para pegar ano, mês e dia separados
             const dataObj = new Date(o.dataObservacao);
             const ano = dataObj.getUTCFullYear();
             const mes = String(dataObj.getUTCMonth() + 1).padStart(2, '0');
             const dia = String(dataObj.getUTCDate()).padStart(2, '0');
-
+ 
             return {
               id: o.idObservacao_Docente,
               texto: o.descricao,
-              // Data formatada para mostrar na tabela (DD/MM/YYYY)
               data: dataObj.toLocaleDateString('pt-BR', { timeZone: 'UTC' }),
-              // Data bruta para o input type="date" (YYYY-MM-DD)
               dataRaw: `${ano}-${mes}-${dia}`,
               docente: o.docente
             };
           })
         };
       });
-
-      // Atualiza o estado: agora os alunos possuem suas observações preenchidas!
+ 
       setAlunos(alunosComObs);
-
+ 
     } catch (error) {
       console.error(error);
       setErro('Erro de conexão ao buscar alunos e observações.');
@@ -275,12 +256,12 @@ export function TurmasDocente() {
       setCarregando(false);
     }
   };
-
+ 
   useEffect(() => {
     buscarAlunos();
   }, [idTurma]);
  
-  // ── Métricas para os cards (calculadas sobre a lista atual) ───────────
+  // ── Métricas para os cards ───────────────────────────────────────────
   const comObs   = alunos.filter(a => a.observacoes.length > 0).length;
   const semObs   = alunos.filter(a => a.observacoes.length === 0).length;
   const totalObs = alunos.reduce((acc, a) => acc + a.observacoes.length, 0);
@@ -297,6 +278,36 @@ export function TurmasDocente() {
     setModalNova({ open: true, aluno, obsEditando });
   };
   const fecharNova = () => setModalNova({ open: false, aluno: null, obsEditando: null });
+ 
+  // ── Excluir observação com toast de confirmação ────────────────────────
+  const handleExcluirObservacao = (idObservacao) => {
+    toast('Tem certeza que deseja excluir esta observação?', {
+      action: {
+        label: 'Excluir',
+        onClick: async () => {
+          try {
+            const res = await authFetch(`${API.observacoes}/${idObservacao}`, { method: 'DELETE' });
+            const data = await res.json();
+ 
+            if (res.ok && data.sucesso) {
+              toast.success('Observação excluída com sucesso!');
+              buscarAlunos();
+            } else {
+              toast.error(`Erro ao excluir: ${data.mensagem || 'Tente novamente.'}`);
+            }
+          } catch (error) {
+            console.error("Erro ao excluir:", error);
+            toast.error('Erro de conexão ao tentar excluir. Tente novamente.');
+          }
+        },
+      },
+      cancel: {
+        label: 'Cancelar',
+        onClick: () => {},
+      },
+      duration: 6000,
+    });
+  };
  
   // ── Render ─────────────────────────────────────────────────────────────
   return (
@@ -335,7 +346,7 @@ export function TurmasDocente() {
         </div>
       )}
  
-      {/* Conteúdo principal — só exibe quando há dados */}
+      {/* Conteúdo principal */}
       {idTurma && !carregando && !erro && (
         <>
           {/* Cards de resumo + Gráfico */}
@@ -450,6 +461,7 @@ export function TurmasDocente() {
         aluno={modalObs.aluno}
         onAdicionar={abrirNova}
         onSuccess={buscarAlunos}
+        onExcluir={handleExcluirObservacao}
       />
       <ModalNovaObservacao
         isOpen={modalNova.open}
@@ -461,4 +473,3 @@ export function TurmasDocente() {
     </div>
   );
 }
- 
