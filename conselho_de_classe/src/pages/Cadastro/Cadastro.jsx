@@ -148,11 +148,12 @@ export function Cadastro() {
 
       <main className="flex-1 flex flex-col justify-center items-center px-4 ">
         
-        <h1 className="text-2xl font-bold text-gray-800 uppercase mb-8 tracking-wide">
+        
+        <div className="w-full max-w-4xl bg-gray-200 rounded-xl p-10 shadow-2xl">
+          <h1 className="text-2xl text-center font-bold text-gray-800 uppercase mb-8 tracking-wide">
           Cadastro de Usuário
-        </h1>
+          </h1>
 
-        <div className="w-full max-w-4xl bg-[#E9E9E9] rounded-xl p-10 shadow-lg">
           <form onSubmit={handleCadastro} className="flex flex-col gap-6">
             
             <div className="flex flex-col md:flex-row gap-8">
@@ -253,14 +254,14 @@ export function Cadastro() {
               <button 
                 type="button" 
                 onClick={() => navigate("/configuracoes")}
-                className="w-40 py-3 rounded-2xl border border-gray-400 bg-[#e9ecef] text-gray-800 font-semibold hover:bg-[#d6d8db] transition-colors"
+                className="w-60 py-2 rounded-2xl border border-gray-500 bg-[#e9ecef] text-gray-800 font-semibold hover:bg-[#d6d8db] transition-colors"
               >
                 Voltar
               </button>
               <button 
                 type="submit" 
                 disabled={mensagem !== '' }
-                className="w-40 py-3 rounded-2xl bg-[#E20814] text-white font-semibold hover:bg-red-700 transition-colors border border-transparent "
+                className="w-60 py-2 rounded-2xl bg-[#E20814] border border-black text-white font-semibold hover:bg-red-700 transition-colors border border-transparent "
               >
                 
                 Cadastrar
