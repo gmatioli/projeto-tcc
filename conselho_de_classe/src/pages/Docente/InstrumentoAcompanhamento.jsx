@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 import { API } from '../../config/api';
-
+ 
  
 export function InstrumentoAcompanhamento() {
   const navigate = useNavigate();
-
+ 
   const formatarNome = (texto) => {
   if (!texto) return '';
     return texto
@@ -14,9 +15,9 @@ export function InstrumentoAcompanhamento() {
       .map(palavra => palavra.charAt(0).toUpperCase() + palavra.slice(1))
       .join(' ');
   };
-
+ 
   const [docenteNome, setDocenteNome] = useState('Carregando...');
-
+ 
   useEffect(() => {
     const carregarPerfil = async () => {
       const logado = localStorage.getItem('usuarioLogado');
@@ -27,7 +28,7 @@ export function InstrumentoAcompanhamento() {
         try {
           const resposta = await fetch(`${API.perfil}/${email}`);
           const dados = await resposta.json();
-
+ 
           if (dados.sucesso) {
             setDocenteNome(dados.usuario.nomeUsuario);
           } else {
@@ -39,7 +40,7 @@ export function InstrumentoAcompanhamento() {
         }
       }
     };
-
+ 
     carregarPerfil();
   }, []);
  
@@ -47,11 +48,11 @@ export function InstrumentoAcompanhamento() {
   const [turma,    setTurma]    = useState('');
   const [aluno,    setAluno]    = useState('');
   const [componente, setComponente] = useState('');
-
+ 
   // ── Estados Dropdown ─────────────────────────────────────────
   const [turmasDisponiveis, setTurmasDisponiveis] = useState([]);
   const [alunosDisponiveis, setAlunosDisponiveis] = useState([]);
-
+ 
   // 1. Busca as turmas do docente ao carregar a página
   useEffect(() => {
     const logado = localStorage.getItem('usuarioLogado');
@@ -73,7 +74,7 @@ export function InstrumentoAcompanhamento() {
       }
     }
   }, []);
-
+ 
   // 2. Busca os alunos sempre que uma turma for selecionada
   useEffect(() => {
     if (!turma) {
@@ -81,7 +82,7 @@ export function InstrumentoAcompanhamento() {
       setAluno(''); // Limpa o aluno se trocar de turma
       return;
     }
-
+ 
     fetch(`${API.alunos}/${turma}`)
       .then(res => res.json())
       .then(data => {
@@ -161,10 +162,10 @@ export function InstrumentoAcompanhamento() {
   // ── Geração do documento Word via backend ────────────────────────────────
   const handleGerar = async () => {
     if (!turma || !aluno) {
-      alert('Por favor, selecione a Turma e o Aluno.');
+      toast.warning('Selecione a turma e o aluno antes de gerar o documento.');
       return;
     }
-
+ 
     const turmaObj = turmasDisponiveis.find(t => t.idTurma.toString() === turma.toString());
     const nomeDaTurma = turmaObj ? turmaObj.turma : '';
  
@@ -175,6 +176,8 @@ export function InstrumentoAcompanhamento() {
       criterios, prov, obsEscola, plano, docente: formatarNome(docenteNome)
     };
  
+    const toastId = toast.loading('Gerando documento, aguarde...');
+ 
     try {
       const response = await fetch(API.instrumento, {
         method: 'POST',
@@ -184,7 +187,7 @@ export function InstrumentoAcompanhamento() {
  
       if (!response.ok) {
         const err = await response.json();
-        alert('Erro: ' + err.mensagem);
+        toast.error(`Erro ao gerar documento: ${err.mensagem}`, { id: toastId });
         return;
       }
  
@@ -196,9 +199,11 @@ export function InstrumentoAcompanhamento() {
       document.body.appendChild(a);
       a.click();
       a.remove();
+ 
+      toast.success('Documento gerado e baixado com sucesso!', { id: toastId });
     } catch (e) {
       console.error(e);
-      alert('Erro de conexão ao gerar o documento.');
+      toast.error('Erro de conexão ao gerar o documento. Tente novamente.', { id: toastId });
     }
   };
  
@@ -264,12 +269,11 @@ export function InstrumentoAcompanhamento() {
               <select
                 value={aluno}
                 onChange={e => setAluno(e.target.value)}
-                disabled={!turma} // Desabilita se não tiver turma selecionada
+                disabled={!turma}
                 className={`w-full border rounded px-2 py-1.5 text-base focus:outline-none focus:ring-1 focus:ring-red-400 ${!turma ? 'bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed' : 'border-gray-300'}`}
               >
                 <option value="">Selecione...</option>
                 {alunosDisponiveis.map(a => (
-                  // Guardamos o NOME no value, pois o Word precisa do nome
                   <option key={a.idtblAluno} value={a.nome}>{a.nome}</option>
                 ))}
               </select>
@@ -385,7 +389,6 @@ export function InstrumentoAcompanhamento() {
                   <Chk label="Atentar para a frequência regular às aulas"      checked={sugResp.atentarFrequencia} onChange={() => toggle(setSugResp,'atentarFrequencia')} />
                   <Chk label="Acompanhar atividade e desempenho escolar"       checked={sugResp.acompanharAtividade} onChange={() => toggle(setSugResp,'acompanharAtividade')} />
                 </div>
-                
               </div>
  
               {/* Encaminhar Para */}

@@ -37,7 +37,7 @@ function Login() {
           }));
           
         
-          navigate('/docente/home');
+          navigate('/home');
           
           
 

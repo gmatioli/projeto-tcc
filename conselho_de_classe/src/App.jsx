@@ -12,6 +12,7 @@ import Login from './pages/Login/Login.jsx';
 import { Header } from './components/header/Header.jsx';
 import { Sidebar } from './components/sidebar/Sidebar.jsx';
 import { SidebarDocente } from './components/sidebar/SidebarDocente.jsx';
+import { Homepage }           from './pages/HomePage/Homepage.jsx';
 
 // nivel acesso admin
 import { ConselhoIntermediario } from './pages/ConselhoIntermediario/ConselhoIntermediario.jsx';
@@ -31,7 +32,6 @@ import { GerarRelatorio } from './pages/Relatorios/GerarRelatorio.jsx';
 import { GerarTermoCiencia } from './pages/Relatorios/GerarTermoCiencia.jsx';
 
 // nivel acesso docente
-import { HomepageDocente }           from './pages/Docente/HomepageDocente.jsx';
 import { TurmasDocente }             from './pages/Docente/TurmasDocente.jsx';
 import { InstrumentoAcompanhamento } from './pages/Docente/InstrumentoAcompanhamento.jsx';
 
@@ -102,8 +102,9 @@ function App() {
           <Route path="/relatorios/relatorio" element={<GerarRelatorio />} />
           <Route path="/relatorios/termo" element={<GerarTermoCiencia />} />
 
+          <Route path="/home"                          element={<Homepage />} />
+
           {/* ── Rotas DOCENTE ── */}
-          <Route path="/docente/home"                          element={<HomepageDocente />} />
           <Route path="/docente/turmas"                        element={<TurmasDocente />} />
           <Route path="/docente/instrumento-acompanhamento"    element={<InstrumentoAcompanhamento />} />
         </Route>
