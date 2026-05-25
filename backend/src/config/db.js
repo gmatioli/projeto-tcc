@@ -10,7 +10,7 @@
 
 const postgres = require('postgres');
 
-Ele vai buscar a variável DATABASE_URL que vamos configurar lá no painel do Render
+// Ele vai buscar a variável DATABASE_URL que vamos configurar lá no painel do Render
 const db = postgres(process.env.DATABASE_URL, {
  ssl: 'require', // Isso é OBRIGATÓRIO para o Neon funcionar na nuvem
 });
