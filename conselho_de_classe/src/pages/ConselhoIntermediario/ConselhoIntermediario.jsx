@@ -13,7 +13,7 @@ import ModalAvaliacaoTurma from '../../components/modalAvaliacaoConselhoIntermed
 // ── Modal: Ver Observações ─────────────────────────────────────────────────
 import ModalObservacoes from '../../components/modalObservacao/ModalObservacao';
 
-import { API } from '../../config/api';
+import { API, authFetch } from '../../config/api';
 
 // Calcula semestre/ano corrente (mês <= 6 => 1º semestre)
 const cicloAtual = () => {
@@ -135,7 +135,7 @@ export function ConselhoIntermediario() {
     const handleVerObservacoes = async (aluno) => {
       try {
           const idDoAluno = aluno.idtblAluno || aluno.id; 
-          const res = await fetch(`${API.observacoes}/aluno/${idDoAluno}`);
+          const res = await authFetch(`${API.observacoes}/aluno/${idDoAluno}`);
           const data = await res.json();
 
           if (data.sucesso) {
@@ -171,8 +171,8 @@ export function ConselhoIntermediario() {
       if (!cid || !tid) return null;
       try {
           const [respT, respA] = await Promise.all([
-              fetch(`${API.conselho}/${cid}/avaliacao-turma/${tid}`).then(r => r.json()),
-              fetch(`${API.conselho}/${cid}/turma/${tid}/avaliacoes-alunos`).then(r => r.json()),
+              authFetch(`${API.conselho}/${cid}/avaliacao-turma/${tid}`).then(r => r.json()),
+              authFetch(`${API.conselho}/${cid}/turma/${tid}/avaliacoes-alunos`).then(r => r.json()),
           ]);
 
           const avaliacao = respT?.avaliacao || null;
@@ -202,8 +202,8 @@ export function ConselhoIntermediario() {
       
       // Busca alunos e observações em paralelo
       Promise.all([
-          fetch(`${API.alunos}/empresa/${idTurma}`).then(res => res.json()),
-          fetch(`${API.observacoes}/turma/${idTurma}`).then(res => res.json())
+          authFetch(`${API.alunos}/empresa/${idTurma}`).then(res => res.json()),
+          authFetch(`${API.observacoes}/turma/${idTurma}`).then(res => res.json())
       ])
       .then(([dataAlunos, dataObs]) => {
           if (dataAlunos.sucesso) {
@@ -241,7 +241,7 @@ export function ConselhoIntermediario() {
 
           try {
             // 1. Read-only: existe conselho do ciclo para esta turma?
-            const r1 = await fetch(
+            const r1 = await authFetch(
                 `${API.conselho}/ativo/${encodeURIComponent('Intermediário')}/turma/${idTurma}` +
                 `?idUsuario=${idUsuario}&semestre=${ciclo.semestre}&ano=${ciclo.ano}`
             );
@@ -257,7 +257,7 @@ export function ConselhoIntermediario() {
             // 2. Vincula a turma ao conselho (idempotente, ON CONFLICT DO NOTHING).
             // Manda parâmetros completos para o backend decidir — não enviamos
             // mais "conselhoId cego" que arrastava turma errada de outro usuário.
-            const r2 = await fetch(`${API.conselho}/iniciar`, {
+            const r2 = await authFetch(`${API.conselho}/iniciar`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -302,7 +302,7 @@ export function ConselhoIntermediario() {
         }
         setCarregandoConselho(true);
         try {
-            const resp = await fetch(`${API.conselho}/iniciar`, {
+            const resp = await authFetch(`${API.conselho}/iniciar`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -336,7 +336,7 @@ export function ConselhoIntermediario() {
         if (!conselhoId || !idTurma || !idUsuario) return;
         setCarregandoConselho(true);
         try {
-            const resp = await fetch(`${API.conselho}/iniciar`, {
+            const resp = await authFetch(`${API.conselho}/iniciar`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -400,7 +400,7 @@ export function ConselhoIntermediario() {
         setCarregandoConselho(true);
 
         try {
-            const resp = await fetch(`${API.conselho}/finalizar`, {
+            const resp = await authFetch(`${API.conselho}/finalizar`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ conselhoId })

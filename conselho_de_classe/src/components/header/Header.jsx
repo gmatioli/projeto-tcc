@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { API } from '../../config/api';
+import { API, authFetch } from '../../config/api';
 import { toast } from 'sonner';
 
 export function Header() {
@@ -33,7 +33,7 @@ export function Header() {
           const { email } = JSON.parse(logado);
           
           try {
-            const resposta = await fetch(`${API.perfil}/${email}`);
+            const resposta = await authFetch(`${API.perfil}/${email}`);
             const dados = await resposta.json();
   
             if (dados.sucesso) {

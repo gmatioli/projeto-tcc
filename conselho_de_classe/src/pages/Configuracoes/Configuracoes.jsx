@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { API } from '../../config/api';
+import { API, authFetch } from '../../config/api';
 
 export function Configuracoes() {
 
@@ -43,7 +43,7 @@ export function Configuracoes() {
     formData.append('arquivo', arquivo); 
 
     try {
-      const resposta = await fetch(API.uploadPlanilha, {
+      const resposta = await authFetch(API.uploadPlanilha, {
         method: 'POST',
         body: formData, 
       });

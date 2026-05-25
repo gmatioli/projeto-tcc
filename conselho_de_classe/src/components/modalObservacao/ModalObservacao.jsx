@@ -1,5 +1,5 @@
 import React from 'react';
-import { API } from '../../config/api';
+import { API, authFetch } from '../../config/api';
 import { toast } from 'sonner';
  
 function ModalObservacoes({ isOpen, onClose, aluno, onAdicionar, onSuccess, onExcluir, somenteLeitura = false }) {
@@ -24,7 +24,7 @@ function ModalObservacoes({ isOpen, onClose, aluno, onAdicionar, onSuccess, onEx
         label: 'Excluir',
         onClick: async () => {
           try {
-            const res = await fetch(`${API.observacoes}/${idObservacao}`, { method: 'DELETE' });
+            const res = await authFetch(`${API.observacoes}/${idObservacao}`, { method: 'DELETE' });
             const data = await res.json();
  
             if (res.ok && data.sucesso) {

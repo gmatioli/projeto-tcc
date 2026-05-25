@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcrypt');
 const db = require('../config/db');
+const jwt = require('jsonwebtoken');
 
 // ==========================================
 // ROTA 1: CADASTRAR USUÁRIO (POST)
@@ -54,9 +55,17 @@ router.post('/login', async (req, res) => {
     const senhaCorreta = await bcrypt.compare(senha, usuarioEncontrado.senha);
 
     if (senhaCorreta) {
+
+      const token = jwt.sign(
+        { idUsuario: usuarioEncontrado.idUsuario, nivelAcesso: usuarioEncontrado.nivelAcesso },
+        process.env.JWT_SECRET,
+        { expiresIn: '8h' }            // token expira em 8h
+      );
+
       res.json({
         sucesso: true,
         mensagem: 'Login efetuado com sucesso!',
+        token,
         idUsuario: usuarioEncontrado.idUsuario,
         nomeUsuario: usuarioEncontrado.nomeUsuario,
         nivelAcesso: usuarioEncontrado.nivelAcesso

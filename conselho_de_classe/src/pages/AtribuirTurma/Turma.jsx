@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-import { API } from '../../config/api';
+import { API, authFetch } from '../../config/api';
 
 export function Turma() {
 
@@ -37,7 +37,7 @@ export function Turma() {
     // ==========================================
     useEffect(() => {
 
-        fetch(
+        authFetch(
             `${API.atribuirTurma}/docentes`
         )
 
@@ -64,7 +64,7 @@ export function Turma() {
     // ==========================================
     useEffect(() => {
 
-        fetch(
+        authFetch(
             `${API.atribuirTurma}/turmas`
         )
 
@@ -95,7 +95,7 @@ export function Turma() {
             return;
         }
 
-        fetch(`${API.atribuirTurma}/docente/${docenteSelecionado}/turmas`)
+        authFetch(`${API.atribuirTurma}/docente/${docenteSelecionado}/turmas`)
             .then((res) => res.json())
             .then((data) => {
                 console.log('TURMAS JÁ ATRIBUÍDAS:', data);
@@ -169,7 +169,7 @@ export function Turma() {
         const confirmacao = window.confirm("Tem certeza que deseja remover esta turma do docente?");
         if (!confirmacao) return;
 
-        fetch(`${API.atribuirTurma}/docente/${docenteSelecionado}/turma/${idTurma}`, {
+        authFetch(`${API.atribuirTurma}/docente/${docenteSelecionado}/turma/${idTurma}`, {
             method: 'DELETE',
         })
         .then(res => res.json())
@@ -201,7 +201,7 @@ export function Turma() {
             return;
         }
 
-        fetch(`${API.atribuirTurma}/salvar`, {
+        authFetch(`${API.atribuirTurma}/salvar`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({

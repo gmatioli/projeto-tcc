@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from 'react-router-dom';
-import { API } from '../../config/api';
+import { API, authFetch } from '../../config/api';
 
 export function Senha() {
   const navigate = useNavigate();
@@ -26,7 +26,7 @@ export function Senha() {
 
   const buscarUsuarios = async () => {
     try {
-      const resposta = await fetch(API.usuarios);
+      const resposta = await authFetch(API.usuarios);
       const dados = await resposta.json();
       if (dados.sucesso) {
         setUsuarios(dados.usuarios);
@@ -70,7 +70,7 @@ export function Senha() {
     }
 
     try {
-      const resposta = await fetch(`${API.usuarios}/senha`, {
+      const resposta = await authFetch(`${API.usuarios}/senha`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 

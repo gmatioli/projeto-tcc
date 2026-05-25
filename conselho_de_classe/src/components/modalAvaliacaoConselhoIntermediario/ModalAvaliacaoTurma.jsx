@@ -1,6 +1,6 @@
 
 import { useEffect, useState } from 'react';
-import { API } from '../../config/api';
+import { API, authFetch } from '../../config/api';
 import { toast } from 'sonner';
 
 
@@ -81,7 +81,7 @@ const ModalAvaliacaoTurma = ({
     }
     setSalvando(true);
     try {
-      const resp = await fetch(`${API.conselho}/avaliacao-turma`, {
+      const resp = await authFetch(`${API.conselho}/avaliacao-turma`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

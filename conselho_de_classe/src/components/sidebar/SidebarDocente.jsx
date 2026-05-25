@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { API } from '../../config/api';
+import { API, authFetch } from '../../config/api';
  
 import councilIcon from '../../assets/sidebar/council-icon.svg';
 import reportIcon from '../../assets/sidebar/report-icon.svg';
@@ -42,7 +42,7 @@ export function SidebarDocente() {
     }
  
     setCarregando(true);
-    fetch(`${API.turmaDocente}/docente/${idDocente}/sidebar-filtros`)
+    authFetch(`${API.turmaDocente}/docente/${idDocente}/sidebar-filtros`)
       .then(res => res.json())
       .then(data => {
         if (data.sucesso && Array.isArray(data.dados)) {

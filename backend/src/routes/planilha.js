@@ -5,13 +5,14 @@ const multer = require('multer');
 const fs = require('fs');
 const csv = require('csv-parser');
 const iconv = require('iconv-lite');
+const { autenticar, exigirNivel } = require('../middleware/authToken');
 
 const upload = multer({ storage: multer.memoryStorage() });
 
 // ==========================================
 // ROTA: UPLOAD DA PLANILHA SGSET (POST)
 // ==========================================
-router.post('/upload-planilha', upload.single('arquivo'), (req, res) => {
+router.post('/upload-planilha', autenticar, exigirNivel('admin'), upload.single('arquivo'), (req, res) => {
   if (!req.file) {
     return res.status(400).json({ sucesso: false, mensagem: 'Nenhum arquivo enviado.' });
   }

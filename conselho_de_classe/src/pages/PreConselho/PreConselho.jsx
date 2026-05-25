@@ -12,7 +12,7 @@ import ModalAvaliacao from '../../components/modalAvaliacaoPreConselho/ModalAval
 // ── Modal: Ver Observações ─────────────────────────────────────────────────
 import ModalObservacoes from '../../components/modalObservacao/ModalObservacao';
 
-import { API } from '../../config/api';
+import { API, authFetch } from '../../config/api';
 
 // Calcula semestre/ano corrente (mês <= 6 => 1º semestre)
 const cicloAtual = () => {
@@ -110,7 +110,7 @@ export function PreConselho() {
         try {
             // Busca na rota dinâmica recém-criada
             const idDoAluno = aluno.idtblAluno || aluno.id; 
-            const res = await fetch(`${API.observacoes}/aluno/${idDoAluno}`);
+            const res = await authFetch(`${API.observacoes}/aluno/${idDoAluno}`);
             const data = await res.json();
 
             if (data.sucesso) {
@@ -141,7 +141,7 @@ export function PreConselho() {
     const recarregarConselho = useCallback(async (cid, tid) => {
         if (!cid || !tid) return;
         try {
-            const respA = await fetch(`${API.conselho}/${cid}/turma/${tid}/avaliacoes-alunos`).then(r => r.json());
+            const respA = await authFetch(`${API.conselho}/${cid}/turma/${tid}/avaliacoes-alunos`).then(r => r.json());
 
             const mapa = {};
             (respA?.avaliacoes || []).forEach(a => {
@@ -163,8 +163,8 @@ export function PreConselho() {
         
         // Busca alunos e observações em paralelo
         Promise.all([
-            fetch(`${API.alunos}/empresa/${idTurma}`).then(res => res.json()),
-            fetch(`${API.observacoes}/turma/${idTurma}`).then(res => res.json())
+            authFetch(`${API.alunos}/empresa/${idTurma}`).then(res => res.json()),
+            authFetch(`${API.observacoes}/turma/${idTurma}`).then(res => res.json())
         ])
         .then(([dataAlunos, dataObs]) => {
             if (dataAlunos.sucesso) {
@@ -182,7 +182,7 @@ export function PreConselho() {
         .finally(() => setCarregando(false));
 
         // Busca histórico do Conselho Intermediário do MESMO ciclo (semestre+ano)
-        fetch(`${API.conselho}/historico-intermediario/turma/${idTurma}?semestre=${ciclo.semestre}&ano=${ciclo.ano}`)
+        authFetch(`${API.conselho}/historico-intermediario/turma/${idTurma}?semestre=${ciclo.semestre}&ano=${ciclo.ano}`)
             .then(res => res.json())
             .then(data => {
                 if (!data?.sucesso) return;
@@ -211,7 +211,7 @@ export function PreConselho() {
 
             try {
                 // 1. Existe pré-conselho do ciclo para esta turma?
-                const r1 = await fetch(
+                const r1 = await authFetch(
                     `${API.conselho}/ativo/${encodeURIComponent('Pré-Conselho')}/turma/${idTurma}` +
                     `?idUsuario=${idUsuario}&semestre=${ciclo.semestre}&ano=${ciclo.ano}`
                 );
@@ -226,7 +226,7 @@ export function PreConselho() {
                 }
 
                 // 2. Vincula a turma de forma idempotente (parâmetros completos).
-                const r2 = await fetch(`${API.conselho}/iniciar`, {
+                const r2 = await authFetch(`${API.conselho}/iniciar`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -272,7 +272,7 @@ export function PreConselho() {
         }
         setCarregandoConselho(true);
         try {
-            const resp = await fetch(`${API.conselho}/iniciar`, {
+            const resp = await authFetch(`${API.conselho}/iniciar`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -301,7 +301,7 @@ export function PreConselho() {
         if (!conselhoId || !idTurma || !idUsuario) return;
         setCarregandoConselho(true);
         try {
-            const resp = await fetch(`${API.conselho}/iniciar`, {
+            const resp = await authFetch(`${API.conselho}/iniciar`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -362,7 +362,7 @@ export function PreConselho() {
         setCarregandoConselho(true);
 
         try {
-            const resp = await fetch(`${API.conselho}/finalizar`, {
+            const resp = await authFetch(`${API.conselho}/finalizar`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ conselhoId })

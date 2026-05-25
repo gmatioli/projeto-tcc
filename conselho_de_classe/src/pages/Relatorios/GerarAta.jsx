@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { API } from '../../config/api';
+import { API, authFetch } from '../../config/api';
 import { toast } from 'sonner';
 
 
@@ -18,7 +18,7 @@ export function GerarAta() {
   useEffect(() => {
     const buscarDados = async () => {
       try {
-        const response = await fetch(`${API.relatorio}/datas`);
+        const response = await authFetch(`${API.relatorio}/datas`);
         if (response.ok) {
           const dados = await response.json();
           // TRAVA DE SEGURANÇA: Garante que estamos iterando sobre um array
@@ -95,7 +95,7 @@ export function GerarAta() {
         dataConselho: dataParaEnviar  // Essa data será usada lá no {dataConselho} do template
       };
 
-      const response = await fetch(API.gerarDoc, {
+      const response = await authFetch(API.gerarDoc, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { API } from '../../config/api';
+import { API, authFetch } from '../../config/api';
 
 export function GerarTermoCiencia() {
 
@@ -44,7 +44,7 @@ const turmasFiltradas = turmas.filter((t) => {
   // ==========================================
   useEffect(() => {
 
-    fetch(API.turmas)
+    authFetch(API.turmas)
 
       .then((res) => res.json())
 
@@ -76,7 +76,7 @@ const turmasFiltradas = turmas.filter((t) => {
       return;
     }
 
-    fetch(`${API.alunos}?turma=${turma}`)
+    authFetch(`${API.alunos}?turma=${turma}`)
 
       .then((res) => res.json())
 
@@ -132,7 +132,7 @@ const turmasFiltradas = turmas.filter((t) => {
         observacao: observacoes
       };
 
-      const response = await fetch(
+      const response = await authFetch(
         API.termoDeCiencia ,
         {
           method: 'POST',

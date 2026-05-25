@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import { API } from '../../config/api';
+import { API, authFetch } from '../../config/api';
  
  
 export function InstrumentoAcompanhamento() {
@@ -26,7 +26,7 @@ export function InstrumentoAcompanhamento() {
         const { email } = JSON.parse(logado);
         
         try {
-          const resposta = await fetch(`${API.perfil}/${email}`);
+          const resposta = await authFetch(`${API.perfil}/${email}`);
           const dados = await resposta.json();
  
           if (dados.sucesso) {
@@ -60,7 +60,7 @@ export function InstrumentoAcompanhamento() {
       const { idUsuario } = JSON.parse(logado);
       
       if (idUsuario) {
-        fetch(`${API.turmaDocente}/docente/${idUsuario}/sidebar-filtros`)
+        authFetch(`${API.turmaDocente}/docente/${idUsuario}/sidebar-filtros`)
           .then(res => res.json())
           .then(data => {
             // Verifica o formato da resposta (igual na sidebar)
@@ -83,7 +83,7 @@ export function InstrumentoAcompanhamento() {
       return;
     }
  
-    fetch(`${API.alunos}/${turma}`)
+    authFetch(`${API.alunos}/${turma}`)
       .then(res => res.json())
       .then(data => {
         if (data.sucesso && Array.isArray(data.alunos)) {
@@ -179,7 +179,7 @@ export function InstrumentoAcompanhamento() {
     const toastId = toast.loading('Gerando documento, aguarde...');
  
     try {
-      const response = await fetch(API.instrumento, {
+      const response = await authFetch(API.instrumento, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),

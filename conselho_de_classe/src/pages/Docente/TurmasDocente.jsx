@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
-import { API } from '../../config/api';
+import { API, authFetch } from '../../config/api';
  
 // ── Modal: Ver Observações ─────────────────────────────────────────────────
 import ModalObservacoes from '../../components/modalObservacao/ModalObservacao';
@@ -31,7 +31,7 @@ function ModalNovaObservacao({ isOpen, onClose, aluno, obsEditando, onSuccess })
       let response;
  
       if (obsEditando && obsEditando.id) {
-        response = await fetch(`${API.observacoes}/${obsEditando.id}`, { 
+        response = await authFetch(`${API.observacoes}/${obsEditando.id}`, { 
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -48,7 +48,7 @@ function ModalNovaObservacao({ isOpen, onClose, aluno, obsEditando, onSuccess })
           categoria: 'Geral'
         };
  
-        response = await fetch(`${API.observacoes}/salvar`, { 
+        response = await authFetch(`${API.observacoes}/salvar`, { 
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)
@@ -210,14 +210,14 @@ export function TurmasDocente() {
     setErro('');
  
     try {
-      const resAlunos = await fetch(`${API.alunos}/${idTurma}`);
+      const resAlunos = await authFetch(`${API.alunos}/${idTurma}`);
       const dataAlunos = await resAlunos.json();
  
       if (!dataAlunos.sucesso || !Array.isArray(dataAlunos.alunos)) {
         throw new Error('Não foi possível carregar os alunos.');
       }
  
-      const resObs = await fetch(`${API.observacoes}/turma/${idTurma}`);
+      const resObs = await authFetch(`${API.observacoes}/turma/${idTurma}`);
       const dataObs = await resObs.json();
       
       const listaObservacoes = dataObs.sucesso ? dataObs.observacoes : [];
@@ -286,7 +286,7 @@ export function TurmasDocente() {
         label: 'Excluir',
         onClick: async () => {
           try {
-            const res = await fetch(`${API.observacoes}/${idObservacao}`, { method: 'DELETE' });
+            const res = await authFetch(`${API.observacoes}/${idObservacao}`, { method: 'DELETE' });
             const data = await res.json();
  
             if (res.ok && data.sucesso) {

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { API } from '../../config/api';
+import { API, authFetch } from '../../config/api';
 import { toast } from 'sonner';
 
 
@@ -23,7 +23,7 @@ export function GerarRelatorio() {
    useEffect(() => {
      const buscarDados = async () => {
        try {
-         const response = await fetch(`${API.relatorio}/datas`);
+         const response = await authFetch(`${API.relatorio}/datas`);
          if (response.ok) {
            const dados = await response.json();
            
@@ -113,7 +113,7 @@ export function GerarRelatorio() {
         dataConselho: dataParaEnviar // Agora estamos enviando a data!
       };
 
-      const response = await fetch(
+      const response = await authFetch(
          `${API.relatorio}/gerar-doc`,
         {
           method: 'POST',
