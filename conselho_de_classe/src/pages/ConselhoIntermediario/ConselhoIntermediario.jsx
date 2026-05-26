@@ -279,11 +279,10 @@ export function ConselhoIntermediario() {
 
             setConselhoId(cidFinal);
             setDonoConselho(dono);
-            setModoEdicao(true);
 
             // 3. Carrega avaliações dessa turma neste conselho.
             const avaliacao = await recarregarConselho(cidFinal, idTurma);
-            if (!avaliacao) {
+            if (!avaliacao && modoEdicao) {
               setIsModalTurmaOpen(true);
             }
           } catch (err) {
@@ -291,7 +290,7 @@ export function ConselhoIntermediario() {
           }
       })(); 
         return () => { cancelado = true; };
-    }, [idTurma, idUsuario, ciclo.semestre, ciclo.ano, recarregarConselho]);
+    }, [idTurma, idUsuario, ciclo.semestre, ciclo.ano, recarregarConselho, modoEdicao]);
 
    
     // Iniciar / Finalizar conselho
