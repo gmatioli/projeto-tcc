@@ -249,7 +249,7 @@ export function Turma() {
             {/* MAIN */}
             <main className='flex-1 flex justify-center items-center'>
 
-                <div className='w-full max-w-4xl min-h-[500px] bg-[#E9E9E9] rounded-xl p-6 shadow-xl'>
+                <div className='w-full max-w-4xl min-h-[500px] bg-gray-200 rounded-xl p-6 shadow-2xl'>
 
                     {/* TÍTULO */}
                     <div className='border-b border-gray-300 pb-2 mb-3'>
@@ -277,7 +277,7 @@ export function Turma() {
                                         e.target.value
                                     )
                                 }
-                                className="border border-gray-400 rounded-xl p-2 outline-none text-sm"
+                                className="border border-gray-400 bg-white rounded-xl p-2 outline-none text-sm"
                             >
 
                                 <option value="">
@@ -313,7 +313,7 @@ export function Turma() {
                                         e.target.value
                                     )
                                 }
-                                className="border border-gray-400 rounded-xl p-2 outline-none text-sm"
+                                className="border border-gray-400 rounded-xl p-2 bg-white outline-none text-sm"
                             >
 
                                 <option value="">
@@ -458,14 +458,14 @@ export function Turma() {
                             onClick={() =>
                                 navigate('/configuracoes')
                             }
-                            className="px-8 py-2 rounded-full border border-gray-400 bg-gray-200 text-gray-700 font-semibold"
+                            className="px-20 py-2 rounded-full border border-gray-400 bg-gray-100 text-gray-900 font-semibold hover:bg-[#d6d8db] transition-colors"
                         >
                             Fechar
                         </button>
 
                         <button
                             onClick={handleSalvar}
-                            className="px-8 py-2 rounded-full bg-[#E20814] text-white font-semibold"
+                            className="px-20 py-2 rounded-full bg-[#E20814] text-white font-semibold hover:bg-red-700 transition-colors"
                         >
                             Salvar
                         </button>
