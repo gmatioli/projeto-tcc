@@ -219,7 +219,7 @@ export function Dashboard() {
             <div className={`${cardInfo} bg-yellow-50 border border-yellow-600`}>
               <div className={`${cardText} text-yellow-600`}>
                 <h3 className={`${cardNum}`}>{intObservacoes}</h3>
-                <p className="text_restritos">Total Observações (BD)</p>
+                <p className="text_restritos">Total Observações</p>
               </div>
               <div className={`${cardIcon}`}>
                 <img src={restritosIcon} alt="" className="w-10" />
