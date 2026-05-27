@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { API, authFetch } from '../../config/api';
+import { toast } from 'sonner';
 
 export function Cadastro() {
   const navigate = useNavigate();
@@ -32,7 +33,7 @@ export function Cadastro() {
       return false;
     }
     
-  const emailValido = email.toLowerCase();
+  const emailValido = email.toLowerCase().trim();
     if (!emailValido.includes('@') || !emailValido.includes('senai')) {
       setEmailErro('Por favor, utilize um email institucional válido do SENAI.');
       return false; 
@@ -83,6 +84,7 @@ export function Cadastro() {
     }
 
     try {
+      const emailNormalizado = email.trim().toLowerCase();
       const resposta = await authFetch(API.cadastro, {
         method: 'POST',
         headers: {
@@ -90,7 +92,7 @@ export function Cadastro() {
         },
         body: JSON.stringify({ 
           nome: nome, 
-          email: email, 
+          email: emailNormalizado, 
           senha: senha, 
           tipoAcesso: tipoAcesso 
         })
@@ -99,19 +101,19 @@ export function Cadastro() {
       const dados = await resposta.json();
 
       if (dados.sucesso) {
-        setMensagemSucesso('Cadastro realizado com sucesso!')
+        toast.success('Cadastro realizado com sucesso!');
         handleLimparFiltro();
         setTimeout(() => {
         setMensagemSucesso('')
 
         }, 3000);
       } else {
-        alert(dados.mensagem); 
+        toast.error(dados.mensagem);
       }
 
     } catch (erro) {
       console.error("Erro ao conectar com o backend:", erro);
-      alert("Servidor indisponível no momento.");
+      toast.error("Servidor indisponível no momento.");
     }
   };
 
@@ -188,7 +190,7 @@ export function Cadastro() {
                 type="email" 
                 value={email} 
                 onChange={(e) => {
-                  setEmail(e.target.value);
+                  setEmail(e.target.value.toLowerCase());
                   setEmailErro(''); 
                 }} 
                 onBlur={validarEmail} 
