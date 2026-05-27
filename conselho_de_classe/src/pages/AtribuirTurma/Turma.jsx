@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-
+import { toast } from 'sonner';
 import { API, authFetch } from '../../config/api';
 
 export function Turma() {
@@ -21,6 +21,9 @@ export function Turma() {
     const [turmasSelecionadas, setTurmasSelecionadas] = useState([]);
 
     const [turmasAtuais, setTurmasAtuais] = useState([]);
+
+    const [aguardandoConfirmacao, setAguardandoConfirmacao] = useState(false);
+    
 
     // ==========================================
     // TITLE
@@ -54,7 +57,7 @@ export function Turma() {
 
                 console.log(erro);
 
-                alert('Erro ao carregar docentes');
+                toast.error('Erro ao carregar docentes');
             });
 
     }, []);
@@ -81,7 +84,7 @@ export function Turma() {
 
                 console.log(erro);
 
-                alert('Erro ao carregar turmas');
+                toast.error('Erro ao carregar turmas');
             });
 
     }, []);
@@ -165,9 +168,24 @@ export function Turma() {
     // EXCLUIR TURMA
     // ==========================================
     const handleExcluirTurma = (idTurma) => {
-        // Pede uma confirmação rápida (opcional, mas recomendado)
-        const confirmacao = window.confirm("Tem certeza que deseja remover esta turma do docente?");
-        if (!confirmacao) return;
+        setAguardandoConfirmacao(true);
+        toast("Tem certeza que deseja remover esta turma do docente?", {
+              action: {
+                label: 'REMOVER',
+                onClick: () => executarExclusao(idTurma),
+              },
+              cancel: {
+                label: 'CANCELAR',
+                onClick: () => setAguardandoConfirmacao(false),
+              },
+              onDismiss: () => setAguardandoConfirmacao(false),
+              onAutoClose: () => setAguardandoConfirmacao(false),
+              duration: 5000,
+            });
+
+    }
+    const executarExclusao = (idTurma) => {
+        setAguardandoConfirmacao(false);
 
         authFetch(`${API.atribuirTurma}/docente/${docenteSelecionado}/turma/${idTurma}`, {
             method: 'DELETE',
@@ -176,20 +194,21 @@ export function Turma() {
         .then(data => {
             if (data.sucesso) {
                 // Mostra a mensagem que você pediu
-                alert('Turma do docente removida!');
+                toast.success('Turma do docente removida!');
                 
                 // Atualiza a tela na hora removendo a turma excluída do array
                 setTurmasAtuais(
                     turmasAtuais.filter((turma) => turma.idTurma !== idTurma)
                 );
             } else {
-                alert('Erro ao remover: ' + (data.mensagem || 'Erro desconhecido'));
+                toast.error('Erro ao remover: ' + (data.mensagem || 'Erro desconhecido'));
             }
         })
         .catch(err => {
             console.error('Erro na requisição de exclusão:', err);
-            alert('Erro ao conectar com o servidor');
+            toast.error('Erro ao conectar com o servidor');
         });
+        
     };
 
     // ==========================================
@@ -197,7 +216,7 @@ export function Turma() {
     // ==========================================
     const handleSalvar = () => {
         if (!docenteSelecionado) {
-            alert('Por favor, selecione um docente.');
+            toast.warning('Por favor, selecione um docente.');
             return;
         }
 
@@ -212,7 +231,7 @@ export function Turma() {
         .then(res => res.json())
         .then(data => {
             if (data.sucesso) {
-                alert('Atribuições salvas com sucesso!');
+                toast.success('Atribuições salvas com sucesso!');
                 
                 // 1. Limpa os checkboxes que o usuário marcou no preview
                 setTurmasSelecionadas([]);
@@ -222,12 +241,12 @@ export function Turma() {
                 setTipoCurso('');
                 
             } else {
-                alert('Erro ao salvar: ' + (data.mensagem || 'Erro desconhecido'));
+                toast.error('Erro ao salvar: ' + (data.mensagem || 'Erro desconhecido'));
             }
         })
         .catch(err => {
             console.error('Erro na requisição:', err);
-            alert('Erro ao conectar com o servidor');
+            toast.error('Erro ao conectar com o servidor');
         });
     };
 

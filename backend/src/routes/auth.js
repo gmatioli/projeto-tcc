@@ -9,9 +9,10 @@ const jwt = require('jsonwebtoken');
 // ==========================================
 router.post('/cadastro', async (req, res) => {
   const { nome, email, senha, tipoAcesso } = req.body;
+  const emailNormalizado = email.trim().toLowerCase();
 
   // Validação: apenas emails institucionais do SENAI
-  const emailValido = email.toLowerCase();
+  const emailValido = emailNormalizado;
   if (!emailValido.includes('@') || !emailValido.includes('senai')) {
     return res.status(400).json({
       sucesso: false,
@@ -25,7 +26,7 @@ router.post('/cadastro', async (req, res) => {
 
     await db`
       INSERT INTO "Usuario" ("nomeUsuario", "emailInstitucional", "senha", "nivelAcesso")
-      VALUES (${nome}, ${email}, ${senhaCriptografada}, ${tipoAcesso})
+      VALUES (${nome}, ${emailNormalizado}, ${senhaCriptografada}, ${tipoAcesso})
     `;
 
     res.status(201).json({ sucesso: true, mensagem: 'Usuário cadastrado com sucesso!' });
@@ -41,10 +42,11 @@ router.post('/cadastro', async (req, res) => {
 // ==========================================
 router.post('/login', async (req, res) => {
   const { email, senha } = req.body;
+  const emailNormalizado = email.trim().toLowerCase();
 
   try {
     const result = await db`
-      SELECT * FROM "Usuario" WHERE "emailInstitucional" = ${email}
+      SELECT * FROM "Usuario" WHERE "emailInstitucional" = ${emailNormalizado}
     `;
 
     if (result.length === 0) {
