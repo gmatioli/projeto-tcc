@@ -41,6 +41,7 @@ router.get('/alunos', autenticar, exigirNivel('admin'), async (req, res) => {
 
     const result = await db`
       SELECT
+        A."idtblAluno",
         A."nome"
       FROM "tblAluno" A
       INNER JOIN "Turma" T

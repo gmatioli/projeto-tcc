@@ -29,7 +29,6 @@ import situacaoNormalIcon from '../../assets/dashboard/situacao-normal-icon.svg'
 import restritosIcon from '../../assets/dashboard/restritos-icon.svg'
 import retidosIcon from '../../assets/dashboard/retidos-icon.svg'
 
-  const intObservacoes = 3
 
   const cardInfo = "flex flex-col justify-between border-2 rounded-[15px] min-h-[28vh] w-[14vw] shadow-[2px_2px_8px_gray]";
   const cardNum = "text-3xl italic";
@@ -41,6 +40,8 @@ export function Dashboard() {
   const [TotalTurmas, setTotalTurmas] = useState(0)
   const [totalSituacaoNormal, setTotalSituacaoNormal] = useState(0);
   const [totalRestritos, setTotalRestritos] = useState(0);
+  const [totalObservacoes, setTotalObservacoes] = useState(0);
+
 
   useEffect(() => {
     authFetch(`${API.dashboard}/dados`)
@@ -51,7 +52,7 @@ export function Dashboard() {
                 setTotalTurmas(json.dados.totalTurmas);
                 setTotalSituacaoNormal(json.dados.totalSituacaoNormal);
                 setTotalRestritos(json.dados.totalRestritos);
-
+                setTotalObservacoes(json.dados.totalObservacoes);
             } else {
                 console.error("Erro do servidor:", json.mensagem);
             }
@@ -210,7 +211,7 @@ export function Dashboard() {
             <div className={`${cardInfo} bg-green-50 border-green-600`}>
               <div className={`${cardText} text-green-600`}>
                 <h3 className={`${cardNum}`}>{totalSituacaoNormal}</h3>
-                <p className="text_situacao_normal">Situação Normal</p>
+                <p className="text_situacao_normal">Alunos em situação normal</p>
               </div>
               <div className={`${cardIcon}`}>
                 <img src={situacaoNormalIcon} alt="" className="w-10" />
@@ -218,8 +219,8 @@ export function Dashboard() {
             </div>
             <div className={`${cardInfo} bg-yellow-50 border border-yellow-600`}>
               <div className={`${cardText} text-yellow-600`}>
-                <h3 className={`${cardNum}`}>{intObservacoes}</h3>
-                <p className="text_restritos">Total Observações</p>
+                <h3 className={`${cardNum}`}>{totalObservacoes}</h3>
+                <p className="text_restritos">Alunos com Observações</p>
               </div>
               <div className={`${cardIcon}`}>
                 <img src={restritosIcon} alt="" className="w-10" />

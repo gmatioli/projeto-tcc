@@ -5,17 +5,43 @@ const fs = require('fs');
 const PizZip = require('pizzip');
 const Docxtemplater = require('docxtemplater');
 const { autenticar, exigirNivel } = require('../middleware/authToken');
+const db = require('../config/db');
 
 // ==========================================
 // ROTA: GERAR TERMO DE CIÊNCIA (POST)
 // ==========================================
-router.post('/termoDeCiencia', autenticar, exigirNivel('admin'), (req, res) => {
-  try {
-    const { aluno, data, turma, observacao } = req.body;
+router.post('/termoDeCiencia', autenticar, exigirNivel('admin'), async (req, res) => {
 
-    if (!aluno || !data || !turma) {
+  try {
+    const { idAluno, turma, semestre, ano, dataConselho, observacao } = req.body;
+
+    if (!idAluno || !semestre || !ano || !turma) {
       return res.status(400).json({ sucesso: false, mensagem: 'Preencha todos os campos.' });
     }
+    const resultado = await db`
+      SELECT 
+        A."nome" AS "nomeAluno",
+        AA."restricao",
+        AA."acaoProposta",
+        AA."responsavel"
+      FROM "Avaliacao_Aluno" AA
+      INNER JOIN "tblAluno" A ON AA."tblAluno_idtblAluno" = A."idtblAluno"
+      INNER JOIN "Conselho" C ON AA."Conselho_idConselho" = C."idConselho"
+      WHERE AA."tblAluno_idtblAluno" = ${Number(idAluno)}
+        AND C."tipoConselho" = 'Intermediário'
+        AND C."semestre" = ${Number(semestre)}
+        AND C."ano" = ${Number(ano)}
+      LIMIT 1
+    `;
+
+    const intermediario = resultado[0] || null;
+
+    if (!intermediario) {
+    return res.status(404).json({ 
+      sucesso: false, 
+      mensagem: 'Aluno não tem avaliação no Conselho Intermediário deste semestre.' 
+    });
+  }
 
     const templatePath = path.join(__dirname, '../../docs/termoCiencia.docx');
     
@@ -27,12 +53,19 @@ router.post('/termoDeCiencia', autenticar, exigirNivel('admin'), (req, res) => {
       linebreaks: true,
     });
 
-    // Substitui os campos no documento
+    const dataGeracao = new Date().toLocaleDateString('pt-BR', {
+      timeZone: 'America/Sao_Paulo'
+    });
+
     doc.setData({
-      aluno: aluno,
-      data: data,
-      turma: turma,
-      observacao: observacao || ''
+      aluno: intermediario?.nomeAluno || '',
+      dataConselho: dataConselho,
+      dataGeracao: dataGeracao,     // data de hoje (geração)
+      turma,
+      observacao: observacao || '',
+      restricao: intermediario?.restricao || '',
+      acaoIntermediario: intermediario?.acaoProposta || '',
+      responsavelIntermediario: intermediario?.responsavel || ''
     });
 
     doc.render();
