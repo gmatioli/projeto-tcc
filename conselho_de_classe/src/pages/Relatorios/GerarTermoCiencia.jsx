@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { API, authFetch } from '../../config/api';
+import {toast} from 'sonner';
 
 export function GerarTermoCiencia() {
 
@@ -12,9 +13,11 @@ export function GerarTermoCiencia() {
   const [tipoCurso, setTipoCurso] = useState('');
   const [turma, setTurma] = useState('');
   const [aluno, setAluno] = useState('');
-  const [dataConselho, setDataConselho] = useState('2024-05-04');
   const [observacoes, setObservacoes] = useState('');
 
+  const [semestre, setSemestre] = useState('');
+  const [ano, setAno] = useState('');
+  const [opcoesSemestreAno, setOpcoesSemestreAno] = useState([]);
   // ==========================================
   // LISTAS
   // ==========================================
@@ -39,6 +42,34 @@ const turmasFiltradas = turmas.filter((t) => {
 
   return false;
 });
+// =============================
+// Novo use effech
+// =============================
+useEffect(() => {
+  authFetch(`${API.relatorio}/datas`)
+    .then(res => res.json())
+    .then(dados => {
+      const lista = Array.isArray(dados) ? dados : (dados.rows || []);
+      const combinacoes = [];
+      const setUnicos = new Set();
+      lista.forEach(item => {
+        if (item.tipoConselho !== 'Intermediário') return;
+        if (item.semestre != null && item.ano != null) {
+          const chave = `${item.semestre}/${item.ano}`;
+          if (!setUnicos.has(chave)) {
+            setUnicos.add(chave);
+            combinacoes.push({
+              valor: chave,
+              semestre: item.semestre,
+              ano: item.ano,
+              dataConselho: item.dataFormatada
+            });
+          }
+        }
+      });
+      setOpcoesSemestreAno(combinacoes);
+    });
+}, []);
   // ==========================================
   // BUSCAR TURMAS
   // ==========================================
@@ -59,7 +90,7 @@ const turmasFiltradas = turmas.filter((t) => {
 
         console.log(erro);
 
-        alert('Erro ao carregar turmas');
+        toast.warning('Erro ao carregar turmas');
       });
 
   }, []);
@@ -91,7 +122,7 @@ const turmasFiltradas = turmas.filter((t) => {
 
         console.log(erro);
 
-        alert('Erro ao carregar alunos');
+        toast.warning('Erro ao carregar alunos');
       });
 
   }, [turma]);
@@ -104,77 +135,85 @@ const turmasFiltradas = turmas.filter((t) => {
     setTipoCurso('');
     setTurma('');
     setAluno('');
-    setDataConselho('2024-03-18');
+    setSemestre('');
+    setAno('');    
     setObservacoes('');
   };
 
   // ==========================================
+  // Semestre ano
+  // ==========================================
+  const handleSelecionarSemestreAno = (e) => {
+  const valor = e.target.value;
+  if (valor) {
+    const [sem, a] = valor.split('/');
+    setSemestre(sem);
+    setAno(a);
+  } else {
+    setSemestre('');
+    setAno('');
+  }
+};
+  // ==========================================
   // GERAR DOCX
   // ==========================================
   const handleGerar = async () => {
+  if (!tipoCurso || !turma || !aluno || !semestre || !ano) {
+    toast.warning('Preencha todos os campos obrigatórios.');
+    return;
+  }
 
-    if (!tipoCurso || !turma || !aluno || !dataConselho) {
+  const opcao = opcoesSemestreAno.find(
+    op => op.semestre == semestre && op.ano == ano
+  );
 
-      alert('Por favor, preencha todos os campos obrigatórios.');
+  const dados = {
+    idAluno: aluno,
+    turma,
+    semestre: Number(semestre),
+    ano: Number(ano),
+    dataConselho: opcao?.dataConselho || '',
+    observacao: observacoes
+  };
 
+  try {
+    const response = await authFetch(API.termoDeCiencia, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(dados)
+    });
+
+    if (!response.ok) {
+      const erroServidor = await response.json();
+      toast.error(`Erro: ${erroServidor.mensagem}`);
       return;
     }
 
-    try {
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
 
-    const [ano, mes, dia] = dataConselho.split('-');
-    const dataFormatada = `${dia}/${mes}/${ano}`;
+    const alunoSelecionado = alunos.find(
+      a => String(a.idtblAluno) === String(aluno)
+    );
+    const nomeAluno = alunoSelecionado?.nome || 'aluno';
 
-      const dados = {
-        aluno,
-        data: dataFormatada,
-        turma,
-        observacao: observacoes
-      };
+    const nomeArquivo = nomeAluno
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')   // tira acentos
+      .replace(/\s+/g, '_');             // troca espaços por _
 
-      const response = await authFetch(
-        API.termoDeCiencia ,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(dados)
-        }
-      );
+    a.download = `TermoCiencia_${nomeArquivo}.docx`;
 
-      if (!response.ok) {
-
-        const erroServidor = await response.json();
-
-        alert(`Erro: ${erroServidor.mensagem}`);
-
-        return;
-      }
-
-      const blob = await response.blob();
-
-      const url = window.URL.createObjectURL(blob);
-
-      const a = document.createElement('a');
-
-      a.href = url;
-
-      a.download = `TermoDeCiencia_${aluno}.docx`;
-
-      document.body.appendChild(a);
-
-      a.click();
-
-      a.remove();
-
-    } catch (error) {
-
-      console.error(error);
-
-      alert('Erro ao gerar documento');
-    }
-  };
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  } catch (error) {
+    console.error(error);
+    toast.error('Erro ao gerar documento');
+  }
+};
 
   return (
 
@@ -309,8 +348,8 @@ const turmasFiltradas = turmas.filter((t) => {
               {Array.isArray(alunos) && alunos.map((a) => (
 
                 <option
-                  key={a.idtbdAluno}
-                  value={a.nome}
+                  key={a.idtblAluno}
+                  value={a.idtblAluno}
                 >
                   {a.nome}
                 </option>
@@ -323,18 +362,18 @@ const turmasFiltradas = turmas.filter((t) => {
 
           {/* DATA */}
           <div className="flex-1">
-
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Data do Conselho(*):
-            </label>
-
-            <input
-              type="date"
-              value={dataConselho}
-              onChange={(e) => setDataConselho(e.target.value)}
-              className="w-full border-2 border-gray-300 rounded-lg px-4 py-3"
-            />
-
+            <label className="block text-sm font-medium text-gray-700 mb-1">Semestre / Ano Referência (*):</label>
+            <select
+              value={semestre && ano ? `${semestre}/${ano}` : ''}
+              onChange={handleSelecionarSemestreAno}
+              className="w-full border-2 border-gray-300 rounded-lg px-4 py-3">              
+              <option value="">Selecione o período</option>
+              {opcoesSemestreAno.map(op => (
+                <option key={op.valor} value={op.valor}>
+                  {op.semestre}º Semestre / {op.ano}
+                </option>
+              ))}
+            </select>
           </div>
 
         </div>

@@ -20,11 +20,10 @@ router.get('/datas', async (req, res) => {
         "idConselho",
         "semestre",
         "ano",
-        TO_CHAR("dataRealizacao", 'DD/MM/YYYY') AS "dataFormatada",
-        TO_CHAR("dataRealizacao", 'YYYY-MM-DD') AS "dataInput"
+        "tipoConselho",
+        TO_CHAR("dataRealizacao", 'DD/MM/YYYY') AS "dataFormatada"
       FROM "Conselho"
-      WHERE "semestre" IS NOT NULL 
-        AND "ano" IS NOT NULL
+      WHERE "semestre" IS NOT NULL AND "ano" IS NOT NULL
       ORDER BY "ano" DESC, "semestre" DESC
     `;
 
@@ -195,8 +194,24 @@ router.post('/gerar-doc', async (req, res) => {
         WHERE C."semestre" = ${Number(semestre)}
           AND C."ano" = ${Number(ano)}
           AND C."tipoConselho" = 'Final'
-        ORDER BY T."codigo" ASC, A."nome" ASC
-      `;
+          AND AA."situacaoFinal" IN ('Aprovado pelo conselho', 'Reprovado')
+        UNION
+        SELECT 
+          A."nome" as "nomeAluno",
+          T."codigo" as "codigoTurma",
+          'Reprovado' as "situacao",
+          AA."justificativa" as "contestacao"
+        FROM "Avaliacao_Aluno" AA
+        INNER JOIN "tblAluno" A ON AA."tblAluno_idtblAluno" = A."idtblAluno"
+        INNER JOIN "Turma" T ON A."Turma_idTurma" = T."idTurma"
+        INNER JOIN "Conselho" C ON AA."Conselho_idConselho" = C."idConselho"
+        WHERE C."semestre" = ${Number(semestre)}
+          AND C."ano" = ${Number(ano)}
+          AND C."tipoConselho" = 'Pré-Conselho'
+          AND AA."justificativa" IS NOT NULL
+          AND TRIM(AA."justificativa") <> ''
+        ORDER BY "codigoTurma" ASC, "nomeAluno" ASC
+      `;    
 
       // Guarda o array de alunos com segurança
       const listaAlunos = result.rows || result;

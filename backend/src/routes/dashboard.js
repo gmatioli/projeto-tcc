@@ -18,25 +18,31 @@ router.get('/dados', async (req, res) => {
             SELECT COUNT(*) as count 
             FROM "tblAluno" 
             WHERE "idtblAluno" NOT IN (
-                SELECT "tblAluno_idtblAluno" 
-                FROM "Avaliacao_Aluno" 
-                WHERE 
-                    ("naturezaOcorrencia" IS NOT NULL AND CAST("naturezaOcorrencia" AS TEXT) NOT IN ('', '[]', '{}')) OR
-                    ("restricao" IS NOT NULL AND TRIM("restricao") != '') OR
-                    ("acaoProposta" IS NOT NULL AND TRIM("acaoProposta") != '') OR
-                    ("justificativa" IS NOT NULL AND TRIM("justificativa") != '')
+            SELECT AA."tblAluno_idtblAluno" 
+            FROM "Avaliacao_Aluno" AA
+            INNER JOIN "Conselho" C ON AA."Conselho_idConselho" = C."idConselho"
+            WHERE C."tipoConselho" IN ('Pré-Conselho', 'Intermediário')
+                AND (
+                (AA."acaoProposta" IS NOT NULL AND TRIM(AA."acaoProposta") != '')
+                OR (AA."justificativa" IS NOT NULL AND TRIM(AA."justificativa") != '')
+                )
             )
         `;
         const totalSituacaoNormal = parseInt(resultSituacaoNormal[0].count) || 0;
 
+        const resultObservacoes = await db `SELECT COUNT(DISTINCT "tblAluno_idtblAluno") as count 
+        FROM "Observacao_Docente"`
+        const totalObservacoes =  parseInt(resultObservacoes[0].count) || 0;
+
         const resultRestritos = await db`
-            SELECT COUNT(DISTINCT "tblAluno_idtblAluno") as count 
-            FROM "Avaliacao_Aluno" 
-            WHERE 
-                ("naturezaOcorrencia" IS NOT NULL AND CAST("naturezaOcorrencia" AS TEXT) NOT IN ('', '[]', '{}')) OR
-                ("restricao" IS NOT NULL AND TRIM("restricao") != '') OR
-                ("acaoProposta" IS NOT NULL AND TRIM("acaoProposta") != '') OR
-                ("justificativa" IS NOT NULL AND TRIM("justificativa") != '')
+            SELECT COUNT(DISTINCT AA."tblAluno_idtblAluno") as count 
+            FROM "Avaliacao_Aluno" AA
+            INNER JOIN "Conselho" C ON AA."Conselho_idConselho" = C."idConselho"
+            WHERE C."tipoConselho" IN ('Pré-Conselho', 'Intermediário')
+            AND (
+                (AA."acaoProposta" IS NOT NULL AND TRIM(AA."acaoProposta") != '')
+                OR (AA."justificativa" IS NOT NULL AND TRIM(AA."justificativa") != '')
+            )
         `;
         const totalRestritos = parseInt(resultRestritos[0].count) || 0;
 
@@ -80,11 +86,12 @@ router.get('/dados', async (req, res) => {
             FROM "Avaliacao_Aluno" aa
             JOIN "tblAluno" a ON aa."tblAluno_idtblAluno" = a."idtblAluno"
             JOIN "Turma" t ON a."Turma_idTurma" = t."idTurma"
-            WHERE 
-                (aa."naturezaOcorrencia" IS NOT NULL AND CAST(aa."naturezaOcorrencia" AS TEXT) NOT IN ('', '[]', '{}')) OR
-                (aa."restricao" IS NOT NULL AND TRIM(aa."restricao") != '') OR
-                (aa."acaoProposta" IS NOT NULL AND TRIM(aa."acaoProposta") != '') OR
-                (aa."justificativa" IS NOT NULL AND TRIM(aa."justificativa") != '')
+            JOIN "Conselho" c ON aa."Conselho_idConselho" = c."idConselho"
+            WHERE c."tipoConselho" IN ('Pré-Conselho', 'Intermediário')
+            AND (
+                (aa."acaoProposta" IS NOT NULL AND TRIM(aa."acaoProposta") != '')
+                OR (aa."justificativa" IS NOT NULL AND TRIM(aa."justificativa") != '')
+            )
             GROUP BY t."idTurma", t."codigo" 
             ORDER BY quantidade_restritos DESC
             LIMIT 7
@@ -99,6 +106,7 @@ router.get('/dados', async (req, res) => {
                 totalTurmas,
                 totalSituacaoNormal,
                 totalRestritos,
+                totalObservacoes,
                 dadosGraficoRosca,
                 rankingTurmas: resultRankingTurmas
             }
