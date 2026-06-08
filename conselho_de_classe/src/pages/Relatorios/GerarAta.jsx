@@ -31,6 +31,7 @@ export function GerarAta() {
           // Percorre a lista segura e separa as opções únicas
           lista.forEach(item => {
             // Verifica se não é nulo/vazio
+            if (item.tipoConselho !== 'Final') return; // <-- adicionar essa linha
             if (item.semestre != null && item.ano != null && String(item.semestre).trim() !== '') {
               const chave = `${item.semestre}/${item.ano}`;
               if (!setUnicos.has(chave)) {

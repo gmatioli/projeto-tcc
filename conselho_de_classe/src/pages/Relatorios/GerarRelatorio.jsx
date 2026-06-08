@@ -21,44 +21,60 @@ export function GerarRelatorio() {
 
  // Busca as datas no backend e filtra os semestres/anos únicos
    useEffect(() => {
-     const buscarDados = async () => {
-       try {
-         const response = await authFetch(`${API.relatorio}/datas`);
-         if (response.ok) {
-           const dados = await response.json();
-           
-           // TRAVA DE SEGURANÇA: Garante que estamos iterando sobre um array
-           // Algumas libs de banco retornam o array dentro de "dados.rows"
-           const lista = Array.isArray(dados) ? dados : (dados.rows || []);
-           
-           const combinacoes = [];
-           const setUnicos = new Set();
-           
-           // Percorre a lista segura e separa as opções únicas
-           lista.forEach(item => {
-             // Verifica se não é nulo/vazio
-             if (item.semestre != null && item.ano != null && String(item.semestre).trim() !== '') {
-               const chave = `${item.semestre}/${item.ano}`;
-               if (!setUnicos.has(chave)) {
-                 setUnicos.add(chave);
-                 combinacoes.push({ 
-                   valor: chave, 
-                   semestre: item.semestre, 
-                   ano: item.ano,
-                   dataConselho: item.dataFormatada
-                 });
-               }
-             }
-           });
-           
-           setOpcoesSemestreAno(combinacoes);
-         }
-       } catch (error) {
-         toast.error('Erro ao buscar dados do conselho:', error);
-       }
-     };
-     buscarDados();
-   }, []);
+
+    if(!conselho){
+      setOpcoesSemestreAno([]);
+      return;
+    }
+
+    const buscarDados = async () => {
+      try {
+        const response = await authFetch(`${API.relatorio}/datas`);
+        if (response.ok) {
+          const dados = await response.json();
+          
+          // TRAVA DE SEGURANÇA: Garante que estamos iterando sobre um array
+          // Algumas libs de banco retornam o array dentro de "dados.rows"
+          const lista = Array.isArray(dados) ? dados : (dados.rows || []);
+        
+            // Mapeia o valor do select para o tipoConselho do banco
+          const tipoMap = {
+            preConselho: 'Pré-Conselho',
+            intermediario: 'Intermediário',
+          };
+          const tipoFiltro = tipoMap[conselho];
+
+          const combinacoes = [];
+          const setUnicos = new Set();
+          
+          // Percorre a lista segura e separa as opções únicas
+          lista.forEach(item => {
+            // Verifica se não é nulo/vazio
+            if(item.tipoConselho !== tipoFiltro) return;
+            if (item.semestre != null && item.ano != null && String(item.semestre).trim() !== '') {
+              const chave = `${item.semestre}/${item.ano}`;
+              if (!setUnicos.has(chave)) {
+                setUnicos.add(chave);
+                combinacoes.push({ 
+                  valor: chave, 
+                  semestre: item.semestre, 
+                  ano: item.ano,
+                  dataConselho: item.dataFormatada
+                });
+              }
+            }
+          });
+          
+          setOpcoesSemestreAno(combinacoes);
+          setSemestre('');
+          setAno('');
+        }
+      } catch (error) {
+        toast.error('Erro ao buscar dados do conselho:', error);
+      }
+    };
+    buscarDados();
+   }, [conselho]);
 
   // ==========================================
   // LIMPAR
