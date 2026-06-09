@@ -1,5 +1,5 @@
 export const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001';
-
+ 
 export const API = {
     conselho:    `${API_BASE}/conselho`,
     alunos:      `${API_BASE}/alunos`,
@@ -18,8 +18,9 @@ export const API = {
     atribuirTurma: `${API_BASE}/atribuirTurma`,
     turmaDocente: `${API_BASE}/turmaDocente`,
     observacoes: `${API_BASE}/observacoes`,
+    docentesTurma: (idTurma) => `${API_BASE}/observacoes/docentes-turma/${idTurma}`,
 };
-
+ 
 // ── lê o token salvo no login ───────────────────────────────
 function getToken() {
   try {
@@ -29,16 +30,16 @@ function getToken() {
     return null;
   }
 }
-
+ 
 // ── fetch com token embutido + tratamento de token expirado ──
 export async function authFetch(url, options = {}) {
   const token = getToken();
-
+ 
   const headers = { ...(options.headers || {}) };
   if (token) headers.Authorization = `Bearer ${token}`;
-
+ 
   const resposta = await fetch(url, { ...options, headers });
-
+ 
   // 401 = token ausente/inválido/expirado → desloga e volta pro Login
   if (resposta.status === 401) {
     localStorage.removeItem('usuarioLogado');
@@ -46,6 +47,6 @@ export async function authFetch(url, options = {}) {
       window.location.href = '/';
     }
   }
-
+ 
   return resposta;
 }
