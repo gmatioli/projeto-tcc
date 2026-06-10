@@ -7,7 +7,7 @@ import { API, authFetch } from '../../config/api';
 import ModalObservacoes from '../../components/modalObservacao/ModalObservacao';
  
 // ── Modal: Adicionar / Editar Observação ───────────────────────────────────
-function ModalNovaObservacao({ isOpen, onClose, aluno, obsEditando, onSuccess }) {
+function ModalNovaObservacao({ isOpen, onClose, aluno, obsEditando, onSuccess, idUsuarioLogado }) {
   if (!isOpen) return null;
  
   const [texto, setTexto] = useState(obsEditando?.texto || '');
@@ -31,12 +31,14 @@ function ModalNovaObservacao({ isOpen, onClose, aluno, obsEditando, onSuccess })
       let response;
  
       if (obsEditando && obsEditando.id) {
+        // PUT — envia idUsuario no body para validação de dono no backend
         response = await authFetch(`${API.observacoes}/${obsEditando.id}`, { 
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             descricao: texto,
-            dataObservacao: data
+            dataObservacao: data,
+            idUsuario: idUsuarioLogado,
           })
         });
       } else {
@@ -55,13 +57,14 @@ function ModalNovaObservacao({ isOpen, onClose, aluno, obsEditando, onSuccess })
         });
       }
  
-      if (response.ok) {
+      const responseData = await response.json();
+ 
+      if (response.ok && responseData.sucesso) {
         toast.success(obsEditando ? 'Observação atualizada com sucesso!' : 'Observação salva com sucesso!');
         onClose();
         if (onSuccess) onSuccess(); 
       } else {
-        const errorData = await response.json();
-        toast.error(`Erro ao salvar: ${errorData.mensagem || 'Tente novamente.'}`);
+        toast.error(`Erro: ${responseData.mensagem || 'Tente novamente.'}`);
       }
  
     } catch (error) {
@@ -135,43 +138,24 @@ function GraficoRosca({ comObs, semObs }) {
  
   const dashSem = circ * pctSem;
   const gapSem = circ - dashSem;
-  
   const offsetSem = -dashCom;
  
   return (
     <div className="flex flex-col items-center">
       <p className="text-sm font-bold text-gray-700 mb-2">Gráfico de Alunos</p>
-      
       <svg width="140" height="140" viewBox="0 0 140 140">
         <circle cx={cx} cy={cy} r={r} fill="none" stroke="#e5e7eb" strokeWidth="22" />
-        
-        <circle 
-          cx={cx} cy={cy} r={r} 
-          fill="none" 
-          stroke="#bdd2f3ff" 
-          strokeWidth="22"
-          strokeDasharray={`${dashSem} ${gapSem}`}
-          strokeDashoffset={offsetSem}
-          transform={`rotate(-90 ${cx} ${cy})`} 
-          className="cursor-pointer transition-opacity hover:opacity-75"
-        >
+        <circle cx={cx} cy={cy} r={r} fill="none" stroke="#bdd2f3ff" strokeWidth="22"
+          strokeDasharray={`${dashSem} ${gapSem}`} strokeDashoffset={offsetSem}
+          transform={`rotate(-90 ${cx} ${cy})`} className="cursor-pointer transition-opacity hover:opacity-75">
           <title>Sem observação: {semObs} aluno(s)</title>
         </circle>
- 
-        <circle 
-          cx={cx} cy={cy} r={r} 
-          fill="none" 
-          stroke="#f91616ff" 
-          strokeWidth="22"
-          strokeDasharray={`${dashCom} ${gapCom}`}
-          strokeDashoffset={0}
-          transform={`rotate(-90 ${cx} ${cy})`} 
-          className="cursor-pointer transition-opacity hover:opacity-75"
-        >
+        <circle cx={cx} cy={cy} r={r} fill="none" stroke="#f91616ff" strokeWidth="22"
+          strokeDasharray={`${dashCom} ${gapCom}`} strokeDashoffset={0}
+          transform={`rotate(-90 ${cx} ${cy})`} className="cursor-pointer transition-opacity hover:opacity-75">
           <title>Com observação: {comObs} aluno(s)</title>
         </circle>
       </svg>
- 
       <div className="flex flex-col gap-1 mt-1 text-xs">
         <span className="flex items-center gap-1">
           <span className="w-3 h-3 rounded-full bg-[#bdd2f3ff] inline-block"/> Sem Observação
@@ -191,14 +175,16 @@ export function TurmasDocente() {
  
   const idTurma    = searchParams.get('turma');
   const nomeTurma  = searchParams.get('nomeTurma');
-  const modo       = searchParams.get('modo');
+ 
+  // Usuário logado
+  const usuarioLogado = JSON.parse(localStorage.getItem('usuarioLogado') || '{}');
+  const idUsuarioLogado = usuarioLogado.idUsuario;
  
   // ── Estado da lista de alunos ──────────────────────────────────────────
   const [alunos,     setAlunos]     = useState([]);
   const [carregando, setCarregando] = useState(false);
   const [erro,       setErro]       = useState('');
  
-  // ── Busca alunos sempre que o idTurma mudar ──
   const buscarAlunos = async () => {
     if (!idTurma) {
       setAlunos([]);
@@ -241,7 +227,8 @@ export function TurmasDocente() {
               texto: o.descricao,
               data: dataObj.toLocaleDateString('pt-BR', { timeZone: 'UTC' }),
               dataRaw: `${ano}-${mes}-${dia}`,
-              docente: o.docente
+              docente: o.docente,
+              docenteId: o.docenteId, // <-- id do dono da observação
             };
           })
         };
@@ -261,7 +248,6 @@ export function TurmasDocente() {
     buscarAlunos();
   }, [idTurma]);
  
-  // ── Métricas para os cards ───────────────────────────────────────────
   const comObs   = alunos.filter(a => a.observacoes.length > 0).length;
   const semObs   = alunos.filter(a => a.observacoes.length === 0).length;
   const totalObs = alunos.reduce((acc, a) => acc + a.observacoes.length, 0);
@@ -279,41 +265,38 @@ export function TurmasDocente() {
   };
   const fecharNova = () => setModalNova({ open: false, aluno: null, obsEditando: null });
  
-  // ── Excluir observação com toast de confirmação ────────────────────────
+  // ── Excluir observação com validação de dono ───────────────────────────
   const handleExcluirObservacao = (idObservacao) => {
     toast('Tem certeza que deseja excluir esta observação?', {
       action: {
         label: 'Excluir',
         onClick: async () => {
           try {
-            const res = await authFetch(`${API.observacoes}/${idObservacao}`, { method: 'DELETE' });
+            // Envia idUsuario como query param para validação no backend
+            const url = `${API.observacoes}/${idObservacao}${idUsuarioLogado ? `?idUsuario=${idUsuarioLogado}` : ''}`;
+            const res = await authFetch(url, { method: 'DELETE' });
             const data = await res.json();
  
             if (res.ok && data.sucesso) {
               toast.success('Observação excluída com sucesso!');
               buscarAlunos();
             } else {
-              toast.error(`Erro ao excluir: ${data.mensagem || 'Tente novamente.'}`);
+              toast.error(`Erro: ${data.mensagem || 'Tente novamente.'}`);
             }
           } catch (error) {
             console.error("Erro ao excluir:", error);
-            toast.error('Erro de conexão ao tentar excluir. Tente novamente.');
+            toast.error('Erro de conexão ao tentar excluir.');
           }
         },
       },
-      cancel: {
-        label: 'Cancelar',
-        onClick: () => {},
-      },
+      cancel: { label: 'Cancelar', onClick: () => {} },
       duration: 6000,
     });
   };
  
-  // ── Render ─────────────────────────────────────────────────────────────
   return (
     <div className="flex flex-col h-full bg-gray-100 p-5 overflow-auto">
  
-      {/* Breadcrumb */}
       <nav className="mb-4 text-sm text-gray-500">
         <span>Turmas/ </span>
         <span className="font-semibold text-gray-800">
@@ -321,7 +304,6 @@ export function TurmasDocente() {
         </span>
       </nav>
  
-      {/* Estado: nenhuma turma selecionada */}
       {!idTurma && (
         <div className="flex-1 flex flex-col items-center justify-center text-gray-400 gap-3">
           <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -332,23 +314,22 @@ export function TurmasDocente() {
         </div>
       )}
  
-      {/* Estado: carregando */}
       {idTurma && carregando && (
         <div className="flex-1 flex items-center justify-center text-gray-400 italic">
           Carregando alunos da turma...
         </div>
       )}
  
-      {/* Estado: erro */}
       {idTurma && !carregando && erro && (
         <div className="flex-1 flex items-center justify-center text-red-500 italic">
           {erro}
         </div>
       )}
  
-      {/* Conteúdo principal */}
       {idTurma && !carregando && !erro && (
         <>
+
+
           {/* Cards de resumo + Gráfico */}
           <div className="flex gap-4 mb-5">
  
@@ -358,12 +339,32 @@ export function TurmasDocente() {
                 <p className="text-4xl font-bold text-gray-800">{alunos.length}</p>
                 <p className="text-sm text-gray-600 mt-1 font-medium">Total de Alunos</p>
               </div>
+              {/* Div container com fundo cinza redondo e centralizando o SVG */}
               <div className="flex justify-end">
-                <svg width="32" height="32" fill="none" viewBox="0 0 41 41" xmlns="http://www.w3.org/2000/svg">
-                  <rect width="40" height="40" rx="12" fill="#F0F0F0"/>
-                  <path d="M4.6 9.6L13.8 6.3l9.2 3.3-4.2 2.5v2.5s-1.1-.8-5-.8-5 .8-5 .8V12.1L4.6 9.6zm0 0v6.7" stroke="black" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
-                  <path d="M18.8 13.8v1.5c0 2.87-2.24 5.2-5 5.2s-5-2.33-5-5.2v-1.5" stroke="black" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
+                <div className="w-10 h-10 bg-gray-100 rounded-xl flex items-center justify-center">
+                  <svg 
+                    width="24" 
+                    height="24" 
+                    fill="none" 
+                    viewBox="0 0 28 24" 
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path 
+                      d="M2 7.5L14 3l12 4.5-5.5 3.3v3.3s-1.5-1.1-6.5-1.1-6.5 1.1-6.5 1.1V10.8L2 7.5zm0 0v9" 
+                      stroke="black" 
+                      strokeWidth="2.5" 
+                      strokeLinecap="round" 
+                      strokeLinejoin="round"
+                    />
+                    <path 
+                      d="M20.5 13v2c0 3.8-3 6.5-6.5 6.5s-6.5-2.7-6.5-6.5v-2" 
+                      stroke="black" 
+                      strokeWidth="2.5" 
+                      strokeLinecap="round" 
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </div>
               </div>
             </div>
  
@@ -404,7 +405,6 @@ export function TurmasDocente() {
  
           </div>
  
-          {/* Lista de Alunos */}
           {alunos.length === 0 ? (
             <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-8 text-center text-gray-400 italic">
               Nenhum aluno encontrado para esta turma.
@@ -416,7 +416,6 @@ export function TurmasDocente() {
                   key={aluno.id}
                   className={`flex items-center justify-between px-5 py-4 ${idx < alunos.length - 1 ? 'border-b border-gray-100' : ''}`}
                 >
-                  {/* Avatar + Nome + (Ver Observações) */}
                   <div className="flex items-center gap-3">
                     <div className="w-9 h-9 rounded-full bg-gray-200 flex items-center justify-center shrink-0">
                       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -439,7 +438,6 @@ export function TurmasDocente() {
                     )}
                   </div>
  
-                  {/* Botão + (nova obs) */}
                   <button
                     onClick={() => abrirNova(aluno)}
                     className="w-7 h-7 flex items-center justify-center text-gray-400 hover:text-red-600 transition text-xl font-light"
@@ -459,6 +457,9 @@ export function TurmasDocente() {
         isOpen={modalObs.open}
         onClose={fecharObs}
         aluno={modalObs.aluno}
+        idTurma={idTurma}
+        idUsuarioLogado={idUsuarioLogado}
+        somenteLeitura={false}
         onAdicionar={abrirNova}
         onSuccess={buscarAlunos}
         onExcluir={handleExcluirObservacao}
@@ -469,7 +470,9 @@ export function TurmasDocente() {
         aluno={modalNova.aluno}
         obsEditando={modalNova.obsEditando}
         onSuccess={buscarAlunos}
+        idUsuarioLogado={idUsuarioLogado}
       />
     </div>
   );
 }
+ 

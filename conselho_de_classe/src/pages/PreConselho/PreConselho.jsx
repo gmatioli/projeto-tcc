@@ -641,12 +641,15 @@ export function PreConselho() {
                     )}
                 </section>
             </div>
-            <ModalObservacoes
-            isOpen={modalObsAberto}
-            onClose={() => { setModalObsAberto(false); setAlunoSelecionadoObs(null); }}
-            aluno={alunoSelecionadoObs}
-            somenteLeitura={true} // <-- Aqui garante que o ADMIN não possa alterar nem deletar nada!
-        />
+                <ModalObservacoes
+                    isOpen={modalObsAberto}
+                    onClose={() => { setModalObsAberto(false); setAlunoSelecionadoObs(null); }}
+                    aluno={alunoSelecionadoObs}
+                    idTurma={idTurma}
+                    idUsuarioLogado={idUsuario}
+                    somenteLeitura={true}
+                />
+
       </section>
       
       

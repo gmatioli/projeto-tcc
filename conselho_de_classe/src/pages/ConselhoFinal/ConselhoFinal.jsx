@@ -782,12 +782,15 @@ const ConselhoFinal = () => {
         soLeitura={modalSoLeitura}
         onSalvar={handleSalvarJustificativa}
       />
-      <ModalObservacoes
+        <ModalObservacoes
             isOpen={modalObsAberto}
             onClose={() => { setModalObsAberto(false); setAlunoSelecionadoObs(null); }}
             aluno={alunoSelecionadoObs}
-            somenteLeitura={true} // <-- Aqui garante que o ADMIN não possa alterar nem deletar nada!
+            idTurma={turmaSelecionada}
+            idUsuarioLogado={idUsuario}
+            somenteLeitura={true}
         />
+
     </div>
   );
 };
