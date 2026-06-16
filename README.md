@@ -12,7 +12,7 @@
 
 ## Documentação Completa do Projeto
 > Para acessar o arquivo com os requisitos detalhados, a modelagem de dados e as tela do sistema na íntegra, clique no link abaixo:
->[Acessar Documentação Técnica Completa (PDF)]()[](https://drive.google.com/file/d/1WownKyBoaxoYyS7Z8d9ZENXiqz7ojWGT/view?usp=drivesdk)
+>[Acessar Documentação Técnica Completa (PDF)](https://drive.google.com/file/d/1WownKyBoaxoYyS7Z8d9ZENXiqz7ojWGT/view?usp=drivesdk)
 
 ---
 
