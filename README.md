@@ -10,6 +10,20 @@
 
 ---
 
+# Quer testar? Use esses usuários como Login:
+
+## Tela de Administrador
+> email: adm@senai
+
+> senha: 12312312
+
+## Tela de Docente
+> email: docente@senai
+ 
+> senha: 12312312
+
+---
+
 ## Documentação Completa do Projeto
 > Para acessar o arquivo com os requisitos detalhados, a modelagem de dados e as tela do sistema na íntegra, clique no link abaixo:
 >[Acessar Documentação Técnica Completa (PDF)](https://drive.google.com/file/d/1WownKyBoaxoYyS7Z8d9ZENXiqz7ojWGT/view?usp=drivesdk)
